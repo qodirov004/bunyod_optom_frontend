@@ -9,7 +9,7 @@ import CashFlow from '../../components/CashFlow';
 import styles from '../../finance.module.css';
 
 const { Title, Text } = Typography;
-const { TabPane } = Tabs;
+
 const { Option } = Select;
 
 const CashManagement: React.FC = () => {
@@ -223,121 +223,141 @@ const CashManagement: React.FC = () => {
         </Row>
       )}
 
-      <Tabs activeKey={activeTab} onChange={setActiveTab} style={{ marginTop: 24 }}>
-        <TabPane tab={<span><DollarOutlined /> Umumiy Ma'lumot</span>} key="overview">
-          <Card title="Moliyaviy ko'rsatkichlar" loading={loading}>
-            {cashOverview && (
-              <Row gutter={[16, 16]}>
-                <Col span={8}>
-                  <Statistic
-                    title="Jami daromad (USD)"
-                    value={cashOverview.total_income_usd || 0}
-                    precision={2}
-                    valueStyle={{ color: '#3f8600' }}
-                    prefix="$"
+      <Tabs 
+        activeKey={activeTab} 
+        onChange={setActiveTab} 
+        style={{ marginTop: 24 }}
+        items={[
+          {
+            key: 'overview',
+            label: <span><DollarOutlined /> Umumiy Ma'lumot</span>,
+            children: (
+              <>
+                <Card title="Moliyaviy ko'rsatkichlar" loading={loading}>
+                  {cashOverview && (
+                    <Row gutter={[16, 16]}>
+                      <Col span={8}>
+                        <Statistic
+                          title="Jami daromad (USD)"
+                          value={cashOverview.total_income_usd || 0}
+                          precision={2}
+                          valueStyle={{ color: '#3f8600' }}
+                          prefix="$"
+                        />
+                      </Col>
+                      <Col span={8}>
+                        <Statistic
+                          title="Jami xarajat (USD)"
+                          value={cashOverview.total_expense_usd || 0}
+                          precision={2}
+                          valueStyle={{ color: '#cf1322' }}
+                          prefix="$"
+                        />
+                      </Col>
+                      <Col span={8}>
+                        <Statistic
+                          title="Qarzdorlar soni"
+                          value={clientDebts?.length || 0}
+                          valueStyle={{ color: '#1890ff' }}
+                          prefix={<UserOutlined />}
+                        />
+                      </Col>
+                    </Row>
+                  )}
+                </Card>
+                
+                <Card title="So'nggi Tranzaksiyalar" style={{ marginTop: 16 }}>
+                  <TransactionsList 
+                    transactions={transactions.slice(0, 5)} 
+                    showPagination={false}
+                    loading={loading}
                   />
-                </Col>
-                <Col span={8}>
-                  <Statistic
-                    title="Jami xarajat (USD)"
-                    value={cashOverview.total_expense_usd || 0}
-                    precision={2}
-                    valueStyle={{ color: '#cf1322' }}
-                    prefix="$"
-                  />
-                </Col>
-                <Col span={8}>
-                  <Statistic
-                    title="Qarzdorlar soni"
-                    value={clientDebts?.length || 0}
-                    valueStyle={{ color: '#1890ff' }}
-                    prefix={<UserOutlined />}
-                  />
-                </Col>
-              </Row>
-            )}
-          </Card>
-          
-          <Card title="So'nggi Tranzaksiyalar" style={{ marginTop: 16 }}>
-            <TransactionsList 
-              transactions={transactions.slice(0, 5)} 
-              showPagination={false}
-              loading={loading}
-            />
-            {transactions.length > 5 && (
-              <div style={{ textAlign: 'center', marginTop: 16 }}>
-                <Button 
-                  type="link" 
-                  onClick={() => setActiveTab('transactions')}
-                >
-                  Barcha tranzaksiyalarni ko'rish
-                </Button>
-              </div>
-            )}
-          </Card>
-          
-          <Card title="Pul Oqimi" style={{ marginTop: 16 }}>
-            <CashFlow transactions={transactions} />
-          </Card>
-        </TabPane>
-        
-        <TabPane tab={<span><UserOutlined /> Qarzdorlar</span>} key="debtors">
-          <Card>
-            <FinancialSummary 
-              clientDebts={clientDebts}
-              loading={loading}
-            />
-          </Card>
-        </TabPane>
-        
-        <TabPane tab={<span><CarOutlined /> Tranzaksiyalar Tarixi</span>} key="transactions">
-          <Card>
-            <TransactionsList 
-              transactions={transactions} 
-              showPagination={true}
-              loading={loading}
-            />
-          </Card>
-        </TabPane>
-        
-        <TabPane tab={<span><BankOutlined /> To'lov Turlari</span>} key="payment-types">
-          <Card title="To'lov Turlari va Hisob-kitob">
-            <Row gutter={[16, 16]}>
-              <Col xs={24} md={12} lg={6}>
-                <Card className={styles['payment-type-card']}>
-                  <DollarOutlined style={{ fontSize: 24, color: '#52c41a' }} />
-                  <Title level={5} style={{ marginTop: 16 }}>To'liq to'lov</Title>
-                  <Text>Mijoz barcha xizmat uchun to'lovni to'liq amalga oshiradi</Text>
+                  {transactions.length > 5 && (
+                    <div style={{ textAlign: 'center', marginTop: 16 }}>
+                      <Button 
+                        type="link" 
+                        onClick={() => setActiveTab('transactions')}
+                      >
+                        Barcha tranzaksiyalarni ko'rish
+                      </Button>
+                    </div>
+                  )}
                 </Card>
-              </Col>
-              
-              <Col xs={24} md={12} lg={6}>
-                <Card className={styles['payment-type-card']}>
-                  <WalletOutlined style={{ fontSize: 24, color: '#1890ff' }} />
-                  <Title level={5} style={{ marginTop: 16 }}>Yarim to'lov</Title>
-                  <Text>Mijoz to'lovning bir qismini amalga oshiradi, qolganini keyinroq to'laydi</Text>
+                
+                <Card title="Pul Oqimi" style={{ marginTop: 16 }}>
+                  <CashFlow transactions={transactions} />
                 </Card>
-              </Col>
-              
-              <Col xs={24} md={12} lg={6}>
-                <Card className={styles['payment-type-card']}>
-                  <BankOutlined style={{ fontSize: 24, color: '#faad14' }} />
-                  <Title level={5} style={{ marginTop: 16 }}>Qarzga savdo</Title>
-                  <Text>Mijoz xizmatdan avval foydalanib, to'lovni keyinroq amalga oshiradi</Text>
-                </Card>
-              </Col>
-              
-              <Col xs={24} md={12} lg={6}>
-                <Card className={styles['payment-type-card']}>
-                  <CarOutlined style={{ fontSize: 24, color: '#722ed1' }} />
-                  <Title level={5} style={{ marginTop: 16 }}>Haydovchi orqali</Title>
-                  <Text>Mijoz to'lovni bevosita haydovchiga amalga oshiradi</Text>
-                </Card>
-              </Col>
-            </Row>
-          </Card>
-        </TabPane>
-      </Tabs>
+              </>
+            )
+          },
+          {
+            key: 'debtors',
+            label: <span><UserOutlined /> Qarzdorlar</span>,
+            children: (
+              <Card>
+                <FinancialSummary 
+                  clientDebts={clientDebts}
+                  loading={loading}
+                />
+              </Card>
+            )
+          },
+          {
+            key: 'transactions',
+            label: <span><CarOutlined /> Tranzaksiyalar Tarixi</span>,
+            children: (
+              <Card>
+                <TransactionsList 
+                  transactions={transactions} 
+                  showPagination={true}
+                  loading={loading}
+                />
+              </Card>
+            )
+          },
+          {
+            key: 'payment-types',
+            label: <span><BankOutlined /> To'lov Turlari</span>,
+            children: (
+              <Card title="To'lov Turlari va Hisob-kitob">
+                <Row gutter={[16, 16]}>
+                  <Col xs={24} md={12} lg={6}>
+                    <Card className={styles['payment-type-card']}>
+                      <DollarOutlined style={{ fontSize: 24, color: '#52c41a' }} />
+                      <Title level={5} style={{ marginTop: 16 }}>To'liq to'lov</Title>
+                      <Text>Mijoz barcha xizmat uchun to'lovni to'liq amalga oshiradi</Text>
+                    </Card>
+                  </Col>
+                  
+                  <Col xs={24} md={12} lg={6}>
+                    <Card className={styles['payment-type-card']}>
+                      <WalletOutlined style={{ fontSize: 24, color: '#1890ff' }} />
+                      <Title level={5} style={{ marginTop: 16 }}>Yarim to'lov</Title>
+                      <Text>Mijoz to'lovning bir qismini amalga oshiradi, qolganini keyinroq to'laydi</Text>
+                    </Card>
+                  </Col>
+                  
+                  <Col xs={24} md={12} lg={6}>
+                    <Card className={styles['payment-type-card']}>
+                      <BankOutlined style={{ fontSize: 24, color: '#faad14' }} />
+                      <Title level={5} style={{ marginTop: 16 }}>Qarzga savdo</Title>
+                      <Text>Mijoz xizmatdan avval foydalanib, to'lovni keyinroq amalga oshiradi</Text>
+                    </Card>
+                  </Col>
+                  
+                  <Col xs={24} md={12} lg={6}>
+                    <Card className={styles['payment-type-card']}>
+                      <CarOutlined style={{ fontSize: 24, color: '#722ed1' }} />
+                      <Title level={5} style={{ marginTop: 16 }}>Haydovchi orqali</Title>
+                      <Text>Mijoz to'lovni bevosita haydovchiga amalga oshiradi</Text>
+                    </Card>
+                  </Col>
+                </Row>
+              </Card>
+            )
+          }
+        ]} 
+      />
       
       {/* Add Transaction Modal */}
       <Modal

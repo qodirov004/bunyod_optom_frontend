@@ -22,6 +22,7 @@ import { DashboardLayout } from '../../../components/layout/DashboardLayout';
 
 const { Title, Text } = Typography;
 const { TabPane } = Tabs;
+
 const { Panel } = Collapse;
 
 // CSS styles for maintenance view (copy from accounting module)

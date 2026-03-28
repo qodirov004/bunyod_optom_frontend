@@ -10,7 +10,6 @@ import { cashApi } from '../../../../../accounting/api/cash/cashApi';
 import styles from '../../finance.module.css';
 
 const { Title, Text } = Typography;
-const { TabPane } = Tabs;
 const { Option } = Select;
 
 // Define types

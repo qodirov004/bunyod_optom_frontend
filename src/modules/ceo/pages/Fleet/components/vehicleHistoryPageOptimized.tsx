@@ -16,7 +16,7 @@ const VehicleDetails = lazy(() => import('./VehicleDetails'));
 const TripsHistory = lazy(() => import('./TripsHistory'));
 const MaintenanceRecords = lazy(() => import('./MaintenanceRecords'));
 
-const { TabPane } = Tabs;
+
 
 interface VehicleHistoryPageProps {
   id?: string;
@@ -130,31 +130,33 @@ const VehicleHistoryPage = ({ id }: VehicleHistoryPageProps) => {
           activeKey={activeTab}
           onChange={setActiveTab}
           style={{ marginTop: '20px' }}
-        >
-          <TabPane 
-            tab={<span><HistoryOutlined /> Reyslar tarixi ({rays_count})</span>}
-            key="reyslar"
-          >
-            <div style={{ padding: '16px 0' }}>
-              <Suspense fallback={<Spin />}>
-                <TripsHistory trips={rays_history} />
-              </Suspense>
-            </div>
-          </TabPane>
-          
-          <TabPane 
-            tab={<span><ToolOutlined /> Texnik xizmat tarixi</span>}
-            key="texnik"
-          >
-            <Suspense fallback={<Spin />}>
-              <MaintenanceRecords
-                optol={optol}
-                bolon={bolon}
-                texnic={texnic}
-              />
-            </Suspense>
-          </TabPane>
-        </Tabs>
+          items={[
+            {
+              key: 'reyslar',
+              label: <span><HistoryOutlined /> Reyslar tarixi ({rays_count})</span>,
+              children: (
+                <div style={{ padding: '16px 0' }}>
+                  <Suspense fallback={<Spin />}>
+                    <TripsHistory trips={rays_history} />
+                  </Suspense>
+                </div>
+              )
+            },
+            {
+              key: 'texnik',
+              label: <span><ToolOutlined /> Texnik xizmat tarixi</span>,
+              children: (
+                <Suspense fallback={<Spin />}>
+                  <MaintenanceRecords
+                    optol={optol}
+                    bolon={bolon}
+                    texnic={texnic}
+                  />
+                </Suspense>
+              )
+            }
+          ]}
+        />
       </div>
     </DashboardLayout>
   );

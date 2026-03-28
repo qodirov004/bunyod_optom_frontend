@@ -10,7 +10,6 @@ import { useCEOCars, useCEOFurgons } from '../../../../api/vehicles';
 import { tripApi } from '../../../../api/trip/tripApi';
 import { getServices } from '../../../../../accounting/api/maintance/ServiceCreate';
 
-const { TabPane } = Tabs;
 
 // Define types
 export interface Vehicle {
@@ -334,23 +333,28 @@ const VehicleFinance: React.FC = () => {
         />
       ) : (
         <Card>
-      <Tabs activeKey={activeTab} onChange={setActiveTab}>
-            <TabPane tab={<span><CarOutlined /> Transport vositalari</span>} key="vehicles">
-              <VehiclesList vehicles={vehicles} />
-        </TabPane>
-        
-            <TabPane tab={<span><DollarOutlined /> Daromad hisoboti</span>} key="revenue">
-              <RevenueReport vehicles={vehicles} trips={trips} />
-        </TabPane>
-        
-            <TabPane tab={<span><AreaChartOutlined /> Xarajatlar hisoboti</span>} key="expenses">
-              <ExpensesReport vehicles={vehicles} trips={trips} services={services} />
-        </TabPane>
-        
-            <TabPane tab={<span><ToolOutlined /> Texnik xizmat jadvali</span>} key="maintenance">
-              <MaintenanceSchedule vehicles={vehicles} services={services} />
-        </TabPane>
-      </Tabs>
+      <Tabs activeKey={activeTab} onChange={setActiveTab} items={[
+        {
+          key: 'vehicles',
+          label: <span><CarOutlined /> Transport vositalari</span>,
+          children: <VehiclesList vehicles={vehicles} />,
+        },
+        {
+          key: 'revenue',
+          label: <span><DollarOutlined /> Daromad hisoboti</span>,
+          children: <RevenueReport vehicles={vehicles} trips={trips} />,
+        },
+        {
+          key: 'expenses',
+          label: <span><AreaChartOutlined /> Xarajatlar hisoboti</span>,
+          children: <ExpensesReport vehicles={vehicles} trips={trips} services={services} />,
+        },
+        {
+          key: 'maintenance',
+          label: <span><ToolOutlined /> Texnik xizmat jadvali</span>,
+          children: <MaintenanceSchedule vehicles={vehicles} services={services} />,
+        },
+      ]} />
         </Card>
       )}
     </div>

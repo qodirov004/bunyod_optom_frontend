@@ -16,7 +16,9 @@ import {
   Statistic, 
   Divider,
   Tooltip,
-  Alert
+  Alert,
+  Tag,
+  Spin
 } from 'antd';
 import {
   DollarOutlined,
@@ -33,9 +35,9 @@ import { Line, Column } from '@ant-design/charts';
 import moment from 'moment';
 import { useCurrencies } from '../../../../../accounting/hooks/useCurrencies';
 import { financeApi } from '../../../../api/finance/financeApi';
-
-const { Title, Text } = Typography;
 const { TabPane } = Tabs;
+const { Title, Text } = Typography;
+
 const { Option } = Select;
 const { RangePicker } = DatePicker;
 

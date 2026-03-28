@@ -11,7 +11,7 @@ import {
 import FleetFurgonTable from './FleetFurgonTable';
 import styles from '../styles/Fleet.module.css';
 
-const { TabPane } = Tabs;
+
 
 // Define the vehicle types based on the data structures provided
 interface Car {
@@ -157,64 +157,78 @@ const FleetTabs: React.FC<FleetTabsProps> = ({
         </Row>
 
         <Card title="Transport vositalari boshqaruvi" className={styles.mainCard}>
-          <Tabs defaultActiveKey="1" className={styles.innerTabs}>
-            <TabPane tab="Avtomobillar" key="1">
-              <div className={styles.tableActions}>
-                <Input
-                  placeholder="Qidirish..."
-                  prefix={<SearchOutlined />}
-                  onChange={handleSearchChange}
-                  style={{ width: 250, marginBottom: 16 }}
-                  value={searchText}
-                  allowClear
-                />
-                <Button 
-                  type="primary" 
-                  icon={<PlusOutlined />} 
-                  onClick={handleAddCar}
-                >
-                  Yangi avtomobil
-                </Button>
-              </div>
-              <div className={styles.tableWrapper}>
-                <table className={styles.vehicleTable}>
-                  <thead>
-                    <tr>
-                      {carColumns.map((column, index) => (
-                        <th key={index}>{column.title}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredCars.map((car) => (
-                      <tr key={car.id}>
-                        {carColumns.map((column, index) => {
-                          const dataIndex = column.dataIndex;
-                          return (
-                            <td key={index}>
-                              {column.render 
-                                ? column.render(dataIndex ? car[dataIndex] : undefined, car) 
-                                : dataIndex && car[dataIndex]}
-                            </td>
-                          );
-                        })}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </TabPane>
-            <TabPane tab="Furgonlar" key="2">
-              <FleetFurgonTable
-                furgons={filteredFurgons}
-                isLoading={false}
-                onEdit={(furgon) => furgonColumns.find(col => col.key === 'actions')?.onEdit?.(furgon)}
-                onDelete={(furgon) => furgonColumns.find(col => col.key === 'actions')?.onDelete?.(furgon)}
-                onAddNew={handleAddFurgon}
-                onViewHistory={(id) => furgonColumns.find(col => col.key === 'actions')?.onViewHistory?.(id)}
-              />
-            </TabPane>
-          </Tabs>
+          <Tabs 
+            defaultActiveKey="1" 
+            className={styles.innerTabs}
+            items={[
+              {
+                key: '1',
+                label: 'Avtomobillar',
+                children: (
+                  <>
+                    <div className={styles.tableActions}>
+                      <Input
+                        placeholder="Qidirish..."
+                        prefix={<SearchOutlined />}
+                        onChange={handleSearchChange}
+                        style={{ width: 250, marginBottom: 16 }}
+                        value={searchText}
+                        allowClear
+                      />
+                      <Button 
+                        type="primary" 
+                        icon={<PlusOutlined />} 
+                        onClick={handleAddCar}
+                      >
+                        Yangi avtomobil
+                      </Button>
+                    </div>
+                    <div className={styles.tableWrapper}>
+                      <table className={styles.vehicleTable}>
+                        <thead>
+                          <tr>
+                            {carColumns.map((column, index) => (
+                              <th key={index}>{column.title}</th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {filteredCars.map((car) => (
+                            <tr key={car.id}>
+                              {carColumns.map((column, index) => {
+                                const dataIndex = column.dataIndex;
+                                return (
+                                  <td key={index}>
+                                    {column.render 
+                                      ? column.render(dataIndex ? car[dataIndex] : undefined, car) 
+                                      : dataIndex && car[dataIndex]}
+                                  </td>
+                                );
+                              })}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </>
+                )
+              },
+              {
+                key: '2',
+                label: 'Furgonlar',
+                children: (
+                  <FleetFurgonTable
+                    furgons={filteredFurgons}
+                    isLoading={false}
+                    onEdit={(furgon) => furgonColumns.find(col => col.key === 'actions')?.onEdit?.(furgon)}
+                    onDelete={(furgon) => furgonColumns.find(col => col.key === 'actions')?.onDelete?.(furgon)}
+                    onAddNew={handleAddFurgon}
+                    onViewHistory={(id) => furgonColumns.find(col => col.key === 'actions')?.onViewHistory?.(id)}
+                  />
+                )
+              }
+            ]}
+          />
         </Card>
       </div>
     );
@@ -224,64 +238,78 @@ const FleetTabs: React.FC<FleetTabsProps> = ({
   const renderAllVehicles = () => {
     return (
       <Card title="Barcha transport vositalari" className={styles.mainCard}>
-        <Tabs defaultActiveKey="1" className={styles.innerTabs}>
-          <TabPane tab="Avtomobillar" key="1">
-            <div className={styles.tableActions}>
-              <Input
-                placeholder="Qidirish..."
-                prefix={<SearchOutlined />}
-                onChange={handleSearchChange}
-                style={{ width: 250, marginBottom: 16 }}
-                value={searchText}
-                allowClear
-              />
-              <Button 
-                type="primary" 
-                icon={<PlusOutlined />} 
-                onClick={handleAddCar}
-              >
-                Yangi avtomobil
-              </Button>
-            </div>
-            <div className={styles.tableWrapper}>
-              <table className={styles.vehicleTable}>
-                <thead>
-                  <tr>
-                    {carColumns.map((column, index) => (
-                      <th key={index}>{column.title}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredCars.map((car) => (
-                    <tr key={car.id}>
-                      {carColumns.map((column, index) => {
-                        const dataIndex = column.dataIndex;
-                        return (
-                          <td key={index}>
-                            {column.render 
-                              ? column.render(dataIndex ? car[dataIndex] : undefined, car) 
-                              : dataIndex && car[dataIndex]}
-                          </td>
-                        );
-                      })}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </TabPane>
-          <TabPane tab="Furgonlar" key="2">
-            <FleetFurgonTable
-              furgons={filteredFurgons}
-              isLoading={false}
-              onEdit={(furgon) => furgonColumns.find(col => col.key === 'actions')?.onEdit?.(furgon)}
-              onDelete={(furgon) => furgonColumns.find(col => col.key === 'actions')?.onDelete?.(furgon)}
-              onAddNew={handleAddFurgon}
-              onViewHistory={(id) => furgonColumns.find(col => col.key === 'actions')?.onViewHistory?.(id)}
-            />
-          </TabPane>
-        </Tabs>
+        <Tabs 
+          defaultActiveKey="1" 
+          className={styles.innerTabs}
+          items={[
+            {
+              key: '1',
+              label: 'Avtomobillar',
+              children: (
+                <>
+                  <div className={styles.tableActions}>
+                    <Input
+                      placeholder="Qidirish..."
+                      prefix={<SearchOutlined />}
+                      onChange={handleSearchChange}
+                      style={{ width: 250, marginBottom: 16 }}
+                      value={searchText}
+                      allowClear
+                    />
+                    <Button 
+                      type="primary" 
+                      icon={<PlusOutlined />} 
+                      onClick={handleAddCar}
+                    >
+                      Yangi avtomobil
+                    </Button>
+                  </div>
+                  <div className={styles.tableWrapper}>
+                    <table className={styles.vehicleTable}>
+                      <thead>
+                        <tr>
+                          {carColumns.map((column, index) => (
+                            <th key={index}>{column.title}</th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filteredCars.map((car) => (
+                          <tr key={car.id}>
+                            {carColumns.map((column, index) => {
+                              const dataIndex = column.dataIndex;
+                              return (
+                                <td key={index}>
+                                  {column.render 
+                                    ? column.render(dataIndex ? car[dataIndex] : undefined, car) 
+                                    : dataIndex && car[dataIndex]}
+                                </td>
+                              );
+                            })}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </>
+              )
+            },
+            {
+              key: '2',
+              label: 'Furgonlar',
+              children: (
+                <FleetFurgonTable
+                  furgons={filteredFurgons}
+                  isLoading={false}
+                  onEdit={(furgon) => furgonColumns.find(col => col.key === 'actions')?.onEdit?.(furgon)}
+                  onDelete={(furgon) => furgonColumns.find(col => col.key === 'actions')?.onDelete?.(furgon)}
+                  onAddNew={handleAddFurgon}
+                  onViewHistory={(id) => furgonColumns.find(col => col.key === 'actions')?.onViewHistory?.(id)}
+                />
+              )
+            }
+          ]}
+        />
       </Card>
     );
   };
@@ -293,57 +321,71 @@ const FleetTabs: React.FC<FleetTabsProps> = ({
     
     return (
       <Card title="Yo'ldagi transport vositalari" className={styles.mainCard}>
-        <Tabs defaultActiveKey="1" className={styles.innerTabs}>
-          <TabPane tab={`Avtomobillar (${roadCars.length})`} key="1">
-            <div className={styles.tableActions}>
-              <Input
-                placeholder="Qidirish..."
-                prefix={<SearchOutlined />}
-                onChange={handleSearchChange}
-                style={{ width: 250, marginBottom: 16 }}
-                value={searchText}
-                allowClear
-              />
-            </div>
-            <div className={styles.tableWrapper}>
-              <table className={styles.vehicleTable}>
-                <thead>
-                  <tr>
-                    {carColumns.map((column, index) => (
-                      <th key={index}>{column.title}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {roadCars.map((car) => (
-                    <tr key={car.id}>
-                      {carColumns.map((column, index) => {
-                        const dataIndex = column.dataIndex;
-                        return (
-                          <td key={index}>
-                            {column.render 
-                              ? column.render(dataIndex ? car[dataIndex] : undefined, car) 
-                              : dataIndex && car[dataIndex]}
-                          </td>
-                        );
-                      })}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </TabPane>
-          <TabPane tab={`Furgonlar (${roadFurgons.length})`} key="2">
-            <FleetFurgonTable
-              furgons={roadFurgons}
-              isLoading={false}
-              onEdit={(furgon) => furgonColumns.find(col => col.key === 'actions')?.onEdit?.(furgon)}
-              onDelete={(furgon) => furgonColumns.find(col => col.key === 'actions')?.onDelete?.(furgon)}
-              onAddNew={handleAddFurgon}
-              onViewHistory={(id) => furgonColumns.find(col => col.key === 'actions')?.onViewHistory?.(id)}
-            />
-          </TabPane>
-        </Tabs>
+        <Tabs 
+          defaultActiveKey="1" 
+          className={styles.innerTabs}
+          items={[
+            {
+              key: '1',
+              label: `Avtomobillar (${roadCars.length})`,
+              children: (
+                <>
+                  <div className={styles.tableActions}>
+                    <Input
+                      placeholder="Qidirish..."
+                      prefix={<SearchOutlined />}
+                      onChange={handleSearchChange}
+                      style={{ width: 250, marginBottom: 16 }}
+                      value={searchText}
+                      allowClear
+                    />
+                  </div>
+                  <div className={styles.tableWrapper}>
+                    <table className={styles.vehicleTable}>
+                      <thead>
+                        <tr>
+                          {carColumns.map((column, index) => (
+                            <th key={index}>{column.title}</th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {roadCars.map((car) => (
+                          <tr key={car.id}>
+                            {carColumns.map((column, index) => {
+                              const dataIndex = column.dataIndex;
+                              return (
+                                <td key={index}>
+                                  {column.render 
+                                    ? column.render(dataIndex ? car[dataIndex] : undefined, car) 
+                                    : dataIndex && car[dataIndex]}
+                                </td>
+                              );
+                            })}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </>
+              )
+            },
+            {
+              key: '2',
+              label: `Furgonlar (${roadFurgons.length})`,
+              children: (
+                <FleetFurgonTable
+                  furgons={roadFurgons}
+                  isLoading={false}
+                  onEdit={(furgon) => furgonColumns.find(col => col.key === 'actions')?.onEdit?.(furgon)}
+                  onDelete={(furgon) => furgonColumns.find(col => col.key === 'actions')?.onDelete?.(furgon)}
+                  onAddNew={handleAddFurgon}
+                  onViewHistory={(id) => furgonColumns.find(col => col.key === 'actions')?.onViewHistory?.(id)}
+                />
+              )
+            }
+          ]}
+        />
       </Card>
     );
   };
@@ -355,57 +397,71 @@ const FleetTabs: React.FC<FleetTabsProps> = ({
     
     return (
       <Card title="Mavjud transport vositalari" className={styles.mainCard}>
-        <Tabs defaultActiveKey="1" className={styles.innerTabs}>
-          <TabPane tab={`Avtomobillar (${availableCars.length})`} key="1">
-            <div className={styles.tableActions}>
-              <Input
-                placeholder="Qidirish..."
-                prefix={<SearchOutlined />}
-                onChange={handleSearchChange}
-                style={{ width: 250, marginBottom: 16 }}
-                value={searchText}
-                allowClear
-              />
-            </div>
-            <div className={styles.tableWrapper}>
-              <table className={styles.vehicleTable}>
-                <thead>
-                  <tr>
-                    {carColumns.map((column, index) => (
-                      <th key={index}>{column.title}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {availableCars.map((car) => (
-                    <tr key={car.id}>
-                      {carColumns.map((column, index) => {
-                        const dataIndex = column.dataIndex;
-                        return (
-                          <td key={index}>
-                            {column.render 
-                              ? column.render(dataIndex ? car[dataIndex] : undefined, car) 
-                              : dataIndex && car[dataIndex]}
-                          </td>
-                        );
-                      })}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </TabPane>
-          <TabPane tab={`Furgonlar (${availableFurgons.length})`} key="2">
-            <FleetFurgonTable
-              furgons={availableFurgons}
-              isLoading={false}
-              onEdit={(furgon) => furgonColumns.find(col => col.key === 'actions')?.onEdit?.(furgon)}
-              onDelete={(furgon) => furgonColumns.find(col => col.key === 'actions')?.onDelete?.(furgon)}
-              onAddNew={handleAddFurgon}
-              onViewHistory={(id) => furgonColumns.find(col => col.key === 'actions')?.onViewHistory?.(id)}
-            />
-          </TabPane>
-        </Tabs>
+        <Tabs 
+          defaultActiveKey="1" 
+          className={styles.innerTabs}
+          items={[
+            {
+              key: '1',
+              label: `Avtomobillar (${availableCars.length})`,
+              children: (
+                <>
+                  <div className={styles.tableActions}>
+                    <Input
+                      placeholder="Qidirish..."
+                      prefix={<SearchOutlined />}
+                      onChange={handleSearchChange}
+                      style={{ width: 250, marginBottom: 16 }}
+                      value={searchText}
+                      allowClear
+                    />
+                  </div>
+                  <div className={styles.tableWrapper}>
+                    <table className={styles.vehicleTable}>
+                      <thead>
+                        <tr>
+                          {carColumns.map((column, index) => (
+                            <th key={index}>{column.title}</th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {availableCars.map((car) => (
+                          <tr key={car.id}>
+                            {carColumns.map((column, index) => {
+                              const dataIndex = column.dataIndex;
+                              return (
+                                <td key={index}>
+                                  {column.render 
+                                    ? column.render(dataIndex ? car[dataIndex] : undefined, car) 
+                                    : dataIndex && car[dataIndex]}
+                                </td>
+                              );
+                            })}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </>
+              )
+            },
+            {
+              key: '2',
+              label: `Furgonlar (${availableFurgons.length})`,
+              children: (
+                <FleetFurgonTable
+                  furgons={availableFurgons}
+                  isLoading={false}
+                  onEdit={(furgon) => furgonColumns.find(col => col.key === 'actions')?.onEdit?.(furgon)}
+                  onDelete={(furgon) => furgonColumns.find(col => col.key === 'actions')?.onDelete?.(furgon)}
+                  onAddNew={handleAddFurgon}
+                  onViewHistory={(id) => furgonColumns.find(col => col.key === 'actions')?.onViewHistory?.(id)}
+                />
+              )
+            }
+          ]}
+        />
       </Card>
     );
   };

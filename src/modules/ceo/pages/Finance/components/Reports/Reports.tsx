@@ -8,7 +8,7 @@ import ClientReports from './ClientReports';
 import VehicleReports from './VehicleReports';
 
 const { Title, Text } = Typography;
-const { TabPane } = Tabs;
+
 
 const Reports: React.FC = () => {
   const [activeTab, setActiveTab] = useState('financial');

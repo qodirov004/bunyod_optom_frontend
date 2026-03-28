@@ -4,7 +4,6 @@ import { CalculatorOutlined, DollarOutlined, CarOutlined, BankOutlined } from '@
 import { Pie } from '@ant-design/plots';
 
 const { Title, Text, Paragraph } = Typography;
-const { TabPane } = Tabs;
 const { Option } = Select;
 
 // Sample vehicle investment data
@@ -202,11 +201,11 @@ const InvestmentAnalysis: React.FC = () => {
         
         <Col span={24}>
           <Card>
-            <Tabs activeKey={activeTab} onChange={setActiveTab}>
-              <TabPane
-                tab={<span><CalculatorOutlined /> ROI Hisoblagichi</span>}
-                key="roi"
-              >
+            <Tabs activeKey={activeTab} onChange={setActiveTab} items={[
+              {
+                key: 'roi',
+                label: <span><CalculatorOutlined /> ROI Hisoblagichi</span>,
+                children: (
                 <Row gutter={[16, 16]}>
                   <Col span={24} md={8}>
                     <Card title="Investitsiya rentabelligini hisoblash" bordered={false}>
@@ -343,12 +342,12 @@ const InvestmentAnalysis: React.FC = () => {
                     </Card>
                   </Col>
                 </Row>
-              </TabPane>
-              
-              <TabPane
-                tab={<span><CarOutlined /> Transport investitsiyalari</span>}
-                key="vehicles"
-              >
+                ),
+              },
+              {
+                key: 'vehicles',
+                label: <span><CarOutlined /> Transport investitsiyalari</span>,
+                children: (
                 <Row gutter={[16, 16]}>
                   <Col span={24} md={16}>
                     <Card title="Transport vositalariga investitsiyalar" bordered={false}>
@@ -412,12 +411,12 @@ const InvestmentAnalysis: React.FC = () => {
                     </Card>
                   </Col>
                 </Row>
-              </TabPane>
-              
-              <TabPane
-                tab={<span><BankOutlined /> Strategik investitsiyalar</span>}
-                key="strategic"
-              >
+                ),
+              },
+              {
+                key: 'strategic',
+                label: <span><BankOutlined /> Strategik investitsiyalar</span>,
+                children: (
                 <Row gutter={[16, 16]}>
                   <Col span={24}>
                     <Card title="Strategik investitsiya imkoniyatlari" bordered={false}>
@@ -470,8 +469,9 @@ const InvestmentAnalysis: React.FC = () => {
                     </Card>
                   </Col>
                 </Row>
-              </TabPane>
-            </Tabs>
+                ),
+              },
+            ]} />
           </Card>
         </Col>
       </Row>

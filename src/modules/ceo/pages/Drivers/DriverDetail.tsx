@@ -13,7 +13,7 @@ import { TripData } from '../../types/trip';
 import { baseURL, formatImageUrl } from '../../../../api/axiosInstance';
 
 const { Title, Text } = Typography;
-const { TabPane } = Tabs;
+
 
 const DriverDetail = () => {
   const params = useParams();
@@ -234,8 +234,12 @@ const DriverDetail = () => {
         
         <Col xs={24} lg={16}>
           <Card>
-            <Tabs defaultActiveKey="statistics">
-              <TabPane tab="Statistika" key="statistics">
+            <Tabs defaultActiveKey="statistics" items={[
+              {
+                key: 'statistics',
+                label: 'Statistika',
+                children: (
+                  <>
                 <Row gutter={[16, 16]}>
                   <Col xs={24} sm={12} lg={6}>
                     <Card>
@@ -279,9 +283,13 @@ const DriverDetail = () => {
                     pagination={false}
                   />
                 </Card>
-              </TabPane>
-              
-              <TabPane tab="Barcha qatnovlar" key="trips">
+                  </>
+                ),
+              },
+              {
+                key: 'trips',
+                label: 'Barcha qatnovlar',
+                children: (
                 <Table 
                   dataSource={trips} 
                   columns={tripColumns}
@@ -289,8 +297,9 @@ const DriverDetail = () => {
                   loading={loading}
                   pagination={{ pageSize: 10 }}
                 />
-              </TabPane>
-            </Tabs>
+                ),
+              },
+            ]} />
           </Card>
         </Col>
       </Row>

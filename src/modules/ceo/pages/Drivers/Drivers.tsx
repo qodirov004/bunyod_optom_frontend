@@ -74,7 +74,7 @@ import dynamic from 'next/dynamic'
 const { Text, Title } = Typography
 const { confirm } = Modal
 const { Option } = Select
-const { TabPane } = Tabs
+
 
 // Create a client-side only component for date formatting
 const DateDisplay = dynamic(() => Promise.resolve(

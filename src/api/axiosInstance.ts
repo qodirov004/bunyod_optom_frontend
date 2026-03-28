@@ -95,27 +95,19 @@ axiosInstance.interceptors.response.use(
         if (error.response?.status === 401) {
             const currentPath = typeof window !== 'undefined' ? window.location.pathname : '';
 
-            // Check if we're not already on a login page
+            // Check if we're not already on a login page to avoid redirect loops
             if (!currentPath.includes('/login') && !currentPath.includes('/auth/login')) {
-                const errorData = error.response?.data;
-                const shouldRedirect = !errorData || 
-                                     Object.keys(errorData).length === 0 ||
-                                     errorData.code === 'token_not_valid' ||
-                                     errorData.detail === 'Given token not valid for any token type';
+                console.log('Authentication failed (401), clearing session and redirecting to login');
+                removeToken();
 
-                if (shouldRedirect) {
-                    console.log('Authentication failed (401), clearing session and redirecting to login');
-                    removeToken();
+                const redirectInProgress = sessionStorage.getItem('redirect_in_progress');
+                if (!redirectInProgress) {
+                    sessionStorage.setItem('redirect_in_progress', 'true');
+                    window.location.href = '/auth/login';
 
-                    const redirectInProgress = sessionStorage.getItem('redirect_in_progress');
-                    if (!redirectInProgress) {
-                        sessionStorage.setItem('redirect_in_progress', 'true');
-                        window.location.href = '/auth/login';
-
-                        setTimeout(() => {
-                            sessionStorage.removeItem('redirect_in_progress');
-                        }, 5000);
-                    }
+                    setTimeout(() => {
+                        sessionStorage.removeItem('redirect_in_progress');
+                    }, 5000);
                 }
             }
         }

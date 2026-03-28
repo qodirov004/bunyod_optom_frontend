@@ -15,7 +15,7 @@ import {
   FileTextOutlined
 } from '@ant-design/icons';
 
-const { TabPane } = Tabs;
+
 const { Text, Title } = Typography;
 
 interface TripData {
@@ -110,8 +110,12 @@ export const TripDetails: React.FC<TripDetailsProps> = ({
       onClose={onClose}
       open={visible}
     >
-      <Tabs defaultActiveKey="general">
-        <TabPane tab="Asosiy ma'lumotlar" key="general">
+      <Tabs defaultActiveKey="general" items={[
+        {
+          key: 'general',
+          label: "Asosiy ma'lumotlar",
+          children: (
+            <>
           <Card style={{ marginBottom: 16 }}>
             <Descriptions bordered column={1} size="small" layout="vertical">
               <Descriptions.Item label="Holati">
@@ -241,9 +245,13 @@ export const TripDetails: React.FC<TripDetailsProps> = ({
               </Col>
             </Row>
           </Card>
-        </TabPane>
-
-        <TabPane tab="Xarajatlar" key="expenses">
+            </>
+          ),
+        },
+        {
+          key: 'expenses',
+          label: 'Xarajatlar',
+          children: (
           <Card title="Xarajatlar tafsiloti" style={{ marginBottom: 16 }}>
             <Descriptions bordered column={1} layout="vertical">
               <Descriptions.Item label="Haydovchi uchun to'lov">
@@ -265,8 +273,9 @@ export const TripDetails: React.FC<TripDetailsProps> = ({
               </Descriptions.Item>
             </Descriptions>
           </Card>
-        </TabPane>
-      </Tabs>
+          ),
+        },
+      ]} />
     </Drawer>
   );
 }; 

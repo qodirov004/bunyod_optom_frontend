@@ -24,7 +24,7 @@ import relativeTime from 'dayjs/plugin/relativeTime';
 dayjs.extend(relativeTime);
 
 const { Text, Title } = Typography;
-const { TabPane } = Tabs;
+
 
 interface DriversOnRoadProps {
   drivers: DriverType[];
@@ -683,65 +683,50 @@ const DriversOnRoad: React.FC<DriversOnRoadProps> = ({
           </Space>
         }
       >
-        <Tabs activeKey={activeTab} onChange={handleTabChange}>
-          <TabPane tab={`Hammasi (${onRoadCount + waitingCount})`} key="all">
-            {filteredData.length > 0 ? (
+        <Tabs activeKey={activeTab} onChange={handleTabChange} items={[
+          {
+            key: 'all',
+            label: `Hammasi (${onRoadCount + waitingCount})`,
+            children: filteredData.length > 0 ? (
               <Table
                 dataSource={filteredData}
                 columns={columns}
                 rowKey={(record) => `${typeof record.driver === 'object' ? record.driver.id : record.driver}-${record.rays_id || 0}`}
-                pagination={{ 
-                  pageSize: 10, 
-                  showTotal: (total) => `Jami ${total} haydovchi`,
-                  showSizeChanger: true,
-                  pageSizeOptions: ['5', '10', '20'] 
-                }}
+                pagination={{ pageSize: 10, showTotal: (total) => `Jami ${total} haydovchi`, showSizeChanger: true, pageSizeOptions: ['5', '10', '20'] }}
                 scroll={{ x: 1100 }}
                 rowClassName={(record) => record.rays_id ? 'on-road-row' : 'waiting-row'}
               />
-            ) : (
-              <Empty description="Haydovchilar topilmadi" />
-            )}
-          </TabPane>
-          <TabPane tab={`Yo'lda (${onRoadCount})`} key="on_road">
-            {filteredData.length > 0 ? (
+            ) : <Empty description="Haydovchilar topilmadi" />,
+          },
+          {
+            key: 'on_road',
+            label: `Yo'lda (${onRoadCount})`,
+            children: filteredData.length > 0 ? (
               <Table
                 dataSource={filteredData}
                 columns={columns}
                 rowKey={(record) => `${typeof record.driver === 'object' ? record.driver.id : record.driver}-${record.rays_id || 0}`}
-                pagination={{ 
-                  pageSize: 10, 
-                  showTotal: (total) => `Jami ${total} haydovchi`,
-                  showSizeChanger: true,
-                  pageSizeOptions: ['5', '10', '20'] 
-                }}
+                pagination={{ pageSize: 10, showTotal: (total) => `Jami ${total} haydovchi`, showSizeChanger: true, pageSizeOptions: ['5', '10', '20'] }}
                 scroll={{ x: 1100 }}
                 rowClassName="on-road-row"
               />
-            ) : (
-              <Empty description="Yo'ldagi haydovchilar topilmadi" />
-            )}
-          </TabPane>
-          <TabPane tab={`Kutishda (${waitingCount})`} key="waiting">
-            {filteredData.length > 0 ? (
+            ) : <Empty description="Yo'ldagi haydovchilar topilmadi" />,
+          },
+          {
+            key: 'waiting',
+            label: `Kutishda (${waitingCount})`,
+            children: filteredData.length > 0 ? (
               <Table
                 dataSource={filteredData}
                 columns={columns}
                 rowKey={(record) => `${typeof record.driver === 'object' ? record.driver.id : record.driver}-${record.rays_id || 0}`}
-                pagination={{ 
-                  pageSize: 10, 
-                  showTotal: (total) => `Jami ${total} haydovchi`,
-                  showSizeChanger: true,
-                  pageSizeOptions: ['5', '10', '20'] 
-                }}
+                pagination={{ pageSize: 10, showTotal: (total) => `Jami ${total} haydovchi`, showSizeChanger: true, pageSizeOptions: ['5', '10', '20'] }}
                 scroll={{ x: 1100 }}
                 rowClassName="waiting-row"
               />
-            ) : (
-              <Empty description="Kutishdagi haydovchilar topilmadi" />
-            )}
-          </TabPane>
-        </Tabs>
+            ) : <Empty description="Kutishdagi haydovchilar topilmadi" />,
+          },
+        ]} />
       </Card>
       
       <style jsx global>{`

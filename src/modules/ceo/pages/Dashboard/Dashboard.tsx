@@ -1,4 +1,4 @@
-"use client"
+"use client" 
 
 import React, { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
@@ -7,8 +7,8 @@ import { DateRange } from '../../types';
 import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import './styles/Dashboard.css';
 // Import custom hooks
-import { useFinancialData } from './hooks/useFinancialData';
-import { useClientPaymentData } from './hooks/useClientPaymentData';
+import { useFinancialData } from './hooks/useFinancial';
+import { useClientPaymentData } from './hooks/useClientPayment';
 import { useCars, useCarStatus } from '../../../accounting/hooks/useCars';
 import { useFurgons, useFurgonStatus } from '../../../accounting/hooks/useFurgon';
 import { useTrips } from '../../../accounting/hooks/useTrips';

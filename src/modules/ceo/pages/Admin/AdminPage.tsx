@@ -7,21 +7,24 @@ import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import AdminManagement from './components/AdminManagement';
 import ProtectedRoute from '@/components/ProtectedRoute';
 
-const { TabPane } = Tabs;
+
 
 const AdminPage: React.FC = () => {
   return (
     <ProtectedRoute allowedRoles={['ceo']}>
       <DashboardLayout title="Administratorlarni boshqarish">
         <Card style={{ marginBottom: 24 }}>
-          <Tabs defaultActiveKey="admins" type="card">
-            <TabPane 
-              tab={<span><UserOutlined /> Administratorlar</span>} 
-              key="admins"
-            >
-              <AdminManagement />
-            </TabPane>
-          </Tabs>
+          <Tabs 
+            defaultActiveKey="admins" 
+            type="card"
+            items={[
+              {
+                key: 'admins',
+                label: <span><UserOutlined /> Administratorlar</span>,
+                children: <AdminManagement />
+              }
+            ]}
+          />
         </Card>
       </DashboardLayout>
     </ProtectedRoute>

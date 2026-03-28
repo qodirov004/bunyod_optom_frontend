@@ -4,7 +4,7 @@ import { EyeOutlined, RollbackOutlined, CarOutlined, UserOutlined, EnvironmentOu
 import { TripData } from '../../../hooks/useTrips';
 import dayjs from 'dayjs';
 
-const { TabPane } = Tabs;
+
 
 interface TripsListProps {
   activeTrips: TripData[];
@@ -169,12 +169,11 @@ const TripsList: React.FC<TripsListProps> = ({
   );
 
   return (
-    <Tabs activeKey={activeTab} onChange={setActiveTab} type="card">
-      <TabPane
-        tab={`Aktiv reyslar (${activeTrips?.length || 0})`}
-        key="active"
-      >
-        {isLoading ? (
+    <Tabs activeKey={activeTab} onChange={setActiveTab} type="card" items={[
+      {
+        key: 'active',
+        label: `Aktiv reyslar (${activeTrips?.length || 0})`,
+        children: isLoading ? (
           renderLoading()
         ) : activeTrips.length === 0 ? (
           renderEmpty('Aktiv reyslar mavjud emas')
@@ -191,13 +190,12 @@ const TripsList: React.FC<TripsListProps> = ({
             scroll={{ x: 1200 }}
             size="middle"
           />
-        )}
-      </TabPane>
-      <TabPane
-        tab={`Tarix (${historyTrips?.length || 0})`}
-        key="history"
-      >
-        {isLoading ? (
+        )
+      },
+      {
+        key: 'history',
+        label: `Tarix (${historyTrips?.length || 0})`,
+        children: isLoading ? (
           renderLoading()
         ) : historyTrips.length === 0 ? (
           renderEmpty('Tarixdagi reyslar mavjud emas')
@@ -214,9 +212,9 @@ const TripsList: React.FC<TripsListProps> = ({
             scroll={{ x: 1200 }}
             size="middle"
           />
-        )}
-      </TabPane>
-    </Tabs>
+        )
+      }
+    ]} />
   );
 };
 

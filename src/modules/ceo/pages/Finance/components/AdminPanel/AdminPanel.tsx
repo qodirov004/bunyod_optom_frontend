@@ -3,7 +3,7 @@ import { Card, Tabs, Typography, Button, Space, Table, Form, Input, Select, Swit
 import { UserOutlined, SettingOutlined, LockOutlined, DatabaseOutlined, DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
 
 const { Title, Text } = Typography;
-const { TabPane } = Tabs;
+
 const { Option } = Select;
 
 const AdminPanel: React.FC = () => {
@@ -193,122 +193,127 @@ const AdminPanel: React.FC = () => {
       </Row>
       
       <Card>
-        <Tabs activeKey={activeTab} onChange={setActiveTab}>
-          <TabPane
-            tab={<span><UserOutlined /> Foydalanuvchilar</span>}
-            key="users"
-          >
-            <Table
-              columns={userColumns}
-              dataSource={users}
-              pagination={false}
-            />
-          </TabPane>
-          
-          <TabPane
-            tab={<span><LockOutlined /> Ruxsatlar</span>}
-            key="permissions"
-          >
-            <Table
-              columns={permissionColumns}
-              dataSource={permissions}
-              pagination={false}
-            />
-          </TabPane>
-          
-          <TabPane
-            tab={<span><SettingOutlined /> Sozlamalar</span>}
-            key="settings"
-          >
-            <Form layout="vertical" form={form}>
-              <Title level={5}>Umumiy sozlamalar</Title>
-              
-              <Form.Item
-                label="Tizim nomi"
-                name="systemName"
-              >
-                <Input />
-              </Form.Item>
-              
-              <Form.Item
-                label="Valyuta"
-                name="currency"
-              >
-                <Select>
-                  <Option value="usd">USD ($)</Option>
-                  <Option value="uzs">UZS (сўм)</Option>
-                  <Option value="eur">EUR (€)</Option>
-                </Select>
-              </Form.Item>
-              
-              <Form.Item
-                label="Soliq stavkasi (%)"
-                name="taxRate"
-              >
-                <Input type="number" min={0} max={100} />
-              </Form.Item>
-              
-              <Form.Item
-                label="Hisobot davri"
-                name="reportingPeriod"
-              >
-                <Select>
-                  <Option value="weekly">Haftalik</Option>
-                  <Option value="monthly">Oylik</Option>
-                  <Option value="quarterly">Choraklik</Option>
-                  <Option value="yearly">Yillik</Option>
-                </Select>
-              </Form.Item>
-              
-              <Button type="primary">
-                Saqlash
-              </Button>
-            </Form>
-          </TabPane>
-          
-          <TabPane
-            tab={<span><DatabaseOutlined /> Ma'lumotlar bazasi</span>}
-            key="database"
-          >
-            <div style={{ padding: '20px 0' }}>
-              <Space direction="vertical" size="large">
-                <div>
-                  <Title level={5}>Ma'lumotlarni export/import qilish</Title>
-                  <Text type="secondary">
-                    Ma'lumotlarni CSV yoki Excel formatida yuklab olish yoki yuklash
-                  </Text>
-                  <div style={{ marginTop: 16 }}>
-                    <Space>
-                      <Button type="primary">
-                        Ma'lumotlarni export qilish
-                      </Button>
-                      <Button>
-                        Ma'lumotlarni import qilish
-                      </Button>
-                    </Space>
-                  </div>
+        <Tabs 
+          activeKey={activeTab} 
+          onChange={setActiveTab}
+          items={[
+            {
+              key: 'users',
+              label: <span><UserOutlined /> Foydalanuvchilar</span>,
+              children: (
+                <Table
+                  columns={userColumns}
+                  dataSource={users}
+                  pagination={false}
+                />
+              )
+            },
+            {
+              key: 'permissions',
+              label: <span><LockOutlined /> Ruxsatlar</span>,
+              children: (
+                <Table
+                  columns={permissionColumns}
+                  dataSource={permissions}
+                  pagination={false}
+                />
+              )
+            },
+            {
+              key: 'settings',
+              label: <span><SettingOutlined /> Sozlamalar</span>,
+              children: (
+                <Form layout="vertical" form={form}>
+                  <Title level={5}>Umumiy sozlamalar</Title>
+                  
+                  <Form.Item
+                    label="Tizim nomi"
+                    name="systemName"
+                  >
+                    <Input />
+                  </Form.Item>
+                  
+                  <Form.Item
+                    label="Valyuta"
+                    name="currency"
+                  >
+                    <Select>
+                      <Option value="usd">USD ($)</Option>
+                      <Option value="uzs">UZS (сўм)</Option>
+                      <Option value="eur">EUR (€)</Option>
+                    </Select>
+                  </Form.Item>
+                  
+                  <Form.Item
+                    label="Soliq stavkasi (%)"
+                    name="taxRate"
+                  >
+                    <Input type="number" min={0} max={100} />
+                  </Form.Item>
+                  
+                  <Form.Item
+                    label="Hisobot davri"
+                    name="reportingPeriod"
+                  >
+                    <Select>
+                      <Option value="weekly">Haftalik</Option>
+                      <Option value="monthly">Oylik</Option>
+                      <Option value="quarterly">Choraklik</Option>
+                      <Option value="yearly">Yillik</Option>
+                    </Select>
+                  </Form.Item>
+                  
+                  <Button type="primary">
+                    Saqlash
+                  </Button>
+                </Form>
+              )
+            },
+            {
+              key: 'database',
+              label: <span><DatabaseOutlined /> Ma'lumotlar bazasi</span>,
+              children: (
+                <div style={{ padding: '20px 0' }}>
+                  <Space direction="vertical" size="large">
+                    <div>
+                      <Title level={5}>Ma'lumotlarni export/import qilish</Title>
+                      <Text type="secondary">
+                        Ma'lumotlarni CSV yoki Excel formatida yuklab olish yoki yuklash
+                      </Text>
+                      <div style={{ marginTop: 16 }}>
+                        <Space>
+                          <Button type="primary">
+                            Ma'lumotlarni export qilish
+                          </Button>
+                          <Button>
+                            Ma'lumotlarni import qilish
+                          </Button>
+                        </Space>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <Title level={5}>Zaxira nusxa</Title>
+                      <Text type="secondary">
+                        Tizim ma'lumotlarini zaxiralash va qayta tiklash
+                      </Text>
+                      <div style={{ marginTop: 16 }}>
+                        <Space>
+                          <Button type="primary">
+                            Zaxira nusxa yaratish
+                          </Button>
+                          <Button danger>
+                            Zaxiradan qayta tiklash
+                          </Button>
+                        </Space>
+                      </div>
+                    </div>
+                  </Space>
                 </div>
-                
-                <div>
-                  <Title level={5}>Zaxira nusxa</Title>
-                  <Text type="secondary">
-                    Tizim ma'lumotlarini zaxiralash va qayta tiklash
-                  </Text>
-                  <div style={{ marginTop: 16 }}>
-                    <Space>
-                      <Button type="primary">
-                        Zaxira nusxa yaratish
-                      </Button>
-                      <Button danger>
-                        Zaxiradan qayta tiklash
-                      </Button>
-                    </Space>
-                  </div>
-                </div>
-              </Space>
-            </div>
-          </TabPane>
-        </Tabs>
+              )
+            }
+          ]}
+        />
       </Card>
     </div>
   );

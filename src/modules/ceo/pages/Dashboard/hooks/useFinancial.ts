@@ -1,8 +1,25 @@
 import { useQuery } from '@tanstack/react-query';
 import axiosInstance from '@/api/axiosInstance';
+import { DateRange } from '../../../types';
 
-export const useFinancialData = (dateRange) => {
-  const { data: financialOverview, isLoading, error } = useQuery({
+export interface FinancialOverview {
+  cashbox: {
+    USD: number;
+    RUB: number;
+    EUR: number;
+    UZS: number;
+    total_in_usd: number;
+  };
+  expenses: {
+    dp_price_usd: number;
+    salaries_usd: number;
+    total_expenses_usd: number;
+  };
+  final_balance_usd: number;
+}
+
+export const useFinancialData = (dateRange: DateRange) => {
+  const { data: financialOverview, isLoading, error } = useQuery<FinancialOverview>({
     queryKey: ['financial-overview', dateRange],
     queryFn: async () => {
       const params = new URLSearchParams();
@@ -17,10 +34,10 @@ export const useFinancialData = (dateRange) => {
       }
       
       if (dateRange.startDate) {
-        params.append('date_from', dateRange.startDate.toISOString().split('T')[0]);
+        params.append('date_from', new Date(dateRange.startDate).toISOString().split('T')[0]);
       }
       if (dateRange.endDate) {
-        params.append('date_to', dateRange.endDate.toISOString().split('T')[0]);
+        params.append('date_to', new Date(dateRange.endDate).toISOString().split('T')[0]);
       }
       
       const response = await axiosInstance.get(`/casa/overview/?${params.toString()}`);
@@ -33,7 +50,7 @@ export const useFinancialData = (dateRange) => {
     }
   });
 
-  const monthlyIncome = []; 
+  const monthlyIncome: any[] = []; 
 
   const totalRevenue = financialOverview?.cashbox?.total_in_usd || 0;
   const totalExpenses = financialOverview?.expenses?.total_expenses_usd || 0;
@@ -48,4 +65,4 @@ export const useFinancialData = (dateRange) => {
     totalExpenses,
     netProfit
   };
-};
+}; 

@@ -5,7 +5,7 @@ import moment from 'moment';
 import { useCurrencies } from '../../../../accounting/hooks/useCurrencies';
 
 const { Option } = Select;
-const { TabPane } = Tabs;
+
 
 interface Transaction {
   id: number;
@@ -295,30 +295,41 @@ const CashFlow: React.FC<CashFlowProps> = ({ transactions = [], loading = false 
         </Col>
       </Row>
       
-      <Tabs defaultActiveKey="line">
-        <TabPane tab="Chiziqli grafik" key="line">
-          <div style={{ height: 350 }}>
-            {chartData.length > 0 ? (
-              <Line {...config} />
-            ) : (
-              <Empty description="Ushbu valyuta uchun ma'lumotlar mavjud emas" />
-            )}
-          </div>
-        </TabPane>
-        <TabPane tab="Oylik tahlil" key="monthly">
-          <div style={{ height: 350 }}>
-            {chartData.length > 0 ? (
-              <Line 
-                {...config}
-                data={lineData.filter(d => d.category !== 'Balans')}
-                isStack={true}
-              />
-            ) : (
-              <Empty description="Ushbu valyuta uchun ma'lumotlar mavjud emas" />
-            )}
-          </div>
-        </TabPane>
-      </Tabs>
+      <Tabs 
+        defaultActiveKey="line"
+        items={[
+          {
+            key: 'line',
+            label: 'Chiziqli grafik',
+            children: (
+              <div style={{ height: 350 }}>
+                {chartData.length > 0 ? (
+                  <Line {...config} />
+                ) : (
+                  <Empty description="Ushbu valyuta uchun ma'lumotlar mavjud emas" />
+                )}
+              </div>
+            )
+          },
+          {
+            key: 'monthly',
+            label: 'Oylik tahlil',
+            children: (
+              <div style={{ height: 350 }}>
+                {chartData.length > 0 ? (
+                  <Line 
+                    {...config}
+                    data={lineData.filter(d => d.category !== 'Balans')}
+                    isStack={true}
+                  />
+                ) : (
+                  <Empty description="Ushbu valyuta uchun ma'lumotlar mavjud emas" />
+                )}
+              </div>
+            )
+          }
+        ]}
+      />
     </div>
   );
 };
