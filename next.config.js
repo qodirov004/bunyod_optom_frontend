@@ -5,8 +5,22 @@ const withBundleAnalyzer = process.env.ANALYZE === 'true'
 
 const nextConfig = {
     images: {
-        domains: ['xojiaka.uz'], // To'g'ri domen qo'shilganligiga ishonch hosil qiling
+        remotePatterns: [
+            {
+                protocol: 'https',
+                hostname: 'xojiaka.uz',
+            },
+            {
+                protocol: 'http',
+                hostname: 'logistika.api.ardentsoft.uz',
+            },
+            {
+                protocol: 'http',
+                hostname: '127.0.0.1',
+            }
+        ],
     },
+    turbopack: {}, // Mutes Turbopack vs Webpack warning in Next 16+
     eslint: {
         ignoreDuringBuilds: true,
     },
