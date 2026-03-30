@@ -68,11 +68,13 @@ const DriverSalaryManager: React.FC<DriverSalaryManagerProps> = ({ driverId }) =
   }, [driverId, setFilters]);
 
   const showAddModal = () => {
-    form.resetFields();
-    if (driverId) {
-      form.setFieldsValue({ driver: driverId });
-    }
     setIsModalVisible(true);
+    setTimeout(() => {
+        form.resetFields();
+        if (driverId) {
+            form.setFieldsValue({ driver: driverId });
+        }
+    }, 0);
   };
 
   // Handle date range change

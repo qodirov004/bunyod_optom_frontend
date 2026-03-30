@@ -82,10 +82,12 @@ axiosInstance.interceptors.response.use(
     },
     (error) => {
         if (process.env.NODE_ENV === 'development') {
-            // Don't log 401s as errors since they are handled gracefully
-            if (error.response?.status !== 401) {
+            const isDriverSalary403 = error.response?.status === 403 && error.config?.url?.includes('driversalary');
+            
+            // Don't log 401s or driver-salary-403s as loud errors
+            if (error.response?.status !== 401 && !isDriverSalary403) {
                 console.error('Response Error:', error.response?.status, error.response?.data);
-            } else {
+            } else if (error.response?.status === 401) {
                 console.warn('Auth Error (401): Session expired or invalid');
             }
         }

@@ -11,6 +11,7 @@ export const useDriverSalaries = (initialFilters: any = {}) => {
     const { data, isLoading, error, refetch } = useQuery({
         queryKey: ['driverSalaries', filters],
         queryFn: () => driverSalaryApi.getAllDriverSalaries(filters),
+        retry: false, // Prevents 403 authorization fetching loops
     });
 
     const driverSalaries = Array.isArray(data) ? data : (data?.results || []);
