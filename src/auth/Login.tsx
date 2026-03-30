@@ -45,7 +45,7 @@ export function Login() {
   const onSubmit = async (formData: LoginCredentials) => {
     // Reset error state
     setErrorMessage(null);
-    
+
     try {
       const result = await login({
         username: formData.username,
@@ -58,18 +58,18 @@ export function Login() {
 
       // Store token in localStorage with a longer expiry time
       localStorage.setItem('token', result.token);
-      
+
       // Calculate expiry time - 24 hours from now for even longer session
       const expiresAt = new Date();
       expiresAt.setHours(expiresAt.getHours() + 24); // Set to 24 hours for extended session
-      
+
       // Store expiry time separately
       localStorage.setItem('token_expires', expiresAt.getTime().toString());
-      
+
       // Set cookie with extended expiry (using max-age for better browser support)
       // 86400 seconds = 24 hours
       document.cookie = `auth-token=${result.token}; path=/; max-age=86400; SameSite=Lax`;
-      
+
       // Save user data to Redux store
       dispatch(setUser(result));
 
@@ -124,7 +124,7 @@ export function Login() {
 
       // Network error - server is unreachable
       if (status === 'FETCH_ERROR' || error?.error === 'FETCH_ERROR') {
-        setErrorMessage('Backend serverga ulanib bo\'lmadi (http://127.0.0.1:8000/). Server ishlamayotgan bo\'lishi mumkin.');
+        setErrorMessage('Backend serverga ulanib bo\'lmadi (logistika.api.ardentsoft.uz). Server ishlamayotgan bo\'lishi mumkin.');
         return;
       }
 
@@ -137,7 +137,7 @@ export function Login() {
       <div className="bg-shape shape-1"></div>
       <div className="bg-shape shape-2"></div>
       <div className="bg-shape shape-3"></div>
-      
+
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -155,7 +155,7 @@ export function Login() {
               <h1>RBL LOGISTCS</h1>
               <p>Xush kelibsiz! Iltimos, tizimga kiring.</p>
             </div>
-            
+
             {errorMessage && (
               <Alert
                 message="Xatolik"
@@ -166,7 +166,7 @@ export function Login() {
                 closable
               />
             )}
-            
+
             <Form onFinish={handleSubmit(onSubmit)} layout="vertical" className="custom-login-form">
               <Form.Item
                 validateStatus={errors.username ? 'error' : ''}
@@ -176,11 +176,11 @@ export function Login() {
                   name="username"
                   control={control}
                   render={({ field }) => (
-                    <Input 
-                      {...field} 
-                      placeholder="admin" 
+                    <Input
+                      {...field}
+                      placeholder="admin"
                       prefix={<UserOutlined className="input-icon" />}
-                      className="custom-input" 
+                      className="custom-input"
                       size="large"
                     />
                   )}
@@ -195,11 +195,11 @@ export function Login() {
                   name="password"
                   control={control}
                   render={({ field }) => (
-                    <Input.Password 
-                      {...field} 
-                      placeholder="•••••" 
+                    <Input.Password
+                      {...field}
+                      placeholder="•••••"
                       prefix={<LockOutlined className="input-icon" />}
-                      className="custom-input" 
+                      className="custom-input"
                       size="large"
                     />
                   )}
@@ -207,10 +207,10 @@ export function Login() {
               </Form.Item>
 
               <Form.Item style={{ marginTop: 32 }}>
-                <Button 
-                  type="primary" 
-                  htmlType="submit" 
-                  loading={isLoading} 
+                <Button
+                  type="primary"
+                  htmlType="submit"
+                  loading={isLoading}
                   className="custom-submit-button"
                   size="large"
                   block
@@ -218,7 +218,7 @@ export function Login() {
                   Kirish <ArrowRightOutlined className="submit-icon" />
                 </Button>
               </Form.Item>
-              
+
               <div className="login-footer">
                 <p>&copy; 2024 RBL LOGISTCS</p>
               </div>

@@ -1,9 +1,9 @@
 import axios from "axios";
 import { getToken, removeToken, refreshTokenExpiration } from "@/auth/authUtils";
 
-export const baseURL = (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') 
-    ? `http://${window.location.hostname}:8000/` 
-    : 'http://127.0.0.1:8000/';
+export const baseURL = (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1')
+    ? `http://${window.location.hostname}:8000/`
+    : 'logistika.api.ardentsoft.uz';
 
 export const formatImageUrl = (url: string | null | undefined) => {
     if (!url) return null;
@@ -42,16 +42,16 @@ axiosInstance.interceptors.request.use(
             refreshTokenExpiration();
         }
 
-    // FormData bilan ishlaganda Content-Type ni majburan qo'ymaymiz,
-    // aks holda boundary'lar buziladi va backend faylni qabul qilolmaydi.
-    if (config.data instanceof FormData) {
-      if (config.headers) {
-        delete (config.headers as any)['Content-Type'];
-        delete (config.headers as any)['content-type'];
-      }
-    }
+        // FormData bilan ishlaganda Content-Type ni majburan qo'ymaymiz,
+        // aks holda boundary'lar buziladi va backend faylni qabul qilolmaydi.
+        if (config.data instanceof FormData) {
+            if (config.headers) {
+                delete (config.headers as any)['Content-Type'];
+                delete (config.headers as any)['content-type'];
+            }
+        }
 
-    if (process.env.NODE_ENV === 'development') {
+        if (process.env.NODE_ENV === 'development') {
             console.log('Request:', config.method?.toUpperCase(), config.url);
 
             if (config.data instanceof FormData) {
@@ -83,7 +83,7 @@ axiosInstance.interceptors.response.use(
     (error) => {
         if (process.env.NODE_ENV === 'development') {
             const isDriverSalary403 = error.response?.status === 403 && error.config?.url?.includes('driversalary');
-            
+
             // Don't log 401s or driver-salary-403s as loud errors
             if (error.response?.status !== 401 && !isDriverSalary403) {
                 console.error('Response Error:', error.response?.status, error.response?.data);
@@ -97,8 +97,8 @@ axiosInstance.interceptors.response.use(
             const currentPath = typeof window !== 'undefined' ? window.location.pathname : '';
 
             // FAQATGINA token haqiqatan eskirgan yoki noto'g'ri bo'lsagina tizimdan chiqarish
-            const isTokenInvalid = 
-                error.response?.data?.code === 'token_not_valid' || 
+            const isTokenInvalid =
+                error.response?.data?.code === 'token_not_valid' ||
                 error.response?.data?.detail?.includes('given token not valid') ||
                 error.config?.url?.includes('/login');
 

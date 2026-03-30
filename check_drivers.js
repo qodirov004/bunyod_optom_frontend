@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const baseURL = 'http://127.0.0.1:8000/';
+const baseURL = 'logistika.api.ardentsoft.uz';
 const apiURL = baseURL + 'customusers/';
 
 async function checkDrivers() {
@@ -8,7 +8,7 @@ async function checkDrivers() {
         console.log(`Fetching from ${apiURL}...`);
         const response = await axios.get(apiURL);
         const data = response.data.results || response.data;
-        
+
         console.log(`Found ${data.length} drivers.`);
         data.forEach(driver => {
             console.log(`ID: ${driver.id}, Name: ${driver.fullname}, Photo: ${JSON.stringify(driver.photo)}`);
