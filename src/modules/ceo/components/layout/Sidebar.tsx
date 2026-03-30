@@ -13,9 +13,13 @@ import {
   UsergroupAddOutlined,
   AppstoreOutlined,
   SolutionOutlined,
+  BankOutlined,
 } from '@ant-design/icons';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+
+import { useSelector } from 'react-redux';
+import { RootState } from '../../../../store/store';
 
 const { Sider } = Layout;
 const { Title } = Typography;
@@ -27,6 +31,7 @@ interface SidebarProps {
 
 export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onCollapse }) => {
   const pathname = usePathname();
+  const { user } = useSelector((state: RootState) => state.auth);
   
   // Get the active key based on current path
   const getActiveKey = () => {
@@ -114,10 +119,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onCollapse }) => {
       </div>
       
       <div className="user-info">
-        <Avatar size={collapsed ? 32 : 40} icon={<UserOutlined />} />
+        <div className="user-avatar-wrapper">
+          <Avatar size={collapsed ? 32 : 40} icon={<UserOutlined />} className="custom-avatar" />
+          {!collapsed && <div className="online-indicator"></div>}
+        </div>
         {!collapsed && (
           <div className="user-details">
-            <span style={{ color: '#fff' }}>Administrator</span>
+            <span className="user-name">{user?.fullname || user?.username || ''}</span>
           </div>
         )}
       </div>
@@ -128,70 +136,161 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onCollapse }) => {
         selectedKeys={[getActiveKey()]}
         defaultOpenKeys={collapsed ? [] : ['admin']}
         items={menuItems}
+        className="custom-menu"
       />
       
       <style jsx global>{`
         .ceo-sidebar {
+          background: #1e1e2d !important;
           position: fixed;
           height: 100vh;
           left: 0;
           z-index: 100;
-          box-shadow: 2px 0 8px rgba(0, 0, 0, 0.15);
+          box-shadow: 4px 0 15px rgba(0, 0, 0, 0.1);
+          border-right: none !important;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        }
+
+        .ceo-sidebar .ant-layout-sider-children {
+          background: #1e1e2d !important;
+          display: flex;
+          flex-direction: column;
         }
         
         .logo-container {
+          padding: 24px 20px;
+          margin-bottom: 10px;
           display: flex;
           align-items: center;
           justify-content: space-between;
-          padding: 16px;
-          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
-        
+
         .collapse-btn {
-          background: transparent;
+          width: 32px;
+          height: 32px;
+          background: rgba(255, 255, 255, 0.05);
           border: none;
           color: #fff;
+          border-radius: 8px;
           cursor: pointer;
-          font-size: 16px;
           display: flex;
           align-items: center;
           justify-content: center;
+          font-size: 16px;
+          transition: all 0.2s ease;
+        }
+
+        .collapse-btn:hover {
+          background: rgba(255, 255, 255, 0.1);
+          color: #6c5ce7;
+        }
+        
+        .logo {
+          display: flex;
+          align-items: center;
         }
         
         .user-info {
           display: flex;
           align-items: center;
-          padding: 16px;
-          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+          padding: 15px 20px;
+          margin-bottom: 15px;
+          transition: all 0.3s ease;
+        }
+        
+        .user-avatar-wrapper {
+          position: relative;
+        }
+
+        .custom-avatar {
+          background: #6c5ce7 !important;
+          border: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .online-indicator {
+          position: absolute;
+          bottom: 2px;
+          right: 2px;
+          width: 10px;
+          height: 10px;
+          background: #2ed573;
+          border: 2px solid #1e1e2d;
+          border-radius: 50%;
         }
         
         .user-details {
           margin-left: 12px;
           display: flex;
           flex-direction: column;
+          overflow: hidden;
+        }
+
+        .user-name {
+          color: #fff;
+          font-weight: 600;
+          font-size: 14px;
+          white-space: nowrap;
         }
         
-        .ant-menu-dark .ant-menu-item-selected {
-          background-color: #1890ff;
+        /* Menu Styling */
+        .custom-menu {
+          background: transparent !important;
+          border-right: none !important;
         }
-        
-        .ant-layout-sider-children {
-          display: flex;
-          flex-direction: column;
+
+        .custom-menu .ant-menu-item {
+          height: 48px !important;
+          line-height: 48px !important;
+          margin: 4px 12px !important;
+          width: calc(100% - 24px) !important;
+          border-radius: 8px !important;
+          color: rgba(255, 255, 255, 0.6) !important;
+          transition: all 0.2s ease !important;
         }
-        
-        .ant-menu {
-          flex: 1;
-          padding-top: 12px;
+
+        .custom-menu .ant-menu-item:hover {
+          color: #fff !important;
+          background: rgba(255, 255, 255, 0.05) !important;
         }
-        
-        .ant-menu-sub.ant-menu-inline {
-          background: rgba(0, 0, 0, 0.2) !important;
+
+        .custom-menu .ant-menu-item-selected {
+          background: #6c5ce7 !important;
+          color: #fff !important;
+          box-shadow: 0 4px 12px rgba(108, 92, 231, 0.3);
         }
-        
-        .ant-menu-item:hover,
-        .ant-menu-submenu-title:hover {
-          background-color: rgba(24, 144, 255, 0.3) !important;
+
+        .custom-menu .ant-menu-item .anticon {
+          font-size: 18px !important;
+          transition: all 0.3s ease;
+        }
+
+        .custom-menu .ant-menu-item-selected .anticon {
+          transform: scale(1.1);
+        }
+
+        .custom-menu .ant-menu-submenu-title {
+          margin: 4px 12px !important;
+          width: calc(100% - 24px) !important;
+          border-radius: 8px !important;
+          color: rgba(255, 255, 255, 0.6) !important;
+        }
+
+        .custom-menu .ant-menu-sub {
+          background: rgba(0, 0, 0, 0.15) !important;
+          margin: 0 12px !important;
+          border-radius: 8px !important;
+        }
+
+        /* Scrollbar */
+        .ant-layout-sider-children::-webkit-scrollbar {
+          width: 4px;
+        }
+        .ant-layout-sider-children::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .ant-layout-sider-children::-webkit-scrollbar-thumb {
+          background: rgba(255, 255, 255, 0.1);
+          border-radius: 10px;
         }
       `}</style>
     </Sider>

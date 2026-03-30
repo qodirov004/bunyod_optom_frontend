@@ -272,7 +272,7 @@ export const CarsPage: React.FC<{ basePath?: string }> = ({ basePath = '/modules
                     className={styles.carsTable}
                     pagination={false}
                     onRow={(record) => ({
-                        onClick: () => navigateToCarHistory(record.id || 0)
+                        onClick: () => handleEdit(record as unknown as Car)
                     })}
                 />
             );
@@ -302,7 +302,7 @@ export const CarsPage: React.FC<{ basePath?: string }> = ({ basePath = '/modules
                                     </div>
                                 )
                             }
-                            onClick={() => navigateToCarHistory(car.id || 0)}
+                            onClick={() => handleEdit(car as Car)}
                             extra={
                                 <div>
                                     <Tag

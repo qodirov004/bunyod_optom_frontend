@@ -19,29 +19,22 @@ const Navbar: React.FC<NavbarProps> = ({ fixed = true }) => {
     return (
         <Header 
             className={`navbar ${theme} ${fixed ? 'fixed' : ''} ${sidebarCollapsed ? 'collapsed' : ''}`}
-            style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '0 16px',
-                boxShadow: '0 1px 4px rgba(0,21,41,.08)',
-                zIndex: 1000,
-                background: theme === 'dark' ? '#001529' : '#fff',
-            }}
         >
             <div className="navbar-left">
                 <Space align="center">
                     <SafetyOutlined 
                         style={{ 
-                            fontSize: '28px', 
-                            color: '#52c41a'
+                            fontSize: '24px', 
+                            color: '#6c5ce7'
                         }} 
                     />
                     <Title 
                         level={4} 
                         style={{ 
                             margin: 0,
-                            color: theme === 'dark' ? '#fff' : '#001529'
+                            color: '#1e1e2d',
+                            fontWeight: 700,
+                            letterSpacing: '-0.3px'
                         }}
                     >
                         RBL LOGISTCS — Owner

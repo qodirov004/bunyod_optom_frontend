@@ -42,35 +42,37 @@
 
 /* Card styles */
 .dashboard-card {
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  border-radius: 16px;
+  border: none;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
   overflow: hidden;
-  transition: all 0.3s ease;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   height: 100%;
   margin-bottom: 0;
+  background: #ffffff;
 }
 
 .dashboard-card:hover {
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
-  transform: translateY(-2px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+  transform: translateY(-5px);
 }
 
 .dashboard-card .ant-card-body {
-  padding: 20px;
+  padding: 24px;
 }
 
 /* Specific card styles */
 .financial-summary-card {
   background: #ffffff;
-  border-left: 4px solid #1890ff;
+  border-top: 4px solid #6c5ce7;
 }
 
 .financial-summary-card:nth-child(2) {
-  border-left-color: #ff6384;
+  border-top-color: #2ed573;
 }
 
 .financial-summary-card:nth-child(3) {
-  border-left-color: #4bc0c0;
+  border-top-color: #ff9f43;
 }
 
 .expense-chart-card {
@@ -120,7 +122,7 @@
 }
 
 .percentage-up {
-  color: #52c41a;
+  color: #2ed573;
   display: flex;
   align-items: center;
 }
@@ -183,13 +185,26 @@
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(20px);
   }
   to {
     opacity: 1;
     transform: translateY(0);
   }
 }
+
+.dashboard-section {
+  animation: fadeIn 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.dashboard-card {
+  animation: fadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) backwards;
+}
+
+.dashboard-row > div:nth-child(1) .dashboard-card { animation-delay: 0.1s; }
+.dashboard-row > div:nth-child(2) .dashboard-card { animation-delay: 0.2s; }
+.dashboard-row > div:nth-child(3) .dashboard-card { animation-delay: 0.3s; }
+.dashboard-row > div:nth-child(4) .dashboard-card { animation-delay: 0.4s; }
 
 /* Loading and empty states */
 .loading-container, 
@@ -497,7 +512,7 @@
 .metric-value {
   font-size: 24px;
   font-weight: 600;
-  color: #1890ff;
+  color: #6c5ce7;
 }
 
 .financial-period {
@@ -540,7 +555,7 @@
 .driver-card:hover {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
   transform: translateY(-2px);
-  border-color: #1890ff;
+  border-color: #6c5ce7;
 }
 
 .driver-card:hover .view-details {
@@ -549,7 +564,7 @@
 
 .view-details {
   margin-top: 10px;
-  color: #1890ff;
+  color: #6c5ce7;
   font-size: 12px;
   font-weight: 500;
   opacity: 0.7;
@@ -560,7 +575,7 @@
   position: absolute;
   top: 8px;
   right: 8px;
-  background-color: #1890ff;
+  background-color: #6c5ce7;
   color: white;
   font-weight: bold;
   width: 28px;
@@ -596,7 +611,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #1890ff;
+  background-color: #6c5ce7;
   color: white;
   font-size: 32px;
   font-weight: bold;
@@ -641,7 +656,7 @@
 .stat-value {
   font-size: 14px;
   font-weight: 600;
-  color: #1890ff;
+  color: #6c5ce7;
 }
 
 .loading-container {
@@ -723,7 +738,7 @@
 
 .legend-percent {
   font-size: 12px;
-  color: #1890ff;
+  color: #6c5ce7;
   font-weight: 500;
 }
 
@@ -868,7 +883,7 @@
 }
 
 .paid-stats .stats-value {
-  color: #52c41a;
+  color: #2ed573;
 }
 
 .unpaid-stats .stats-value {
@@ -912,7 +927,7 @@
 }
 
 .success-message {
-  color: #52c41a;
+  color: #2ed573;
   font-weight: 500;
   margin-top: 8px;
 }

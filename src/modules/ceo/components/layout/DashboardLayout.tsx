@@ -93,8 +93,10 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
       icon: <LogoutOutlined />,
       danger: true,
       onClick: () => {
-        localStorage.removeItem('token'); // Clear auth token
-        router.push('/login');
+        // Clear auth token completely
+        const { removeToken } = require('@/auth/authUtils');
+        removeToken();
+        window.location.href = '/login';
       },
     },
   ];
@@ -189,17 +191,24 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
       </Modal>
 
       <style jsx global>{`
+        .site-layout {
+          background: #f4f7fe !important;
+        }
+
         .dashboard-header {
-          background: #fff;
+          background: rgba(255, 255, 255, 0.8) !important;
+          backdrop-filter: blur(10px);
           display: flex;
           justify-content: space-between;
           align-items: center;
-          height: 64px;
-          padding: 0 16px;
-          box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+          height: 70px;
+          line-height: normal !important;
+          padding: 0 24px;
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
           position: sticky;
           top: 0;
           z-index: 10;
+          border-bottom: 1px solid rgba(0, 0, 0, 0.05);
         }
         
         .header-left {
@@ -207,34 +216,24 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
           align-items: center;
         }
         
-        .collapse-btn-header {
-          background: transparent;
-          border: none;
-          font-size: 18px;
-          padding: 0;
-          margin-right: 16px;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: #595959;
-        }
-        
         .header-title {
           display: flex;
           flex-direction: column;
         }
         
-        .header-title h1 {
+        .dashboard-title {
           margin: 0;
-          font-size: 18px;
-          line-height: 1.2;
+          font-size: 20px;
+          font-weight: 700;
+          color: #1e1e2d;
+          letter-spacing: -0.5px;
         }
         
-        .header-title p {
-          margin: 4px 0 0 0;
-          font-size: 14px;
-          line-height: 1.2;
+        .dashboard-subtitle {
+          margin: 2px 0 0 0;
+          font-size: 13px;
+          color: #a0aec0;
+          font-weight: 500;
         }
         
         .header-actions {
@@ -245,56 +244,46 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
         .header-btn {
           display: flex;
           align-items: center;
-          height: 40px;
-          padding: 0 12px;
-          border-radius: 6px;
+          height: 44px;
+          padding: 0 16px;
+          border-radius: 10px;
+          background: #fff;
+          border: 1px solid rgba(0, 0, 0, 0.05);
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+          transition: all 0.2s ease;
         }
         
         .header-btn:hover {
-          background: rgba(0, 0, 0, 0.03);
+          background: #f7fafc !important;
+          transform: translateY(-1px);
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.04);
         }
         
         .user-btn {
           display: flex;
           align-items: center;
-          gap: 8px;
+          gap: 10px;
         }
         
         .username {
-          margin-left: 8px;
-        }
-        
-        .currency-rates {
-          display: flex;
-          align-items: center;
-          font-size: 14px;
-          color: #595959;
-        }
-        
-        .currency-item {
-          margin-right: 12px;
-          display: flex;
-          align-items: center;
-          gap: 4px;
-        }
-        
-        .currency-item .anticon {
-          color: #1890ff;
+          margin-left: 4px;
+          font-weight: 600;
+          color: #4a5568;
         }
         
         .dashboard-content {
-          padding: 16px;
-          background: #f5f7fa;
-          min-height: calc(100vh - 64px - 48px);
+          padding: 24px;
+          background: #f4f7fe;
+          min-height: calc(100vh - 70px - 60px);
         }
         
         .dashboard-footer {
           text-align: center;
-          padding: 12px 24px;
-          background: #fff;
-          color: rgba(0, 0, 0, 0.45);
-          font-size: 14px;
-          box-shadow: 0 -1px 4px rgba(0, 0, 0, 0.03);
+          padding: 20px 24px;
+          background: transparent;
+          color: #a0aec0;
+          font-size: 13px;
+          font-weight: 500;
         }
         
         @media (max-width: 768px) {
@@ -303,15 +292,11 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
           }
           
           .dashboard-header {
-            padding: 0 12px;
+            padding: 0 16px;
           }
           
           .dashboard-content {
             padding: 16px;
-          }
-          
-          .currency-rates {
-            display: none;
           }
         }
       `}</style>

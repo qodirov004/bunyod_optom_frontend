@@ -1,56 +1,187 @@
+/* Login Background Effects */
+.login-page-bg {
+  min-height: 100vh;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f8f9fc;
+  overflow: hidden;
+}
+
+.bg-shape {
+  position: absolute;
+  filter: blur(80px);
+  z-index: 0;
+  border-radius: 50%;
+}
+
+.shape-1 {
+  width: 500px;
+  height: 500px;
+  background: rgba(108, 92, 231, 0.4);
+  top: -100px;
+  right: -50px;
+}
+
+.shape-2 {
+  width: 400px;
+  height: 400px;
+  background: rgba(0, 210, 211, 0.3);
+  bottom: -50px;
+  left: -50px;
+}
+
+.shape-3 {
+  width: 300px;
+  height: 300px;
+  background: rgba(239, 93, 168, 0.2);
+  top: 40%;
+  left: 20%;
+}
+
+/* Login Container */
 .login-container {
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: #f0f2f5; /* Yengil kulrang fon */
-  }
-  
+  z-index: 10;
+  width: 100%;
+  max-width: 420px;
+  padding: 0 20px;
+}
+
+.login-form-wrapper {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 24px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+}
+
+.form-header-line {
+  height: 4px;
+  width: 100%;
+  background: linear-gradient(90deg, #6c5ce7, #a29bfe);
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.login-form {
+  padding: 40px 32px 32px;
+}
+
+/* Logo Section */
+.login-logo-container {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.login-logo-icon {
+  width: 64px;
+  height: 64px;
+  background: linear-gradient(135deg, #6c5ce7, #8e7ffe);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+  box-shadow: 0 8px 16px rgba(108, 92, 231, 0.3);
+  color: white;
+  font-size: 32px;
+}
+
+.login-logo-container h1 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #6c5ce7;
+  margin: 0 0 4px 0;
+  letter-spacing: -0.5px;
+}
+
+.login-logo-container p {
+  color: #a0aec0;
+  font-size: 14px;
+  margin: 0;
+  font-weight: 500;
+}
+
+/* Form Styles */
+.custom-login-form .ant-form-item {
+  margin-bottom: 20px;
+}
+
+.custom-input {
+  border-radius: 12px !important;
+  background-color: #f1f5f9 !important;
+  border: 1px solid transparent !important;
+  padding: 10px 16px !important;
+  font-size: 15px !important;
+  transition: all 0.3s ease !important;
+}
+
+.custom-input:hover, 
+.custom-input:focus, 
+.ant-input-affix-wrapper-focused {
+  background-color: #fff !important;
+  border-color: #6c5ce7 !important;
+  box-shadow: 0 0 0 4px rgba(108, 92, 231, 0.1) !important;
+}
+
+.input-icon {
+  color: #a0aec0;
+  font-size: 16px;
+  margin-right: 8px;
+}
+
+.custom-input input {
+  background-color: transparent !important;
+}
+
+.custom-submit-button {
+  height: 48px !important;
+  border-radius: 12px !important;
+  background: #6c5ce7 !important;
+  border: none !important;
+  font-weight: 600 !important;
+  font-size: 16px !important;
+  box-shadow: 0 4px 12px rgba(108, 92, 231, 0.3) !important;
+  transition: all 0.3s ease !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+}
+
+.custom-submit-button:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 16px rgba(108, 92, 231, 0.4) !important;
+  background: #5b4dd6 !important;
+}
+
+.submit-icon {
+  font-size: 14px;
+  transition: transform 0.3s ease;
+}
+
+.custom-submit-button:hover .submit-icon {
+  transform: translateX(4px);
+}
+
+.login-footer {
+  text-align: center;
+  margin-top: 24px;
+}
+
+.login-footer p {
+  color: #a0aec0;
+  font-size: 12px;
+  margin: 0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 576px) {
   .login-form {
-    width: 100%;
-    max-width: 400px;
-    padding: 40px;
-    background-color: white;
-    border-radius: 12px;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
-    text-align: center;
-    transition: transform 0.3s;
+    padding: 32px 24px 24px;
   }
-  
-  .login-form:hover {
-    transform: scale(1.02);
-  }
-  
-  .login-form h1 {
-    font-size: 28px;
-    margin-bottom: 10px;
-    color: #343a40; /* Qora rang */
-  }
-  
-  .login-form p {
-    color: #6c757d; /* Kulrang */
-    margin-bottom: 20px;
-  }
-  
-  .input-field {
-    border-radius: 8px;
-    border: 1px solid #ced4da; /* Yengil kulrang */
-    transition: border-color 0.3s;
-  }
-  
-  .input-field:focus {
-    border-color: #007bff; /* Moviy rang */
-    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
-  }
-  
-  .submit-button {
-    width: 100%;
-    background: linear-gradient(90deg, #007bff, #0056b3); /* Moviy gradient */
-    border: none;
-    border-radius: 8px;
-    transition: background 0.3s;
-  }
-  
-  .submit-button:hover {
-    background: linear-gradient(90deg, #0056b3, #007bff);
-  }
+}

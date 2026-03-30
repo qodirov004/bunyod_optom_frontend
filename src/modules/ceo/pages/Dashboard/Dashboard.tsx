@@ -100,7 +100,7 @@ const Dashboard = ({ hideLayout = false }: { hideLayout?: boolean }) => {
   }, [trips, historyData]);
 
   const expensesDataResult = useMemo(() => {
-    const colors = ['#1890ff', '#52c41a', '#722ed1', '#faad14', '#f5222d', '#fa541c', '#13c2c2', '#eb2f96'];
+    const colors = ['#6c5ce7', '#2ed573', '#ff9f43', '#00d2d3', '#ef5da8', '#4834d4', '#13c2c2', '#eb2f96'];
     const items = expenseTotalsData ? 
       Object.entries(expenseTotalsData).map(([key, value], index) => ({
         name: key,

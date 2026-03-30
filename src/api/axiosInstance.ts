@@ -91,24 +91,31 @@ axiosInstance.interceptors.response.use(
         }
 
         // Important: ONLY redirect to login if the URL is NOT already /auth/login or /login
-        // AND the error is a 401 with a token_not_valid message
         if (error.response?.status === 401) {
             const currentPath = typeof window !== 'undefined' ? window.location.pathname : '';
 
-            // Check if we're not already on a login page to avoid redirect loops
-            if (!currentPath.includes('/login') && !currentPath.includes('/auth/login')) {
-                console.log('Authentication failed (401), clearing session and redirecting to login');
+            // FAQATGINA token haqiqatan eskirgan yoki noto'g'ri bo'lsagina tizimdan chiqarish
+            const isTokenInvalid = 
+                error.response?.data?.code === 'token_not_valid' || 
+                error.response?.data?.detail?.includes('given token not valid') ||
+                error.config?.url?.includes('/login');
+
+            if (isTokenInvalid && !currentPath.includes('/login') && !currentPath.includes('/auth/login')) {
+                console.log('Token eskirgan (401), sessiya tozalanib login sahifasiga yo\'naltirilmoqda');
                 removeToken();
 
                 const redirectInProgress = sessionStorage.getItem('redirect_in_progress');
                 if (!redirectInProgress) {
                     sessionStorage.setItem('redirect_in_progress', 'true');
-                    window.location.href = '/auth/login';
+                    window.location.href = '/login';
 
                     setTimeout(() => {
                         sessionStorage.removeItem('redirect_in_progress');
                     }, 5000);
                 }
+            } else if (!isTokenInvalid) {
+                // Bu shunchaki backend tarafidan yuborilgan 401 (huquq yetishmasligi), logout qilinmaydi
+                console.warn('Backend ruxsat xatosi qaytardi (401/403), lekin token amalda.');
             }
         }
 

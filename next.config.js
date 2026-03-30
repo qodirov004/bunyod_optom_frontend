@@ -26,6 +26,12 @@ const nextConfig = {
     },
     // Improve performance
     reactStrictMode: false,
+    webpack: (config, { dev }) => {
+        if (dev) {
+            config.devtool = 'source-map'; // Eval ishlatmaslik uchun
+        }
+        return config;
+    },
 };
 
 module.exports = withBundleAnalyzer(nextConfig);

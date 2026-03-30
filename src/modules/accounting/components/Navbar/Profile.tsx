@@ -29,9 +29,10 @@ const Profile: React.FC = () => {
         if (e.key === '1') {
             setPasswordModalVisible(true);
         } else if (e.key === '2') {
-            // Logout
-            localStorage.removeItem('token'); // Clear auth token
-            router.push('/login');
+            // Logout - clear all auth state
+            const { removeToken } = require('@/auth/authUtils');
+            removeToken();
+            window.location.href = '/login';
         }
     };
 

@@ -22,6 +22,12 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: false, // 🔧 TypeScript xatolarini buildda chiqaradi
   },
+  webpack: (config, { dev }) => {
+    if (dev) {
+      config.devtool = 'source-map'; // Eval ishlatmaslik uchun
+    }
+    return config;
+  },
 };
 
 module.exports = nextConfig;

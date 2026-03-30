@@ -191,7 +191,7 @@ const DriversList: React.FC<DriversListProps> = ({
       }}
       onRow={(record) => {
         return {
-          onClick: () => viewDriverHistory(record),
+          onClick: () => onEdit(record),
           style: { cursor: 'pointer' }
         };
       }}

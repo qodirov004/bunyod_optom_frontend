@@ -118,17 +118,16 @@ export function Navbar() {
             alignItems: 'center',
             justifyContent: 'space-between',
             padding: '0 24px',
-            background: '#001529'
+            background: '#1e1e2d',
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
+            height: '64px'
         }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                <Title level={4} style={{ margin: 0, color: '#fff', flexShrink: 0 }}>
-                    Driver Panel
+                <Title level={4} style={{ margin: 0, color: '#fff', flexShrink: 0, fontWeight: 700 }}>
+                    <span style={{ color: '#a29bfe' }}>RBL</span> LOGISTCS
                 </Title>
                 {!isMobile && renderMenu()}
             </div>
-            <Title level={5} style={{ margin: 0, color: '#fff', textAlign: 'center' }}>
-                <span style={{ color: '#fff' }}>Foydalanuvchi ismi va familiyasi</span>
-            </Title>
             <div>
                 {isMobile ? (
                     <>
@@ -150,14 +149,28 @@ export function Navbar() {
                                 type="primary"
                                 danger
                                 style={{ width: '100%', marginTop: 16 }}
+                                onClick={() => {
+                                    const { removeToken } = require('@/auth/authUtils');
+                                    removeToken();
+                                    window.location.href = '/login';
+                                }}
                             >
-                                Log Out
+                                Chiqish
                             </Button>
                         </Drawer>
                     </>
                 ) : (
-                    <Button type="primary" danger >
-                        Log Out
+                    <Button 
+                        type="primary" 
+                        danger
+                        onClick={() => {
+                            const { removeToken } = require('@/auth/authUtils');
+                            removeToken();
+                            window.location.href = '/login';
+                        }}
+                        style={{ borderRadius: '8px' }}
+                    >
+                        Chiqish
                     </Button>
                 )}
             </div>

@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSelector } from 'react-redux';
-import { RootState } from '@/store';
+import { RootState } from '@/store/store';
 import { Spin } from 'antd';
 
 export default function Home() {
@@ -13,13 +13,14 @@ export default function Home() {
   useEffect(() => {
     // Redirect to login if not authenticated
     if (!isAuthenticated) {
-      router.push('/auth/login');
+      router.push('/login');
       return;
     }
 
     // Redirect based on user role
     if (user) {
-      switch (user.status.toLowerCase()) {
+      const role = user.status.toLowerCase();
+      switch (role) {
         case 'ceo':
           router.push('/modules/ceo');
           break;
@@ -29,9 +30,18 @@ export default function Home() {
         case 'driver':
           router.push('/modules/driver');
           break;
+        case 'owner':
+          router.push('/modules/owner');
+          break;
+        case 'cashier':
+          router.push('/modules/cashier');
+          break;
+        case 'zaphos':
+          router.push('/modules/zaphos');
+          break;
         default:
           // If role is not recognized, redirect to login
-          router.push('/auth/login');
+          router.push('/login');
       }
     }
   }, [isAuthenticated, user, router]);

@@ -54,6 +54,11 @@ const CashTransactionModal: React.FC<CashTransactionModalProps> = ({
   const [isDebtRepayment, setIsDebtRepayment] = useState(false);
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
 
+  // Use useWatch to avoid "not connected to form" warnings
+  const isDebt = Form.useWatch('is_debt', form);
+  const totalExpectedAmount = Form.useWatch('total_expected_amount', form);
+  const currencyValue = Form.useWatch('currency', form);
+
   useEffect(() => {
     const fetchPaymentMethods = async () => {
       try {
@@ -349,7 +354,7 @@ const CashTransactionModal: React.FC<CashTransactionModalProps> = ({
             label="Joriy qarz miqdori"
           >
             <Text strong style={{ fontSize: 16, color: '#ff4d4f' }}>
-              {form.getFieldValue('total_expected_amount')} {form.getFieldValue('currency')}
+              {totalExpectedAmount} {currencyValue}
             </Text>
           </Form.Item>
         )}
@@ -447,7 +452,7 @@ const CashTransactionModal: React.FC<CashTransactionModalProps> = ({
           </Form.Item>
         </Space>
 
-        {form.getFieldValue('is_debt') && (
+        {isDebt && (
           <Space style={{ width: '100%', marginTop: '20px' }} direction="horizontal">
             <Form.Item
               name="total_expected_amount"

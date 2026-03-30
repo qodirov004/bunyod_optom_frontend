@@ -77,7 +77,7 @@ const NavRight: React.FC = () => {
         >
           <Tooltip title={formatLastUpdate()}>
             <AreaChartOutlined 
-              style={{ fontSize: '18px', marginRight: '8px', color: '#1890ff' }} 
+              style={{ fontSize: '18px', marginRight: '8px', color: '#6c5ce7' }} 
             />
           </Tooltip>
         </Badge>
@@ -96,13 +96,14 @@ const NavRight: React.FC = () => {
                         'orange'} 
                   icon={getCurrencyIcon(currency.currency)}
                   style={{ 
-                    padding: '4px 8px',
-                    fontWeight: 'bold',
-                    boxShadow: '0 2px 0 rgba(0, 0, 0, 0.045)',
-                    borderRadius: '4px',
+                    padding: '4px 10px',
+                    fontWeight: 600,
+                    boxShadow: '0 2px 6px rgba(0, 0, 0, 0.06)',
+                    borderRadius: '8px',
                     cursor: 'default',
                     display: 'flex',
-                    alignItems: 'center'
+                    alignItems: 'center',
+                    fontSize: '12px'
                   }}
                 >
                   {getCurrencySymbol(currency.currency)} {Number(currency.rate_to_uzs).toLocaleString()}

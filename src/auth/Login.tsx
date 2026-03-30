@@ -3,6 +3,7 @@ import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Form, Input, Button, Alert } from 'antd'
+import { BankOutlined, UserOutlined, LockOutlined, ArrowRightOutlined } from '@ant-design/icons'
 import { useRouter } from 'next/navigation'
 import { useLoginMutation } from './authApi'
 import { useDispatch } from 'react-redux'
@@ -132,64 +133,99 @@ export function Login() {
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.6 }}
-      className="login-container"
-    >
-      <div className="login-form">
-        <h1>RBL LOGISTCS</h1>
-        <p>Xush kelibsiz! Iltimos, tizimga kiring.</p>
-        
-        {errorMessage && (
-          <Alert
-            message="Xatolik"
-            description={errorMessage}
-            type="error"
-            showIcon
-            style={{ marginBottom: 16 }}
-            closable
-          />
-        )}
-        
-        <Form onFinish={handleSubmit(onSubmit)} layout="vertical">
-          <Form.Item
-            label="Login"
-            validateStatus={errors.username ? 'error' : ''}
-            help={errors.username?.message}
-          >
-            <Controller
-              name="username"
-              control={control}
-              render={({ field }) => (
-                <Input {...field} placeholder="Login" className="input-field" />
-              )}
-            />
-          </Form.Item>
+    <div className="login-page-bg">
+      <div className="bg-shape shape-1"></div>
+      <div className="bg-shape shape-2"></div>
+      <div className="bg-shape shape-3"></div>
+      
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        transition={{ duration: 0.5, ease: [0.175, 0.885, 0.32, 1.275] }}
+        className="login-container"
+      >
+        <div className="login-form-wrapper">
+          <div className="form-header-line"></div>
+          <div className="login-form">
+            <div className="login-logo-container">
+              <div className="login-logo-icon">
+                <BankOutlined />
+              </div>
+              <h1>RBL LOGISTCS</h1>
+              <p>Xush kelibsiz! Iltimos, tizimga kiring.</p>
+            </div>
+            
+            {errorMessage && (
+              <Alert
+                message="Xatolik"
+                description={errorMessage}
+                type="error"
+                showIcon
+                style={{ marginBottom: 24, borderRadius: 8 }}
+                closable
+              />
+            )}
+            
+            <Form onFinish={handleSubmit(onSubmit)} layout="vertical" className="custom-login-form">
+              <Form.Item
+                validateStatus={errors.username ? 'error' : ''}
+                help={errors.username?.message}
+              >
+                <Controller
+                  name="username"
+                  control={control}
+                  render={({ field }) => (
+                    <Input 
+                      {...field} 
+                      placeholder="admin" 
+                      prefix={<UserOutlined className="input-icon" />}
+                      className="custom-input" 
+                      size="large"
+                    />
+                  )}
+                />
+              </Form.Item>
 
-          <Form.Item
-            label="Parol"
-            validateStatus={errors.password ? 'error' : ''}
-            help={errors.password?.message}
-          >
-            <Controller
-              name="password"
-              control={control}
-              render={({ field }) => (
-                <Input.Password {...field} placeholder="Parolingizni kiriting" className="input-field" />
-              )}
-            />
-          </Form.Item>
+              <Form.Item
+                validateStatus={errors.password ? 'error' : ''}
+                help={errors.password?.message}
+              >
+                <Controller
+                  name="password"
+                  control={control}
+                  render={({ field }) => (
+                    <Input.Password 
+                      {...field} 
+                      placeholder="•••••" 
+                      prefix={<LockOutlined className="input-icon" />}
+                      className="custom-input" 
+                      size="large"
+                    />
+                  )}
+                />
+              </Form.Item>
 
-          <Form.Item>
-            <Button type="primary" htmlType="submit" loading={isLoading} className="submit-button">
-              Kirish
-            </Button>
-          </Form.Item>
-        </Form>
-      </div>
-    </motion.div>
+              <Form.Item style={{ marginTop: 32 }}>
+                <Button 
+                  type="primary" 
+                  htmlType="submit" 
+                  loading={isLoading} 
+                  className="custom-submit-button"
+                  size="large"
+                  block
+                >
+                  Kirish <ArrowRightOutlined className="submit-icon" />
+                </Button>
+              </Form.Item>
+              
+              <div className="login-footer">
+                <p>&copy; 2024 RBL LOGISTCS</p>
+              </div>
+            </Form>
+          </div>
+        </div>
+      </motion.div>
+    </div>
   )
 }

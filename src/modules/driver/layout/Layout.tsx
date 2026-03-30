@@ -67,7 +67,7 @@ export function DriverLayout() {
     return (
         <Layout style={{ minHeight: '100vh' }}>
             <Navbar />
-            <Layout style={{ background: '#f0f2f5' }}>
+            <Layout style={{ background: '#f4f7fe' }}>
                 <AnimatePresence mode="wait">
                     <motion.div
                         key={pathname}

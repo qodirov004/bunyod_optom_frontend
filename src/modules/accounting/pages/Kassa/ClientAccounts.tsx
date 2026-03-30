@@ -517,7 +517,15 @@ const ClientAccounts: React.FC = () => {
               loading={refreshing}
               onClick={forceRefreshData}
               type="primary"
-              ghost
+              style={{
+                background: '#6c5ce7',
+                borderColor: '#6c5ce7',
+                color: '#fff',
+                borderRadius: '8px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px'
+              }}
             >
               Yangilash
             </Button>
