@@ -1,6 +1,6 @@
+import "@ant-design/v5-patch-for-react-19";
 import type { Metadata } from "next";
 import { Inter, Space_Grotesk, Roboto_Mono } from "next/font/google";
-import "@ant-design/v5-patch-for-react-19";
 import "./globals.css";
 import { ReduxProvider } from "@/providers/ReduxProvider";
 import ClientAuthWrapper from "@/auth/ClientAuthWrapper";

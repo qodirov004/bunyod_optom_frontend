@@ -1,7 +1,7 @@
 import axios from 'axios';
 export const testBackendConnection = async () => {
     try {
-        const response = await axios.get('logistika.api.ardentsoft.uzhealth');
+        const response = await axios.get('https://logistika.api.ardentsoft.uz/health/');
         console.log('Backend connection successful:', response.data);
         return true;
     } catch (error) {

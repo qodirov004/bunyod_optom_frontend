@@ -1,9 +1,7 @@
 import axios from "axios";
 import { getToken, removeToken, refreshTokenExpiration } from "@/auth/authUtils";
 
-export const baseURL = (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1')
-    ? `http://${window.location.hostname}:8000/`
-    : 'https://logistika.api.ardentsoft.uz/';
+export const baseURL = 'https://logistika.api.ardentsoft.uz';
 
 export const formatImageUrl = (url: string | null | undefined) => {
     if (!url) return null;
