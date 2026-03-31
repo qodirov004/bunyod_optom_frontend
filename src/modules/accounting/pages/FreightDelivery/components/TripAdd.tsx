@@ -17,6 +17,7 @@ import {
   Spin,
   Empty,
   Tabs,
+  Modal,
 } from 'antd'
 import {
   PlusOutlined,
@@ -33,6 +34,7 @@ import { freightApi } from '../../../api/freight/freightapi'
 import ClientPayment from '../../../pages/Kassa/components/ClientPayment'
 import { useCurrencies } from '../../../hooks/useCurrencies'
 import { useCountries } from '../../../hooks/useCountries'
+import { createCountry } from '../../../api/country/countryApi'
 
 const { Option } = Select
 const { TextArea } = Input
@@ -188,7 +190,36 @@ const TripAdd: React.FC<TripAddProps> = ({ onSuccess }) => {
   const [showPaymentModal, setShowPaymentModal] = useState(false)
   const [selectedRaysId, setSelectedRaysId] = useState<number | null>(null)
   const { currencies, loading: currenciesLoading } = useCurrencies();
-  const { countries: apiCountries, loading: countriesLoading } = useCountries();
+  const { countries: apiCountries, loading: countriesLoading, refetch: refetchCountries } = useCountries();
+
+  // Add Country Modal states
+  const [isCountryModalVisible, setIsCountryModalVisible] = useState(false);
+  const [newCountryName, setNewCountryName] = useState('');
+  const [isSubmittingCountry, setIsSubmittingCountry] = useState(false);
+
+  const handleAddCountry = async () => {
+    if (!newCountryName.trim()) {
+      message.warning('Davlat nomini kiriting!');
+      return;
+    }
+
+    try {
+      setIsSubmittingCountry(true);
+      await createCountry(newCountryName);
+      message.success('Yangi davlat muvaffaqiyatli qo\'shildi!');
+      setNewCountryName('');
+      setIsCountryModalVisible(false);
+      // Refresh the country list
+      if (refetchCountries) {
+        await refetchCountries();
+      }
+    } catch (error) {
+      console.error('Error adding country:', error);
+      message.error('Davlatni qo\'shishda xatolik yuz berdi.');
+    } finally {
+      setIsSubmittingCountry(false);
+    }
+  };
 
   // Load saved draft when component mounts
   useEffect(() => {
@@ -1149,16 +1180,24 @@ const TripAdd: React.FC<TripAddProps> = ({ onSuccess }) => {
                           <span>Davlatlar yuklanmoqda...</span>
                         </div>
                       ) : (
-                        <Select
-                          placeholder="Davlatni tanlang"
-                          allowClear
-                        >
-                          {apiCountries.map(country => (
-                            <Option key={country.id} value={country.id}>
-                              {country.name}
-                            </Option>
-                          ))}
-                        </Select>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          <Select
+                            placeholder="Davlatni tanlang"
+                            allowClear
+                            style={{ flex: 1 }}
+                          >
+                            {apiCountries.map(country => (
+                              <Option key={country.id} value={country.id}>
+                                {country.name}
+                              </Option>
+                            ))}
+                          </Select>
+                          <Button 
+                            icon={<PlusOutlined />} 
+                            onClick={() => setIsCountryModalVisible(true)}
+                            title="Yangi davlat qo'shish"
+                          />
+                        </div>
                       )}
                     </Form.Item>
                   </Col>
@@ -1384,6 +1423,27 @@ const TripAdd: React.FC<TripAddProps> = ({ onSuccess }) => {
           if (onSuccess) onSuccess();
         }}
       />
+
+      <Modal
+        title="Yangi davlat qo'shish"
+        visible={isCountryModalVisible}
+        onOk={handleAddCountry}
+        onCancel={() => {
+          setIsCountryModalVisible(false);
+          setNewCountryName('');
+        }}
+        confirmLoading={isSubmittingCountry}
+        okText="Qo'shish"
+        cancelText="Bekor qilish"
+      >
+        <div style={{ marginBottom: '10px' }}>Davlat nomi:</div>
+        <Input 
+          placeholder="Masalan: O'zbekiston" 
+          value={newCountryName}
+          onChange={(e) => setNewCountryName(e.target.value)}
+          onPressEnter={handleAddCountry}
+        />
+      </Modal>
     </div>
   )
 }

@@ -6,23 +6,23 @@ export const useCountries = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchCountries = async () => {
-      try {
-        setLoading(true);
-        const data = await countryApi.getAllCountries();
-        setCountries(data);
-        setError(null);
-      } catch (err) {
-        console.error('Error fetching countries:', err);
-        setError('Davlat ma\'lumotlarini yuklashda xatolik yuz berdi');
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchCountries = async () => {
+    try {
+      setLoading(true);
+      const data = await countryApi.getAllCountries();
+      setCountries(data);
+      setError(null);
+    } catch (err) {
+      console.error('Error fetching countries:', err);
+      setError('Davlat ma\'lumotlarini yuklashda xatolik yuz berdi');
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchCountries();
   }, []);
 
-  return { countries, loading, error };
+  return { countries, loading, error, refetch: fetchCountries };
 };

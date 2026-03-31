@@ -153,10 +153,12 @@ export const fetchAllRays = async (): Promise<ApiRaysResponseType[]> => {
     return transformedData;
   } catch (error: unknown) {
     const axiosError = error as ApiError;
-    console.error(
-      '❌ Error fetching rays:',
-      axiosError.response?.data || axiosError.message,
-    )
+    if (axiosError.response?.status !== 401) {
+      console.error(
+        '❌ Error fetching rays:',
+        axiosError.response?.data || axiosError.message,
+      );
+    }
     throw new Error(
       axiosError.response?.data?.message || 'Reyslarni olishda xatolik yuz berdi',
     )
@@ -193,10 +195,12 @@ export const updateRayStatus = async (
     return response.data
   } catch (error: unknown) {
     const axiosError = error as ApiError;
-    console.error(
-      `❌ Error updating ray ${id}:`,
-      axiosError.response?.data || axiosError.message,
-    )
+    if (axiosError.response?.status !== 401) {
+      console.error(
+        `❌ Error updating ray ${id}:`,
+        axiosError.response?.data || axiosError.message,
+      );
+    }
     throw new Error(
       axiosError.response?.data?.message || 'Reysni yangilashda xatolik yuz berdi',
     )
@@ -240,10 +244,12 @@ export const completeRace = async (id: number): Promise<HistoryResponseData> => 
     return historyResponse.data
   } catch (error: unknown) {
     const axiosError = error as ApiError;
-    console.error(
-      `❌ Error completing ray ${id}:`,
-      axiosError.response?.data || axiosError.message,
-    )
+    if (axiosError.response?.status !== 401) {
+      console.error(
+        `❌ Error completing ray ${id}:`,
+        axiosError.response?.data || axiosError.message,
+      );
+    }
     throw new Error(
       axiosError.response?.data?.message || 'Reysni tarixga o\'tkazishda xatolik yuz berdi',
     )
@@ -259,10 +265,12 @@ export const completeAllRays = async (): Promise<TripFormValues[]> => {
     return response.data;
   } catch (error: unknown) {
     const axiosError = error as ApiError;
-    console.error(
-      '❌ Error fetching rays history:',
-      axiosError.response?.data || axiosError.message,
-    )
+    if (axiosError.response?.status !== 401) {
+      console.error(
+        '❌ Error fetching rays history:',
+        axiosError.response?.data || axiosError.message,
+      );
+    }
     throw new Error(
       axiosError.response?.data?.message || 'Reyslar tarixini olishda xatolik yuz berdi',
     )

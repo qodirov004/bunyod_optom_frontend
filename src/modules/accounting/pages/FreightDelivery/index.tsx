@@ -105,8 +105,10 @@ const FreightDeliveryPage: React.FC = () => {
         console.error('Invalid response format for trip history:', response.data);
         setTripHistoryCount(0);
       }
-    } catch (error) {
-      console.error('Error fetching trip history count:', error);
+    } catch (error: any) {
+      if (error.response?.status !== 401) {
+        console.error('Error fetching trip history count:', error);
+      }
       setTripHistoryCount(0);
     } finally {
       setLoadingHistoryCount(false);

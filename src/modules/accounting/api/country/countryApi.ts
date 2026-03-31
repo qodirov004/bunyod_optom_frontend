@@ -19,6 +19,17 @@ export const getAllCountries = async (): Promise<Country[]> => {
   }
 };
 
+export const createCountry = async (name: string): Promise<Country> => {
+  try {
+    const response = await axiosInstance.post('/country/', { name });
+    return response.data;
+  } catch (error) {
+    console.error('Error creating country:', error);
+    throw error;
+  }
+};
+
 export const countryApi = {
-  getAllCountries
+  getAllCountries,
+  createCountry
 };
