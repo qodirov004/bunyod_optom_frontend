@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { message } from 'antd';
-import { getAllDrivers, getDriver, createDriver, updateDriver, deleteDriver } from '../../accounting/api/drivers/driverApi';
+import { getAllDrivers, getDriver, createDriverWithPhoto as createDriver, updateDriverWithPhoto as updateDriver, deleteDriver } from '../../accounting/api/drivers/driverApi';
 import { DriverType, DriverFilter } from '../../accounting/types/driver';
 import { useTrips } from '../../accounting/hooks/useTrips';
 import { AxiosError } from 'axios';
@@ -109,7 +109,7 @@ export const useCEODrivers = () => {
 
   // Create driver
   const createDriverMutation = useMutation({
-    mutationFn: createDriver,
+    mutationFn: (data: FormData) => createDriver(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['ceo-drivers'] });
       message.success('Haydovchi muvaffaqiyatli qo\'shildi');
@@ -122,7 +122,7 @@ export const useCEODrivers = () => {
 
   // Update driver
   const updateDriverMutation = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: Partial<DriverType> }) => updateDriver(id, data),
+    mutationFn: ({ id, data }: { id: number; data: FormData }) => updateDriver(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['ceo-drivers'] });
       message.success('Haydovchi muvaffaqiyatli yangilandi');
@@ -164,8 +164,8 @@ export const useCEODrivers = () => {
     waitingDriversPercentage,
     filters,
     updateFilters,
-    createDriver: createDriverMutation.mutate,
-    updateDriver: (id: number, data: Partial<DriverType>) => updateDriverMutation.mutate({ id, data }),
+    createDriver: createDriverMutation.mutateAsync,
+    updateDriver: (id: number, data: FormData) => updateDriverMutation.mutateAsync({ id, data }),
     deleteDriver: deleteDriverMutation.mutate,
     isCreatingDriver: createDriverMutation.isPending,
     isUpdatingDriver: updateDriverMutation.isPending,

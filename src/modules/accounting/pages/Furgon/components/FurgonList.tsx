@@ -176,6 +176,8 @@ const FurgonList: React.FC = () => {
                   <Image
                     src={formatImageUrl(furgon.photo) || ''}
                     alt={furgon.name}
+                    width={500}
+                    height={300}
                     className={styles.furgonImage}
                   />
                 ) : (

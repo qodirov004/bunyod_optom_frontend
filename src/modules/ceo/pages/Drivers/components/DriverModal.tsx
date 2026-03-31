@@ -16,7 +16,7 @@ interface DriverModalProps {
     mode: 'create' | 'edit';
     driver: DriverType | null;
     onClose: () => void;
-    onSubmit: (values: Partial<DriverType>) => Promise<void>;
+    onSubmit: (values: FormData) => Promise<void>;
 }
 
 const DriverModal: React.FC<DriverModalProps> = ({
@@ -34,15 +34,16 @@ const DriverModal: React.FC<DriverModalProps> = ({
     const [passportPhotoUrl, setPassportPhotoUrl] = useState<string | null>(null);
     const [fileList, setFileList] = useState<UploadFile[]>([]);
     const [passportFileList, setPassportFileList] = useState<UploadFile[]>([]);
+    const [passportBackFileList, setPassportBackFileList] = useState<UploadFile[]>([]);
 
     // Use hardcoded status options instead of API call
     useEffect(() => {
         setStatusOptions([
             { label: 'Haydovchi', value: 'driver' },
-            { label: 'Egasi', value: 'Owner' },
-            { label: 'CEO', value: 'CEO' },
-            { label: 'Bugalter', value: 'Bugalter' },
-            { label: 'Zaphos', value: 'Zaphos' }
+            { label: 'Egasi', value: 'owner' },
+            { label: 'CEO', value: 'ceo' },
+            { label: 'Bugalter', value: 'bugalter' },
+            { label: 'Zaphos', value: 'zaphos' }
         ]);
     }, []);
 
@@ -66,13 +67,24 @@ const DriverModal: React.FC<DriverModalProps> = ({
             ]);
         }
         
-        if (driver?.passport_photo) {
+        if (driver?.passport_photo_front) {
             setPassportFileList([
                 {
                     uid: '-2',
-                    name: 'Passport Photo',
+                    name: 'Passport Front',
                     status: 'done',
-                    url: formatImageUrl(driver.passport_photo) || undefined,
+                    url: formatImageUrl(driver.passport_photo_front) || undefined,
+                },
+            ]);
+        }
+        
+        if (driver?.passport_photo_back) {
+            setPassportBackFileList([
+                {
+                    uid: '-3',
+                    name: 'Passport Back',
+                    status: 'done',
+                    url: formatImageUrl(driver.passport_photo_back) || undefined,
                 },
             ]);
         }
@@ -118,46 +130,55 @@ const DriverModal: React.FC<DriverModalProps> = ({
             // Validate form
             const values = await form.validateFields();
 
-            // Combine first_name and last_name to create fullname for API
-            values.fullname = `${values.first_name || ''} ${values.last_name || ''}`.trim();
+            const formData = new FormData();
 
-            // If username is not provided, use phone number
-            if (!values.username && values.phone_number) {
-                values.username = values.phone_number.replace(/\D/g, '');
+            // Add basic fields
+            formData.append('fullname', `${values.first_name || ''} ${values.last_name || ''}`.trim());
+            formData.append('phone_number', values.phone_number);
+            formData.append('status', values.status);
+            formData.append('username', values.username || values.phone_number.replace(/\D/g, ''));
+            
+            if (mode === 'create') {
+                formData.append('password', values.password || values.phone_number.replace(/\D/g, ''));
+            } else if (values.password) {
+                formData.append('password', values.password);
             }
 
-            // If password is not provided and it's create mode, use phone number
-            if (mode === 'create' && !values.password && values.phone_number) {
-                values.password = values.phone_number.replace(/\D/g, '');
-            }
-
-            // Format date values (using dayjs)
-            if (values.license_expiry) {
-                values.license_expiry = values.license_expiry.format('YYYY-MM-DD');
-            }
+            // Passport info
+            formData.append('passport_series', values.passport_series || '');
+            formData.append('passport_number', values.passport_number || '');
+            formData.append('passport_issued_by', values.passport_issued_by || '');
+            
             if (values.passport_issued_date) {
-                values.passport_issued_date = values.passport_issued_date.format('YYYY-MM-DD');
+                formData.append('passport_issued_date', values.passport_issued_date.format('YYYY-MM-DD'));
             }
             if (values.passport_birth_date) {
-                values.passport_birth_date = values.passport_birth_date.format('YYYY-MM-DD');
+                formData.append('passport_birth_date', values.passport_birth_date.format('YYYY-MM-DD'));
             }
 
-            // Include photo if we have one and it was changed
-            if (photoUrl && photoUrl !== driver?.photo) {
-                values.photo = photoUrl;
-            } else if (photoUrl === driver?.photo) {
-                delete values.photo;
+            // License info
+            formData.append('license_number', values.license_number || '');
+            if (values.license_expiry) {
+                formData.append('license_expiry', values.license_expiry.format('YYYY-MM-DD'));
             }
-            
-            // Include passport photo if we have one and it was changed
-            if (passportPhotoUrl && passportPhotoUrl !== driver?.passport_photo) {
-                values.passport_photo = passportPhotoUrl;
-            } else if (passportPhotoUrl === driver?.passport_photo) {
-                delete values.passport_photo;
+
+            if (values.address) {
+                formData.append('address', values.address);
+            }
+
+            // Add files
+            if (fileList[0]?.originFileObj) {
+                formData.append('photo', fileList[0].originFileObj);
+            }
+            if (passportFileList[0]?.originFileObj) {
+                formData.append('passport_photo_front', passportFileList[0].originFileObj);
+            }
+            if (passportBackFileList[0]?.originFileObj) {
+                formData.append('passport_photo_back', passportBackFileList[0].originFileObj);
             }
 
             // Submit form
-            await onSubmit(values);
+            await onSubmit(formData as any);
 
             // Close modal on success
             onClose();
@@ -182,39 +203,20 @@ const DriverModal: React.FC<DriverModalProps> = ({
         return isJpgOrPng && isLt2M;
     };
 
-    // Handle custom file upload
-    const customUpload = async ({ file, onSuccess, onError }: any) => {
-        const formData = new FormData();
-        formData.append('file', file);
-        try {
-            const response = await axiosInstance.post('/files/upload/', formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
-            });
-            setPhotoUrl(response.data.url);
-            onSuccess(response, file);
-        } catch (error) {
-            console.error('Upload error:', error);
-            onError(error);
-        }
+    const customPassportFrontUpload = async ({ file, onSuccess, onError }: any) => {
+        setPhotoUrl(file); // This will be handled in handleSubmit directly as File object
+        onSuccess("ok", file);
     };
 
-    const customPassportUpload = async ({ file, onSuccess, onError }: any) => {
-        const formData = new FormData();
-        formData.append('file', file);
-        try {
-            const response = await axiosInstance.post('/files/upload/', formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
-            });
-            setPassportPhotoUrl(response.data.url);
-            onSuccess(response, file);
-        } catch (error) {
-            console.error('Upload passport error:', error);
-            onError(error);
-        }
+    const customPassportBackUpload = async ({ file, onSuccess, onError }: any) => {
+        setPassportPhotoUrl(file); // This will be handled in handleSubmit directly as File object
+        onSuccess("ok", file);
+    };
+
+    const customProfileUpload = async ({ file, onSuccess, onError }: any) => {
+        // We'll store the File object itself
+        setFileList([{ ...file, originFileObj: file }]);
+        onSuccess("ok", file);
     };
 
     return (
@@ -267,7 +269,7 @@ const DriverModal: React.FC<DriverModalProps> = ({
                             beforeUpload={handleBeforeUpload}
                             maxCount={1}
                             fileList={fileList}
-                            customRequest={customUpload}
+                            customRequest={customProfileUpload}
                             onChange={({ fileList }) => setFileList(fileList)}
                         >
                             {fileList.length === 0 && (
@@ -339,24 +341,32 @@ const DriverModal: React.FC<DriverModalProps> = ({
                         <Form.Item
                             name="passport_series"
                             label="Pasport seriyasi"
+                            normalize={(value) => (value ? value.toUpperCase() : '')}
                         >
                             <Input prefix={<IdcardOutlined />} placeholder="AA" maxLength={2} style={{ textTransform: 'uppercase' }} />
                         </Form.Item>
                     </Col>
-                    <Col xs={24} sm={16}>
+                    <Col xs={24} sm={8}>
                         <Form.Item
                             name="passport_number"
                             label="Pasport raqami"
+                            normalize={(value) => value.replace(/\D/g, '')}
                         >
                             <Input prefix={<IdcardOutlined />} placeholder="1234567" maxLength={7} />
                         </Form.Item>
                     </Col>
-                    <Col xs={24} sm={12}>
+                    <Col xs={24} sm={16}>
                         <Form.Item
                             name="passport_issued_by"
                             label="Kim tomonidan berilgan"
+                            normalize={(value) => {
+                                if (!value) return '';
+                                const letters = value.replace(/[^a-zA-Z]/g, '').slice(0, 3).toUpperCase();
+                                const numbers = value.replace(/[^0-9]/g, '').slice(0, 5);
+                                return letters + numbers;
+                            }}
                         >
-                            <Input prefix={<IdcardOutlined />} placeholder="IIB nomi" />
+                            <Input prefix={<IdcardOutlined />} placeholder="AAA12345" maxLength={8} />
                         </Form.Item>
                     </Col>
                     <Col xs={24} sm={12}>
@@ -364,7 +374,13 @@ const DriverModal: React.FC<DriverModalProps> = ({
                             name="passport_issued_date"
                             label="Berilgan sana"
                         >
-                            <DatePicker style={{ width: '100%' }} format="DD.MM.YYYY" placeholder="Sanani tanlang" />
+                            <DatePicker 
+                                style={{ width: '100%' }} 
+                                format="DD.MM.YYYY" 
+                                placeholder="Sanani tanlang" 
+                                inputReadOnly 
+                                allowClear={false}
+                            />
                         </Form.Item>
                     </Col>
                     <Col xs={24} sm={12}>
@@ -372,23 +388,47 @@ const DriverModal: React.FC<DriverModalProps> = ({
                             name="passport_birth_date"
                             label="Tug'ilgan sana"
                         >
-                            <DatePicker style={{ width: '100%' }} format="DD.MM.YYYY" placeholder="Sanani tanlang" />
+                            <DatePicker 
+                                style={{ width: '100%' }} 
+                                format="DD.MM.YYYY" 
+                                placeholder="Sanani tanlang" 
+                                inputReadOnly 
+                                allowClear={false}
+                            />
                         </Form.Item>
                     </Col>
                     <Col xs={24} sm={12}>
-                        <Form.Item label="Pasport nusxasi (Rasm)">
+                        <Form.Item label="Pasport nusxasi (Old taraf)">
                             <Upload
-                                name="passport_avatar"
+                                name="passport_front"
                                 listType="picture"
                                 showUploadList={true}
                                 beforeUpload={handleBeforeUpload}
                                 maxCount={1}
                                 fileList={passportFileList}
-                                customRequest={customPassportUpload}
+                                customRequest={customPassportFrontUpload}
                                 onChange={({ fileList }) => setPassportFileList(fileList)}
                             >
                                 {passportFileList.length === 0 && (
-                                    <Button icon={<UploadOutlined />}>Pasport rasmini yuklash</Button>
+                                    <Button icon={<UploadOutlined />}>Yuklash</Button>
+                                )}
+                            </Upload>
+                        </Form.Item>
+                    </Col>
+                    <Col xs={24} sm={12}>
+                        <Form.Item label="Pasport nusxasi (Orqa taraf)">
+                            <Upload
+                                name="passport_back"
+                                listType="picture"
+                                showUploadList={true}
+                                beforeUpload={handleBeforeUpload}
+                                maxCount={1}
+                                fileList={passportBackFileList}
+                                customRequest={customPassportBackUpload}
+                                onChange={({ fileList }) => setPassportBackFileList(fileList)}
+                            >
+                                {passportBackFileList.length === 0 && (
+                                    <Button icon={<UploadOutlined />}>Yuklash</Button>
                                 )}
                             </Upload>
                         </Form.Item>
@@ -402,8 +442,14 @@ const DriverModal: React.FC<DriverModalProps> = ({
                         <Form.Item
                             name="license_number"
                             label="Haydovchilik guvohnomasi"
+                            normalize={(value) => {
+                                if (!value) return '';
+                                const letters = value.replace(/[^a-zA-Z]/g, '').slice(0, 2).toUpperCase();
+                                const numbers = value.replace(/[^0-9]/g, '').slice(0, 7);
+                                return letters + numbers;
+                            }}
                         >
-                            <Input prefix={<IdcardOutlined />} placeholder="Guvohnoma raqami" />
+                            <Input prefix={<IdcardOutlined />} placeholder="AA1234567" maxLength={9} />
                         </Form.Item>
                     </Col>
                     <Col xs={24} sm={12}>
@@ -411,7 +457,13 @@ const DriverModal: React.FC<DriverModalProps> = ({
                             name="license_expiry"
                             label="Amal qilish muddati"
                         >
-                            <DatePicker style={{ width: '100%' }} format="DD.MM.YYYY" placeholder="Sanani tanlang" />
+                            <DatePicker 
+                                style={{ width: '100%' }} 
+                                format="DD.MM.YYYY" 
+                                placeholder="Sanani tanlang" 
+                                inputReadOnly 
+                                allowClear={false}
+                            />
                         </Form.Item>
                     </Col>
 

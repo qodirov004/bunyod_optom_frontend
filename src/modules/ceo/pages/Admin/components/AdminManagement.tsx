@@ -137,14 +137,14 @@ const AdminManagement: React.FC = () => {
         setFormVisible(false);
         setSelectedAdmin(undefined);
         setIsEdit(false);
+        return { success: true };
       } else {
         console.log('Operation failed');
+        return { success: false, errors: errors };
       }
-      
-      return result;
     } catch (error) {
       console.error('Form submit error:', error);
-      return false;
+      return { success: false, errors: { detail: [String(error)] } };
     }
   };
 
@@ -184,6 +184,10 @@ const AdminManagement: React.FC = () => {
         return 'green';
       case 'driver':
         return 'blue';
+      case 'owner':
+        return 'gold';
+      case 'zaphos':
+        return 'purple';
       default:
         return 'default';
     }
@@ -197,6 +201,10 @@ const AdminManagement: React.FC = () => {
         return 'Bugalter';
       case 'driver':
         return 'Haydovchi';
+      case 'owner':
+        return 'Owner';
+      case 'zaphos':
+        return 'Zaphos';
       default:
         return status;
     }

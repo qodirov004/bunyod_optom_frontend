@@ -4,7 +4,7 @@ import { LoginCredentials, User } from './types';
 export const authApi = createApi({
     reducerPath: 'authApi',
     baseQuery: fetchBaseQuery({
-        baseUrl: 'https://logistika.api.ardentsoft.uz/',
+        baseUrl: 'http://127.0.0.1:8000//',
         prepareHeaders: (headers) => {
             // Backend JSON parser ishlashi uchun Content-Type ni aniq yuboramiz.
             headers.set('Content-Type', 'application/json');

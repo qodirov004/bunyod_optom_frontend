@@ -1,4 +1,4 @@
-export type AdminStatus = 'CEO' | 'Bugalter';
+export type AdminStatus = 'CEO' | 'Bugalter' | 'Owner' | 'Zaphos' | 'Driver';
 
 export interface Admin {
   id: number;

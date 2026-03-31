@@ -1,7 +1,7 @@
 import axios from "axios";
 import { getToken, removeToken, refreshTokenExpiration } from "@/auth/authUtils";
 
-export const baseURL = 'https://logistika.api.ardentsoft.uz';
+export const baseURL = 'http://127.0.0.1:8000/';
 
 export const formatImageUrl = (url: string | null | undefined) => {
     if (!url) return null;
@@ -17,7 +17,7 @@ export const formatImageUrl = (url: string | null | undefined) => {
         }
         return url;
     }
-    return `${baseURL}${url.startsWith('/') ? url.substring(1) : url}`;
+    return `${baseURL}${url.startsWith('/') ? url : '/' + url}`;
 };
 
 const axiosInstance = axios.create({
@@ -98,6 +98,7 @@ axiosInstance.interceptors.response.use(
             const isTokenInvalid =
                 error.response?.data?.code === 'token_not_valid' ||
                 error.response?.data?.detail?.includes('given token not valid') ||
+                error.response?.data?.detail?.includes('Authentication credentials were not provided') ||
                 error.config?.url?.includes('/login');
 
             if (isTokenInvalid && !currentPath.includes('/login') && !currentPath.includes('/auth/login')) {

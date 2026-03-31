@@ -29,17 +29,15 @@ const DriverModal: React.FC<DriverModalProps> = ({
     const [loading, setLoading] = useState(false);
     const [imageLoading, setImageLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [statusOptions, setStatusOptions] = useState([]);
-    const [fetchingStatus, setFetchingStatus] = useState(false);
+    const [statusOptions, setStatusOptions] = useState([
+        { label: 'Haydovchi', value: 'driver' },
+        { label: 'Egasi', value: 'owner' },
+        { label: 'CEO', value: 'ceo' },
+        { label: 'Bugalter', value: 'bugalter' },
+        { label: 'Zaphos', value: 'zaphos' },
+    ]);
     const [imageUrl, setImageUrl] = useState<string | null>(null);
     const [photoFile, setPhotoFile] = useState<File | null>(null);
-    
-    // Fetch status options from backend
-    useEffect(() => {
-        if (visible) {
-            fetchStatusOptions();
-        }
-    }, [visible]);
     
     // Set initial values including image if available
     useEffect(() => {
@@ -71,31 +69,7 @@ const DriverModal: React.FC<DriverModalProps> = ({
         }
     }, [form, mode, driver, visible]);
     
-    // Get status options from backend
-    const fetchStatusOptions = async () => {
-        try {
-            setFetchingStatus(true);
-            
-            // Check if there's a template response from the backend
-            const response = await axiosInstance.get(`${API_URLS.drivers}template/`);
-            
-            if (response.data && response.data.status) {
-                // If the API returns a template with status options
-                const options = Array.isArray(response.data.status) 
-                    ? response.data.status 
-                    : [response.data.status];
-                    
-                setStatusOptions(options);
-                console.log('Status options from API:', options);
-            }
-        } catch (error) {
-            console.error('Error fetching status options:', error);
-            // Fallback to default options if API fails
-            setStatusOptions(['driver', 'owner', 'ceo', 'bugalter', 'zaphos']);
-        } finally {
-            setFetchingStatus(false);
-        }
-    };
+    // Get status options from backend - Removed because template/ is non-existent
     
     // Handle image before upload
     const beforeUpload = (file: RcFile) => {
@@ -211,40 +185,18 @@ const DriverModal: React.FC<DriverModalProps> = ({
             form.resetFields();
             setImageUrl(null);
             setPhotoFile(null);
-        } catch (err) {
+        } catch (err: any) {
             console.error("Form submission error:", err);
+            // If it's a validation error from Ant Design, it won't have a message property
+            // We only want to show the top-level alert for API errors or other exceptions
+            if (err.errorFields) {
+                // This is an Ant Design validation error, don't show the generic alert
+                return;
+            }
             setError(err.message || "Xatolik yuz berdi");
         } finally {
             setLoading(false);
         }
-    };
-    
-    // Render status options
-    const renderStatusOptions = () => {
-        // If we're still loading status options
-        if (fetchingStatus) {
-            return <Option value="">Yuklanmoqda...</Option>;
-        }
-        
-        // Map through available status options from API
-        return statusOptions.map((status, index) => (
-            <Option key={index} value={status}>
-                {getStatusLabel(status)}
-            </Option>
-        ));
-    };
-    
-    // Get readable status label
-    const getStatusLabel = (status) => {
-        const statusLabels = {
-            'driver': 'Haydovchi',
-            'owner': 'Egasi',
-            'ceo': 'CEO',
-            'bugalter': 'Bugalter',
-            'zaphos': 'Zaphos'
-        };
-        
-        return statusLabels[status] || status;
     };
     
     // Upload button
@@ -328,7 +280,10 @@ const DriverModal: React.FC<DriverModalProps> = ({
                             <Image 
                                 src={imageUrl} 
                                 alt="avatar" 
+                                width={100}
+                                height={100}
                                 style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                                unoptimized={imageUrl.startsWith('data:')}
                             /> : uploadButton}
                     </Upload>
                 </Form.Item>
@@ -382,12 +337,14 @@ const DriverModal: React.FC<DriverModalProps> = ({
                 </Form.Item>
                 
                 <Form.Item
-                    label="Status"
                     name="status"
-                    rules={[{ required: true, message: "Statusni tanlang!" }]}
+                    label="Status"
+                    rules={[{ required: true, message: 'Iltimos, statusni tanlang' }]}
                 >
-                    <Select placeholder="Status tanlang">
-                        {renderStatusOptions()}
+                    <Select placeholder="Statusni tanlang">
+                        {statusOptions.map((opt: any) => (
+                            <Option key={opt.value} value={opt.value}>{opt.label}</Option>
+                        ))}
                     </Select>
                 </Form.Item>
             </Form>

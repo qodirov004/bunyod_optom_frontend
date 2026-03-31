@@ -20,9 +20,11 @@ export interface DriverType {
     passport_issued_by: string | null;
     passport_issued_date: string | null;
     passport_birth_date: string | null;
-    passport_photo: string | null;
-    license_number?: string;
-    license_expiry?: string;
+    passport_photo?: string | null;
+    passport_photo_front?: string | null;
+    passport_photo_back?: string | null;
+    license_number?: string | null;
+    license_expiry?: string | null;
     address?: string;
     is_staff: boolean;
     is_active: boolean;

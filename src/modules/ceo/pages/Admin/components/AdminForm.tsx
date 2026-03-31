@@ -71,6 +71,9 @@ const AdminForm: React.FC<AdminFormProps> = ({
   const statusOptions = [
     { value: 'ceo', label: 'CEO' },
     { value: 'bugalter', label: 'Bugalter' },
+    { value: 'owner', label: 'Owner' },
+    { value: 'zaphos', label: 'Zaphos' },
+    { value: 'driver', label: 'Haydovchi' },
   ];
 
   // Check if we have any general errors not tied to specific fields

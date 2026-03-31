@@ -140,10 +140,13 @@ export const createRays = async (data: raysType): Promise<ApiRaysResponseType> =
 
 export const fetchAllRays = async (): Promise<ApiRaysResponseType[]> => {
   try {
-    const response = await axiosInstance.get<PaginatedResponse<ApiRaysResponseType>>(API_URLS.rays)
-    console.log('✅ Fetched rays:', response.data)
+    const response = await axiosInstance.get<any>(`${API_URLS.rays}?t=${Date.now()}`)
+    console.log('✅ Fetched rays (cache-busted):', response.data)
 
-    const transformedData = response.data.results.map(trip => ({
+    const data = response.data
+    const results = Array.isArray(data) ? data : (data.results || [])
+    
+    const transformedData = results.map((trip: any) => ({
       ...trip,
     }));
 

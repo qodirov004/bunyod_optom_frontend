@@ -36,6 +36,7 @@ interface DriverTableProps {
   onEdit: (driver: DriverType) => void;
   onDelete: (driver: DriverType) => void;
   onView: (driver: DriverType) => void;
+  onRowClick: (driver: DriverType) => void;
   pagination?: any;
   rowSelection?: any;
 }
@@ -46,6 +47,7 @@ const DriverTable: React.FC<DriverTableProps> = ({
   onEdit,
   onDelete,
   onView,
+  onRowClick,
   pagination,
   rowSelection
 }) => {
@@ -304,6 +306,16 @@ const DriverTable: React.FC<DriverTableProps> = ({
       pagination={pagination}
       size="middle"
       rowSelection={rowSelection}
+      onRow={(record) => ({
+        onClick: (event: any) => {
+          // Don't trigger if clicking on an interactive element (buttons, icons)
+          if (event.target.closest('.ant-btn') || event.target.closest('.ant-dropdown-trigger')) {
+            return;
+          }
+          onRowClick(record);
+        },
+        style: { cursor: 'pointer' }
+      })}
       expandable={{
         expandedRowRender: (record) => (
           <Row gutter={16}>

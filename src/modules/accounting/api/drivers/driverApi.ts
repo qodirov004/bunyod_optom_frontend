@@ -18,7 +18,7 @@ export const getAllDrivers = async (params: DriverFilter): Promise<DriversRespon
             page: params.page,
             page_size: params.pageSize,
             fullname: fullname,
-            status: params.status === 'all' ? 'driver' : params.status,
+            status: (params.status === 'all' || !params.status) ? 'driver' : params.status,
             ordering: params.sortBy ? `${params.sortOrder === 'descend' ? '-' : ''}${params.sortBy}` : undefined,
             is_busy: typeof params.is_busy === 'boolean' ? params.is_busy : undefined
         };
@@ -331,16 +331,6 @@ export const updateDriverWithPhoto = async (id: any, formData?: FormData): Promi
             throw new Error('FormData is required for updateDriverWithPhoto');
         }
         const cleanFormData = new FormData();
-        console.log('FormData entries:');
-        for (const pair of formData.entries()) {
-            if (pair[1] instanceof File) {
-                console.log(`${pair[0]}: File object - name: ${pair[1].name}, size: ${pair[1].size}, type: ${pair[1].type}`);
-                cleanFormData.append(pair[0], pair[1], pair[1].name);
-            } else {
-                console.log(`${pair[0]}: ${pair[1]}`);
-                cleanFormData.append(pair[0], pair[1]);
-            }
-        }
         const hasPhoto = cleanFormData.has('photo');
         if (hasPhoto) {
             const photo = cleanFormData.get('photo');
