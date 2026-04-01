@@ -14,11 +14,12 @@ const debug = (message: string, ...params: unknown[]) => {
   }
 };
 
-// Session duration in milliseconds (3 days)
-const SESSION_DURATION = 3 * 24 * 60 * 60 * 1000; // 3 days in milliseconds
+// Session duration in milliseconds (24 hours)
+const SESSION_DURATION = 24 * 60 * 60 * 1000; 
 
 // Parse JWT token to get user data
 export const parseToken = (token: string): { user: User | null; exp: number | null } => {
+  if (!token || !token.includes('.')) return { user: null, exp: null };
   try {
     // JWT token format: header.payload.signature
     const base64Url = token.split('.')[1];
@@ -81,84 +82,55 @@ export const isTokenExpired = (): boolean => {
   return false;
 };
 
-// Function to refresh token expiration time - call this periodically
-export const refreshTokenExpiration = (): void => {
+// Function to refresh session status locally (just for cookies/storage sync)
+export const syncTokenStatus = (): void => {
   if (typeof window === 'undefined') return;
   
   const token = localStorage.getItem('token');
   if (!token) return;
   
   try {
-    // Reset expiration to 3 days from now
-    const expiresAt = new Date();
-    expiresAt.setTime(expiresAt.getTime() + SESSION_DURATION); // 3 days
-    
-    const expiryTime = expiresAt.getTime().toString();
-    localStorage.setItem('token_expires', expiryTime);
-    
-    // Update cookie
+    // Sync the auth-token cookie to ensure it's still present
     document.cookie = `auth-token=${token}; path=/; max-age=${SESSION_DURATION / 1000}; SameSite=Lax`;
     
-    // Set additional backup to prevent sudden logouts
+    // Set activity tracker
     sessionStorage.setItem('last_activity', Date.now().toString());
     
-    debug('Token refreshed', {
-      newExpiry: new Date(parseInt(expiryTime)).toLocaleString(),
-      maxAge: `${SESSION_DURATION / (1000 * 60 * 60)} hours`
-    });
+    debug('Token status synced locally');
   } catch (e) {
-    console.error('Error refreshing token:', e);
+    console.error('Error syncing token:', e);
   }
 };
 
-// Auto refresh token when browser tab becomes active or user returns
+// Setup session activity monitoring (minimal overhead)
 export const setupTokenRefresh = (): void => {
   if (typeof window === 'undefined') return;
   
-  debug('Setting up token refresh system');
+  debug('Setting up session sync system');
   
-  // Create a common event handler
-  const handleUserActivity = () => {
-    const now = Date.now();
-    const lastActivity = parseInt(sessionStorage.getItem('last_activity') || '0');
-    
-    // Only refresh if at least 5 minutes have passed since last refresh
-    // This prevents excessive refreshing
-    if (now - lastActivity > 5 * 60 * 1000) {
-      debug('Refreshing token due to user activity');
-      refreshTokenExpiration();
-    }
-  };
-  
-  // Refresh token on visibility change (when user returns to the app)
+  // Update cookie on visibility change
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') {
-      debug('Document became visible, refreshing token');
-      refreshTokenExpiration();
+      debug('Document became visible, syncing token');
+      syncTokenStatus();
     }
   });
   
-  // Refresh token on app focus
+  // Update cookie on app focus
   window.addEventListener('focus', () => {
-    debug('Window focused, refreshing token');
-    refreshTokenExpiration();
+    debug('Window focused, syncing token');
+    syncTokenStatus();
   });
   
-  // Setup activity monitoring
-  ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'].forEach(eventName => {
-    document.addEventListener(eventName, handleUserActivity, { passive: true });
-  });
-  
-  // Also refresh periodically (every 15 minutes)
+  // Periodic sync every 15 minutes
   const refreshInterval = setInterval(() => {
-    debug('Periodic token refresh (15-minute interval)');
-    refreshTokenExpiration();
+    debug('Periodic session sync');
+    syncTokenStatus();
   }, 15 * 60 * 1000);
   
-  // Initial refresh
-  refreshTokenExpiration();
+  // Initial sync
+  syncTokenStatus();
   
-  // Store the interval ID so it can be cleaned up if needed
   window.__tokenRefreshInterval = refreshInterval;
 };
 
@@ -172,10 +144,10 @@ export const getToken = (): string | null => {
     const lastActivity = parseInt(sessionStorage.getItem('last_activity') || '0');
     const now = Date.now();
     
-    // If more than 5 minutes have passed since last refresh
+    // If more than 5 minutes have passed since last activity, sync status
     if (now - lastActivity > 5 * 60 * 1000) {
-      debug('Token accessed, refreshing expiration');
-      refreshTokenExpiration();
+      debug('Token accessed, syncing session status');
+      syncTokenStatus();
     }
     
     return token;
@@ -237,4 +209,4 @@ export const removeToken = (): void => {
   }
   
   debug('Token removed and sessions cleared');
-}; 
+};

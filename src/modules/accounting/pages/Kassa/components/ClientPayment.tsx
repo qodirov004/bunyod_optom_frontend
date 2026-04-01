@@ -5,22 +5,25 @@ import { CashTransaction } from '../../../api/cashTransaction';
 
 interface ClientPaymentProps {
   raysId: number;
-  visible: boolean;
+  open: boolean;
   onClose: () => void;
 }
 
-const ClientPayment: React.FC<ClientPaymentProps> = ({ raysId, visible, onClose }) => {
+const ClientPayment: React.FC<ClientPaymentProps> = ({ raysId, open, onClose }) => {
+  const [messageApi, contextHolder] = message.useMessage();
   const [form] = Form.useForm();
-  const { loading, createTransaction,raysClientsMap } = useCash();
+  
+  // Pass messageApi to useCash hook for React 19 compatibility
+  const { loading, createTransaction, raysClientsMap } = useCash(messageApi);
   const [clients, setClients] = useState<any[]>([]);
   const [selectedClient, setSelectedClient] = useState<number | null>(null);
 
   useEffect(() => {
-    if (visible && raysId) {
+    if (open && raysId) {
       const raysData = raysClientsMap.find(item => item.rays_id === raysId);
       setClients(raysData?.clients || []);
     }
-  }, [visible, raysId, raysClientsMap]);
+  }, [open, raysId, raysClientsMap]);
 
   const handleSubmit = async (values: any) => {
     try {
@@ -37,11 +40,11 @@ const ClientPayment: React.FC<ClientPaymentProps> = ({ raysId, visible, onClose 
       };
 
       await createTransaction(transactionData);
-      message.success('Payment recorded successfully');
+      messageApi.success('Payment recorded successfully');
       form.resetFields();
       onClose();
     } catch (error) {
-      message.error('Failed to record payment');
+      messageApi.error('Failed to record payment');
       console.error('Error recording payment:', error);
     }
   };
@@ -55,7 +58,7 @@ const ClientPayment: React.FC<ClientPaymentProps> = ({ raysId, visible, onClose 
     {
       title: 'Action',
       key: 'action',
-      render: (_, record) => (
+      render: (_, record: any) => (
         <Space size="middle">
           <Button 
             type="primary" 
@@ -72,11 +75,12 @@ const ClientPayment: React.FC<ClientPaymentProps> = ({ raysId, visible, onClose 
   return (
     <Modal
       title="Client Payment"
-      open={visible}
+      open={open}
       onCancel={onClose}
       footer={null}
       width={800}
     >
+      {contextHolder}
       <div style={{ marginBottom: 20 }}>
         <Table 
           columns={columns} 
@@ -162,4 +166,4 @@ const ClientPayment: React.FC<ClientPaymentProps> = ({ raysId, visible, onClose 
   );
 };
 
-export default ClientPayment; 
+export default ClientPayment;

@@ -29,7 +29,28 @@ export const createCountry = async (name: string): Promise<Country> => {
   }
 };
 
+export const updateCountry = async (id: number, name: string): Promise<Country> => {
+  try {
+    const response = await axiosInstance.put(`/country/${id}/`, { name });
+    return response.data;
+  } catch (error) {
+    console.error(`Error updating country ${id}:`, error);
+    throw error;
+  }
+};
+
+export const deleteCountry = async (id: number): Promise<void> => {
+  try {
+    await axiosInstance.delete(`/country/${id}/`);
+  } catch (error) {
+    console.error(`Error deleting country ${id}:`, error);
+    throw error;
+  }
+};
+
 export const countryApi = {
   getAllCountries,
-  createCountry
+  createCountry,
+  updateCountry,
+  deleteCountry
 };

@@ -5,12 +5,14 @@ import './DriverHeader.css';
 
 interface DriverHeaderProps {
     onSearch: (value: string) => void;
-    onAddDriver: () => void;
+    onAddDriver?: () => void;
+    disabledAdd?: boolean;
 }
 
 const DriverHeader: React.FC<DriverHeaderProps> = ({ 
     onSearch, 
-    onAddDriver 
+    onAddDriver,
+    disabledAdd = false
 }) => {
     const [searchValue, setSearchValue] = useState('');
     const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(null);
@@ -48,6 +50,8 @@ const DriverHeader: React.FC<DriverHeaderProps> = ({
                     icon={<PlusOutlined />}
                     onClick={onAddDriver}
                     size="middle"
+                    disabled={disabledAdd}
+                    title={disabledAdd ? "Sizda haydovchi qo'shish huquqi yo'q" : ""}
                 >
                     Yangi haydovchi
                 </Button>

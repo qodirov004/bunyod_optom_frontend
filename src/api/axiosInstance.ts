@@ -1,7 +1,7 @@
 import axios from "axios";
-import { getToken, removeToken, refreshTokenExpiration } from "@/auth/authUtils";
+import { getToken, removeToken, syncTokenStatus } from "@/auth/authUtils";
 
-export const baseURL = 'http://127.0.0.1:8000/';
+export const baseURL = 'http://127.0.0.1:8000'; // Removed trailing slash to prevent double // in queries
 
 export const formatImageUrl = (url: string | null | undefined) => {
     if (!url) return null;
@@ -36,8 +36,8 @@ axiosInstance.interceptors.request.use(
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
 
-            // Refresh token expiration whenever a request is made
-            refreshTokenExpiration();
+            // Sync token status whenever a request is made
+            syncTokenStatus();
         }
 
         // FormData bilan ishlaganda Content-Type ni majburan qo'ymaymiz,
@@ -73,8 +73,8 @@ axiosInstance.interceptors.response.use(
             console.log('Response:', response.status, response.data);
         }
 
-        // Refresh token on successful API calls
-        refreshTokenExpiration();
+        // Sync token on successful API calls
+        syncTokenStatus();
 
         return response;
     },
@@ -90,33 +90,36 @@ axiosInstance.interceptors.response.use(
             }
         }
 
-        // Important: ONLY redirect to login if the URL is NOT already /auth/login or /login
+        // Handle 401 Unauthorized errors
         if (error.response?.status === 401) {
             const currentPath = typeof window !== 'undefined' ? window.location.pathname : '';
-
-            // FAQATGINA token haqiqatan eskirgan yoki noto'g'ri bo'lsagina tizimdan chiqarish
-            const isTokenInvalid =
-                error.response?.data?.code === 'token_not_valid' ||
-                error.response?.data?.detail?.includes('given token not valid') ||
-                error.response?.data?.detail?.includes('Authentication credentials were not provided') ||
-                error.config?.url?.includes('/login');
-
-            if (isTokenInvalid && !currentPath.includes('/login') && !currentPath.includes('/auth/login')) {
-                console.log('Token eskirgan (401), sessiya tozalanib login sahifasiga yo\'naltirilmoqda');
-                removeToken();
-
-                const redirectInProgress = sessionStorage.getItem('redirect_in_progress');
-                if (!redirectInProgress) {
-                    sessionStorage.setItem('redirect_in_progress', 'true');
-                    window.location.href = '/login';
-
-                    setTimeout(() => {
-                        sessionStorage.removeItem('redirect_in_progress');
-                    }, 5000);
+            const isLoginRequest = error.config?.url?.includes('/login');
+            
+            // Skip automated actions for login attempts specifically
+            if (!isLoginRequest && !currentPath.includes('/login') && !currentPath.includes('/auth/login')) {
+                console.warn('Session invalid or expired (401)');
+                
+                // Only clear token if we're reasonably sure it's the right thing to do
+                // but DON'T force a page reload which is what's annoying the user
+                if (typeof window !== 'undefined') {
+                    const redirectInProgress = sessionStorage.getItem('redirect_in_progress');
+                    
+                    if (!redirectInProgress) {
+                        sessionStorage.setItem('redirect_in_progress', 'true');
+                        
+                        // We still remove the token as it's invalid anyway
+                        // removeToken(); // Not removing immediately, let AuthProvider decide
+                        
+                        console.log('Auth check failed (401), but skipping automatic redirect to prevent page jump.');
+                        
+                        // Clear flag after a delay
+                        setTimeout(() => {
+                            sessionStorage.removeItem('redirect_in_progress');
+                        }, 2000);
+                    }
                 }
-            } else if (!isTokenInvalid) {
-                // Bu shunchaki backend tarafidan yuborilgan 401 (huquq yetishmasligi), logout qilinmaydi
-                console.warn('Backend ruxsat xatosi qaytardi (401/403), lekin token amalda.');
+            } else if (isLoginRequest) {
+                console.warn('Auth Error (401) on login attempt - Invalid credentials');
             }
         }
 

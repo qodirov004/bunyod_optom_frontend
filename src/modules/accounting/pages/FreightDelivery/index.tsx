@@ -19,7 +19,8 @@ import {
   Modal,
   Form,
   Input,
-  InputNumber
+  InputNumber,
+  message
 } from 'antd'
 import {
   DashboardOutlined,
@@ -38,18 +39,19 @@ import {
   DollarOutlined,
   CreditCardOutlined,
   HistoryOutlined,
-  EnvironmentOutlined
+  EnvironmentOutlined,
+  GlobalOutlined
 } from '@ant-design/icons'
 import TripTable from './components/TripTable'
 import TripAdd from './components/TripAdd'
 import LocationManagement from './components/LocationManagement'
+import CountryManagement from './components/CountryManagement'
 import { useTrips } from '@/modules/accounting/hooks/useTrips'
 import { motion } from 'framer-motion'
 import './style/style.css'
 import axiosInstance from '@/api/axiosInstance'
 import { useCurrencies } from '@/modules/accounting/hooks/useCurrencies'
 import dayjs from 'dayjs'
-import { message } from 'antd'
 
 const { Title, Text } = Typography
 const { RangePicker } = DatePicker
@@ -81,6 +83,7 @@ const FreightDeliveryPage: React.FC = () => {
   const [paymentForm] = Form.useForm()
   const [paymentLoading, setPaymentLoading] = useState(false)
   const { currencies, loading: currenciesLoading } = useCurrencies()
+  const [messageApi, contextHolder] = message.useMessage()
   
   // Fetch triphistory count on component mount
   useEffect(() => {
@@ -175,13 +178,13 @@ const FreightDeliveryPage: React.FC = () => {
   
   const handlePaymentSubmit = async (values: any) => {
     if (!selectedTripId) {
-      message.error('Reys ma\'lumotlari mavjud emas');
+      messageApi.error('Reys ma\'lumotlari mavjud emas');
       return;
     }
     
     const trip = trips.find(t => t.id === selectedTripId);
     if (!trip || !trip.driver) {
-      message.error('Haydovchi ma\'lumotlari mavjud emas');
+      messageApi.error('Haydovchi ma\'lumotlari mavjud emas');
       return;
     }
 
@@ -200,7 +203,7 @@ const FreightDeliveryPage: React.FC = () => {
       console.log('Using driver ID:', driverId);
       
       if (!driverId || isNaN(driverId)) {
-        message.error('Haydovchi ID raqami topilmadi');
+        messageApi.error('Haydovchi ID raqami topilmadi');
         setPaymentLoading(false);
         return;
       }
@@ -217,12 +220,12 @@ const FreightDeliveryPage: React.FC = () => {
       const response = await axiosInstance.post('/driversalary/', paymentData);
       console.log('Payment response:', response.data);
       
-      message.success('Haydovchiga to\'lov muvaffaqiyatli amalga oshirildi');
+      messageApi.success('Haydovchiga to\'lov muvaffaqiyatli amalga oshirildi');
       paymentForm.resetFields();
       setIsDriverPaymentModalVisible(false);
       setSelectedTripId(null);
       refetch();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error making payment:', error);
       
       // More detailed error logging
@@ -235,12 +238,12 @@ const FreightDeliveryPage: React.FC = () => {
           const errorMessages = Object.entries(error.response.data)
             .map(([key, value]) => `${key}: ${value}`)
             .join(', ');
-          message.error(`To'lov amalga oshirishda xatolik: ${errorMessages}`);
+          messageApi.error(`To'lov amalga oshirishda xatolik: ${errorMessages}`);
         } else {
-          message.error(`To'lov amalga oshirishda xatolik: ${error.response.status}`);
+          messageApi.error(`To'lov amalga oshirishda xatolik: ${error.response.status}`);
         }
       } else {
-        message.error('To\'lov amalga oshirishda xatolik yuz berdi');
+        messageApi.error('To\'lov amalga oshirishda xatolik yuz berdi');
       }
     } finally {
       setPaymentLoading(false);
@@ -307,6 +310,7 @@ const FreightDeliveryPage: React.FC = () => {
     
     return (
       <div className="trip-dashboard">
+        {contextHolder}
         <Card className="dashboard-header-card">
           <Row className="dashboard-header" align="middle" gutter={[24, 24]}>
             <Col xs={24} md={16}>
@@ -604,11 +608,21 @@ const FreightDeliveryPage: React.FC = () => {
         </span>
       ),
       children: <LocationManagement />
+    },
+    {
+      key: "countries",
+      label: (
+        <span>
+          <GlobalOutlined /> Davlatlar
+        </span>
+      ),
+      children: <CountryManagement />
     }
   ]
 
   return (
     <div className="freight-delivery-page">
+      {contextHolder}
       <Tabs defaultActiveKey="dashboard" items={tabItems} />
       
       <Modal
@@ -649,7 +663,7 @@ const FreightDeliveryPage: React.FC = () => {
               <Form.Item
                 name="amount"
                 label="To'lov summasi"
-                rules={[{ required: true, message: 'To\'lov summasini kiriting' }]}
+                rules={[{ required: true, message: 'To\'lov summasini kiritsh' }]}
               >
                 <InputNumber
                   style={{ width: '100%' }}
@@ -682,7 +696,7 @@ const FreightDeliveryPage: React.FC = () => {
               <Form.Item
                 name="payment_date"
                 label="To'lov sanasi"
-                rules={[{ required: true, message: 'To\'lov sanasini kiriting' }]}
+                rules={[{ required: true, message: 'To\'lov sanasini kiritsh' }]}
               >
                 <DatePicker
                   style={{ width: '100%' }}

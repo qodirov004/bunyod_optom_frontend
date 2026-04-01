@@ -172,8 +172,7 @@ const RaysTulovlar: React.FC = () => {
         setPaymentCategories(response.data || []);
       } catch (error) {
         console.error('Error fetching payment categories:', error);
-        // Default fallback
-        setPaymentCategories([{ id: 1, name: 'cash' }]);
+        message.error('To\'lov usullarini yuklashda xatolik yuz berdi');
       } finally {
         setPaymentCategoriesLoading(false);
       }
@@ -545,7 +544,7 @@ const RaysTulovlar: React.FC = () => {
               layout="vertical"
               initialValues={{
                 currency: 'USD',
-                payment_way: paymentCategories.length > 0 ? paymentCategories[0].id : 1,
+                payment_way: paymentCategories.length > 0 ? paymentCategories[0].id : undefined,
                 is_debt: false,
                 is_via_driver: false,
                 is_delivered_to_cashier: false
@@ -614,7 +613,7 @@ const RaysTulovlar: React.FC = () => {
                 {paymentCategoriesLoading ? (
                   <div>To`lov usullari yuklanmoqda...</div>
                 ) : (
-                  <Select>
+                  <Select placeholder={paymentCategories.length === 0 ? "To'lov usullari mavjud emas" : "To'lov usulini tanlang"}>
                     {paymentCategories.map(category => (
                       <Option key={`payment-way-${category.id}`} value={category.id}>
                         {category.name}

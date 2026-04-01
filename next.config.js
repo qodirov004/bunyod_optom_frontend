@@ -27,9 +27,6 @@ const nextConfig = {
         ],
     },
     turbopack: {}, // Mutes Turbopack vs Webpack warning in Next 16+
-    eslint: {
-        ignoreDuringBuilds: true,
-    },
     typescript: {
         ignoreBuildErrors: true,
     },

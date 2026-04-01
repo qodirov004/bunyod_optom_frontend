@@ -3,7 +3,7 @@
 import React, { useEffect, useState, ReactNode } from 'react';
 import { Spin } from 'antd';
 import { useDispatch } from 'react-redux';
-import { getToken, getTokenFromCookie, setupTokenRefresh, refreshTokenExpiration, isTokenExpired } from './authUtils';
+import { getToken, getTokenFromCookie, setupTokenRefresh, syncTokenStatus, isTokenExpired } from './authUtils';
 import { setUser, logout } from './authSlice';
 import axiosInstance from '@/api/axiosInstance';
 
@@ -36,8 +36,8 @@ export default function AuthProvider({ children }: AuthProviderProps) {
       }
       
       try {
-        // Always refresh token expiration on app start
-        refreshTokenExpiration();
+        // Always sync token status on app start
+        syncTokenStatus();
         
         // Fetch current user info
         debug('Fetching user data');
@@ -88,8 +88,8 @@ export default function AuthProvider({ children }: AuthProviderProps) {
       if (!token) return;
       
       if (!isTokenExpired()) {
-        debug('Token valid, refreshing expiration');
-        refreshTokenExpiration();
+        debug('Token valid, syncing expiration status');
+        syncTokenStatus();
       }
       
       // Periodically validate with backend (once every 2 hours)

@@ -86,8 +86,7 @@ export const useCars = () => {
                     console.log('No photo field in FormData');
                 }
                 
-                const requiredFields = ['name', 'number', 'year', 'engine', 'transmission', 
-                                       'power', 'capacity', 'fuel', 'mileage', 'car_number'];
+                const requiredFields = ['name', 'number', 'car_number'];
                 
                 for (const field of requiredFields) {
                     if (!formData.has(field) || formData.get(field) === '') {

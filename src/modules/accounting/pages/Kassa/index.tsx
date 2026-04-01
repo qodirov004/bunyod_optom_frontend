@@ -23,21 +23,24 @@ import './styles.css';
 const { Title, Text } = Typography;
 
 const KassaPage: React.FC = () => {
+  const [messageApi, contextHolder] = message.useMessage();
   const [activeTab, setActiveTab] = useState<string>('overview');
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
-  const { cashOverview, loading, isLoading, fetchCashOverview } = useCash();
+  
+  // Pass messageApi to useCash hook for React 19 compatibility
+  const { cashOverview, loading, isLoading, fetchCashOverview } = useCash(messageApi);
   const { currencies, loading: currenciesLoading, error: currenciesError } = useCurrencies();
 
   useEffect(() => {
     if (currenciesError) {
-      message.error('Valyuta kurslarini yuklashda xatolik yuz berdi');
+      messageApi.error('Valyuta kurslarini yuklashda xatolik yuz berdi');
     }
-  }, [currenciesError]);
+  }, [currenciesError, messageApi]);
 
   const handleRefresh = () => {
     fetchCashOverview();
     setLastUpdated(new Date());
-    message.success('Ma\'lumotlar yangilandi');
+    messageApi.success('Ma\'lumotlar yangilandi');
   };
 
   // Function to get currency symbol
@@ -89,6 +92,7 @@ const KassaPage: React.FC = () => {
   if (isLoading || loading || currenciesLoading) {
     return (
       <div className="loading-container" style={{ textAlign: 'center', padding: '50px 0' }}>
+        {contextHolder}
         <div className="spin-content" style={{
           padding: '30px',
           backgroundColor: 'rgba(0, 0, 0, 0.05)',
@@ -108,6 +112,7 @@ const KassaPage: React.FC = () => {
 
   return (
     <div className="kassa-page">
+      {contextHolder}
       <div className="dashboard-header">
         <div className="dashboard-title">
           <Title level={4}>
@@ -145,7 +150,7 @@ const KassaPage: React.FC = () => {
         {currencies && currencies.length > 0 ? (
           currencies.map(currency => (
             <Col xs={24} sm={12} md={6} key={`currency-card-${currency.id}`}>
-              <Card className={`currency-card ${currency.currency.toLowerCase()}-card`} hoverable>
+              <Card className={`currency-card ${currency.currency.toLowerCase()}-card`} hoverable variant="borderless">
                 <div className="currency-card-header">
                   <span className="currency-icon">{getCurrencySymbol(currency.currency)}</span>
                   <div className="currency-title">{currency.currency}</div>
@@ -165,7 +170,7 @@ const KassaPage: React.FC = () => {
 
       <Row gutter={[24, 24]} style={{ marginTop: 24 }}>
         <Col xs={24} sm={12} md={8}>
-          <Card className="summary-card total-card" hoverable>
+          <Card className="summary-card total-card" hoverable variant="borderless">
             <div className="summary-card-title">Jami kassa </div>
             <div className="summary-card-value">
               ${cashOverview?.cashbox?.total_in_usd?.toLocaleString() || 0}
@@ -174,7 +179,7 @@ const KassaPage: React.FC = () => {
           </Card>
         </Col>
         <Col xs={24} sm={12} md={8}>
-          <Card className="summary-card expenses-card" hoverable>
+          <Card className="summary-card expenses-card" hoverable variant="borderless">
             <div className="summary-card-title">Jami xarajatlar</div>
             <div className="summary-card-value">
               ${cashOverview?.expenses?.total_expenses_usd?.toLocaleString() || 0}
@@ -189,6 +194,7 @@ const KassaPage: React.FC = () => {
           <Card
             className="summary-card balance-card"
             hoverable
+            variant="borderless"
             style={{
               borderTop: cashOverview?.final_balance_usd >= 0 ? '4px solid #52c41a' : '4px solid #f5222d'
             }}
@@ -206,7 +212,7 @@ const KassaPage: React.FC = () => {
         </Col>
       </Row>
 
-      <Card className="main-card" style={{ marginTop: 24 }}>
+      <Card className="main-card" style={{ marginTop: 24 }} variant="borderless">
         <Tabs
           activeKey={activeTab}
           onChange={setActiveTab}
@@ -246,4 +252,4 @@ const KassaPage: React.FC = () => {
     </div>
   );
 };
-export default KassaPage; 
+export default KassaPage;

@@ -7,14 +7,12 @@ import {
   CashSummary, 
   CashCreate, 
 } from '../types/cash.types';
-import { message } from 'antd';
 import axiosInstance from '@/api/axiosInstance';
 import { useMemo, useState, useEffect } from 'react';
 import { useClients } from './useClients';
 import { useDrivers } from './useDrivers';
 import { useRays } from './useRays';
 import { cashTransactionApi, CashTransaction } from '../api/cashTransaction';
-import axios from 'axios';
 
 export const useCashSummary = () => {
   const { data, isLoading, error } = useQuery({
@@ -196,7 +194,7 @@ export const useCashHistoryDetails = (id: number) => {
   };
 };
 
-export const useCash = () => {
+export const useCash = (messageApi?: any) => {
   const [loading, setLoading] = useState(false);
   const [transactions, setTransactions] = useState<CashTransaction[]>([]);
   const [raysClientsMap, setRaysClientsMap] = useState<any[]>([]);
@@ -206,7 +204,7 @@ export const useCash = () => {
   const [filters, setFilters] = useState<CashFilter>({});
 
   const { drivers } = useDrivers();
-  const { data: clientsData, isLoading: isLoadingClients } = useClients();
+  const { data: clientsData } = useClients();
   const { data: raysData } = useRays();
 
   const { data: cashEntriesRaw = [], isLoading } = useQuery({
@@ -238,7 +236,9 @@ export const useCash = () => {
       return data;
     } catch (error) {
       console.error('Error fetching cash overview:', error);
-      message.error('Kassa ma\'lumotlarini yuklashda xatolik yuz berdi');
+      if (messageApi) {
+        messageApi.error('Kassa ma\'lumotlarini yuklashda xatolik yuz berdi');
+      }
       return null;
     } finally {
       setLoading(false);
@@ -249,11 +249,15 @@ export const useCash = () => {
     mutationFn: (data: CashCreate) => cashApi.createCash(data),
     onSuccess: () => {
       invalidateRelatedQueries();
-      message.success("Kassa yozuvi muvaffaqiyatli qo'shildi");
+      if (messageApi) {
+        messageApi.success("Kassa yozuvi muvaffaqiyatli qo'shildi");
+      }
     },
     onError: (error: any) => {
       console.error('Create cash error:', error);
-      message.error(error.response?.data?.detail || "Kassa yozuvini yaratishda xatolik yuz berdi");
+      if (messageApi) {
+        messageApi.error(error.response?.data?.detail || "Kassa yozuvini yaratishda xatolik yuz berdi");
+      }
     }
   });
 
@@ -264,11 +268,15 @@ export const useCash = () => {
     },
     onSuccess: () => {
       invalidateRelatedQueries();
-      message.success("Kassa yozuvi muvaffaqiyatli yangilandi");
+      if (messageApi) {
+        messageApi.success("Kassa yozuvi muvaffaqiyatli yangilandi");
+      }
     },
     onError: (error: any) => {
       console.error('Update cash error:', error);
-      message.error(error.response?.data?.detail || "Kassa yozuvini yangilashda xatolik yuz berdi");
+      if (messageApi) {
+        messageApi.error(error.response?.data?.detail || "Kassa yozuvini yangilashda xatolik yuz berdi");
+      }
     }
   });
 
@@ -276,11 +284,15 @@ export const useCash = () => {
     mutationFn: (id: number) => cashApi.deleteCash(id),
     onSuccess: () => {
       invalidateRelatedQueries();
-      message.success("Kassa yozuvi muvaffaqiyatli o'chirildi");
+      if (messageApi) {
+        messageApi.success("Kassa yozuvi muvaffaqiyatli o'chirildi");
+      }
     },
     onError: (error: any) => {
       console.error('Delete cash error:', error);
-      message.error(error.response?.data?.detail || "Kassa yozuvini o'chirishda xatolik yuz berdi");
+      if (messageApi) {
+        messageApi.error(error.response?.data?.detail || "Kassa yozuvini o'chirishda xatolik yuz berdi");
+      }
     }
   });
 
@@ -288,11 +300,15 @@ export const useCash = () => {
     mutationFn: (id: number) => cashApi.confirmCashEntry(id),
     onSuccess: () => {
       invalidateRelatedQueries();
-      message.success("Kassa yozuvi muvaffaqiyatli tasdiqlandi");
+      if (messageApi) {
+        messageApi.success("Kassa yozuvi muvaffaqiyatli tasdiqlandi");
+      }
     },
     onError: (error: any) => {
       console.error('Confirm cash error:', error);
-      message.error(error.response?.data?.detail || "Kassa yozuvini tasdiqlashda xatolik yuz berdi");
+      if (messageApi) {
+        messageApi.error(error.response?.data?.detail || "Kassa yozuvini tasdiqlashda xatolik yuz berdi");
+      }
     }
   });
 
@@ -300,11 +316,15 @@ export const useCash = () => {
     mutationFn: (id: number) => cashApi.markAsDeliveredToCashier(id),
     onSuccess: () => {
       invalidateRelatedQueries();
-      message.success("Kassa yozuvi kassirga topshirilgan deb belgilandi");
+      if (messageApi) {
+        messageApi.success("Kassa yozuvi kassirga topshirilgan deb belgilandi");
+      }
     },
     onError: (error: any) => {
       console.error('Mark as delivered error:', error);
-      message.error(error.response?.data?.detail || "Kassa yozuvini kassirga topshirilgan deb belgilashda xatolik yuz berdi");
+      if (messageApi) {
+        messageApi.error(error.response?.data?.detail || "Kassa yozuvini kassirga topshirilgan deb belgilashda xatolik yuz berdi");
+      }
     }
   });
 
@@ -330,7 +350,9 @@ export const useCash = () => {
       const data = await cashTransactionApi.getTransactions();
       setTransactions(data);
     } catch (error) {
-      message.error('Failed to fetch transactions');
+      if (messageApi) {
+        messageApi.error('Failed to fetch transactions');
+      }
       console.error('Error fetching transactions:', error);
     } finally {
       setLoading(false);
@@ -343,7 +365,9 @@ export const useCash = () => {
       const data = await cashTransactionApi.getRaysClientsMap();
       setRaysClientsMap(data);
     } catch (error) {
-      message.error('Failed to fetch rays-clients mapping');
+      if (messageApi) {
+        messageApi.error('Failed to fetch rays-clients mapping');
+      }
       console.error('Error fetching rays-clients mapping:', error);
     } finally {
       setLoading(false);
@@ -353,11 +377,15 @@ export const useCash = () => {
     try {
       setLoading(true);
       const response = await cashTransactionApi.createTransaction(data);
-      message.success('Transaction created successfully');
+      if (messageApi) {
+        messageApi.success('Transaction created successfully');
+      }
       await fetchTransactions(); // Refresh the list
       return response;
     } catch (error) {
-      message.error('Failed to create transaction');
+      if (messageApi) {
+        messageApi.error('Failed to create transaction');
+      }
       console.error('Error creating transaction:', error);
       throw error;
     } finally {

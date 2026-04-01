@@ -169,6 +169,7 @@ const CarModal: React.FC<CarModalProps> = ({
             <Form.Item
               name="car_number"
               label="Avtomobil raqami"
+              rules={[{ required: true, message: 'Avtomobil raqamini kiritish shart' }]}
             >
               <Input placeholder="Avtomobil raqamini kiriting" />
             </Form.Item>

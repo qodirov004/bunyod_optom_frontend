@@ -385,6 +385,7 @@ const TripTable = ({
                   <Tag color={getStatusColor(isCompleted)}>{getStatusText(isCompleted)}</Tag>
                 </div>
               }
+              variant="borderless"
               style={{
                 cursor: 'pointer',
                 borderRadius: '8px',
@@ -657,7 +658,7 @@ const TripTable = ({
 
           {completedTrip && (
             <div style={{ marginTop: 16 }}>
-              <Card className="trip-summary-card" bordered={false}>
+              <Card className="trip-summary-card" variant="borderless">
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
                   <Text strong>Yo`nalish:</Text>
                    <Text>{completedTrip.from1} → {completedTrip.to_go}</Text>

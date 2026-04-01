@@ -10,7 +10,7 @@ import { useDispatch } from 'react-redux'
 import { setUser } from './authSlice'
 import { motion } from 'framer-motion'
 import { useState, useEffect } from 'react'
-import { removeToken } from './authUtils'
+import { removeToken, saveToken } from './authUtils'
 import './style.css'
 
 const loginSchema = z.object({
@@ -56,19 +56,9 @@ export function Login() {
         throw new Error('Invalid user data received');
       }
 
-      // Store token in localStorage with a longer expiry time
-      localStorage.setItem('token', result.token);
-
-      // Calculate expiry time - 24 hours from now for even longer session
-      const expiresAt = new Date();
-      expiresAt.setHours(expiresAt.getHours() + 24); // Set to 24 hours for extended session
-
-      // Store expiry time separately
-      localStorage.setItem('token_expires', expiresAt.getTime().toString());
-
-      // Set cookie with extended expiry (using max-age for better browser support)
-      // 86400 seconds = 24 hours
-      document.cookie = `auth-token=${result.token}; path=/; max-age=86400; SameSite=Lax`;
+      // Store token using unified utility function 
+      // This saves to both localStorage and cookies with correct expiry (24h)
+      saveToken(result.token);
 
       // Save user data to Redux store
       dispatch(setUser(result));
@@ -124,7 +114,7 @@ export function Login() {
 
       // Network error - server is unreachable
       if (status === 'FETCH_ERROR' || error?.error === 'FETCH_ERROR') {
-        setErrorMessage('Backend serverga ulanib bo\'lmadi (logistika.api.ardentsoft.uz). Server ishlamayotgan bo\'lishi mumkin.');
+        setErrorMessage('Backend serverga ulanib bo\'lmadi. Server ishlamayotgan bo\'lishi mumkin.');
         return;
       }
 

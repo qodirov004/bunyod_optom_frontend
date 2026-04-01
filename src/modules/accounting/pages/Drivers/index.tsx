@@ -7,8 +7,11 @@ import {
   DashboardOutlined,
   CheckCircleOutlined,
   StarOutlined,
-  WalletOutlined
+  WalletOutlined,
+  LockOutlined
 } from '@ant-design/icons';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/store/store'; // Path to RootState from store.ts
 import { useDrivers } from '../../hooks/useDrivers';
 import { DriverType } from '../../types/driver';
 import DriverHeader from './components/DriverHeader';
@@ -35,7 +38,10 @@ export const DriversPage: React.FC = () => {
     const [activeCars, setActiveCars] = useState([]);
     const [loadingActiveCars, setLoadingActiveCars] = useState(false);
     
-    // Fetch drivers data using the hook
+    // Get user role from Redux
+    const user = useSelector((state: RootState) => state.auth.user);
+    const isAccountant = user?.status === 'Bugalter';
+    const canAddDriver = !isAccountant;
     const {
         drivers,
         loading,
@@ -193,11 +199,16 @@ export const DriversPage: React.FC = () => {
                 e?.data?.detail ||
                 e?.data?.message;
             const status = e?.response?.status;
-            message.error(
-                detail
-                    ? `Xatolik${status ? ` (${status})` : ''}: ${detail}`
-                    : `Xatolik yuz berdi${status ? ` (${status})` : ''}.`
-            );
+            
+            if (status === 403) {
+                message.error('Sizda haydovchi yaratish uchun huquq yo`q (Faqat CEO yoki Admin)');
+            } else {
+                message.error(
+                    detail
+                        ? `Xatolik${status ? ` (${status})` : ''}: ${detail}`
+                        : `Xatolik yuz berdi${status ? ` (${status})` : ''}.`
+                );
+            }
         }
     };
 
@@ -286,7 +297,8 @@ export const DriversPage: React.FC = () => {
         <>
             <DriverHeader
                 onSearch={handleSearch}
-                onAddDriver={handleAddDriver}
+                onAddDriver={canAddDriver ? handleAddDriver : undefined}
+                disabledAdd={!canAddDriver}
             />
             <DriversList
                 drivers={drivers}

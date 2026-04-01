@@ -48,6 +48,8 @@ const { RangePicker } = DatePicker;
 const { Option } = Select;
 
 const CashTransactions: React.FC = () => {
+    const [messageApi, contextHolder] = message.useMessage();
+    const [modal, modalContextHolder] = Modal.useModal();
     const [searchText, setSearchText] = useState<string>('');
     const [dateRange, setDateRange] = useState<[dayjs.Dayjs, dayjs.Dayjs] | null>(null);
     const [selectedType, setSelectedType] = useState<string>('all');
@@ -57,8 +59,8 @@ const CashTransactions: React.FC = () => {
     const [currentTransaction, setCurrentTransaction] = useState<CashHistory | Cash | null>(null);
     const [form] = Form.useForm();
 
-    // Use real data from API hooks
-    const { cashEntries, isLoading: isCashLoading, createCash, deleteCash, confirmCash, markAsDelivered } = useCash();
+    // Use real data from API hooks - Pass messageApi for React 19 compatibility
+    const { cashEntries, isLoading: isCashLoading, createCash, deleteCash, confirmCash, markAsDelivered } = useCash(messageApi);
     const { cashHistory, isLoading: isHistoryLoading } = useCashHistory();
     const { cashCategories, isLoading: isCategoriesLoading } = useCashCategories();
     const { currencies, loading: isCurrenciesLoading } = useCurrencies();
@@ -86,7 +88,7 @@ const CashTransactions: React.FC = () => {
 
     // Render a filter form at the top of the component
     const renderFilterForm = () => (
-        <Card className="filter-card" style={{ marginBottom: 16 }}>
+        <Card className="filter-card" style={{ marginBottom: 16 }} variant="borderless">
             <Form
                 form={form}
                 layout="horizontal"
@@ -180,15 +182,15 @@ const CashTransactions: React.FC = () => {
 
             createCash(cashData);
             setIsModalVisible(false);
-            message.success('Kassa yozuvi qo\'shildi');
+            messageApi.success('Kassa yozuvi qo\'shildi');
         }).catch(err => {
             console.error('Form validation error:', err);
-            message.error('Ma\'lumotlar to\'liq emas. Iltimos, barcha maydonlarni to\'ldiring.');
+            messageApi.error('Ma\'lumotlar to\'liq emas. Iltimos, barcha maydonlarni to\'ldiring.');
         });
     };
 
     const handleDeleteTransaction = (id: number) => {
-        Modal.confirm({
+        modal.confirm({
             title: 'Haqiqatan ham bu yozuvni o\'chirmoqchimisiz?',
             content: 'Bu amal qaytarib bo\'lmaydi.',
             okText: 'Ha, o\'chirish',
@@ -196,19 +198,19 @@ const CashTransactions: React.FC = () => {
             cancelText: 'Bekor qilish',
             onOk() {
                 deleteCash(id);
-                message.success('Yozuv muvaffaqiyatli o\'chirildi');
+                messageApi.success('Yozuv muvaffaqiyatli o\'chirildi');
             }
         });
     };
 
     const handleConfirmTransaction = (id: number) => {
         confirmCash(id);
-        message.success('Yozuv muvaffaqiyatli tasdiqlandi');
+        messageApi.success('Yozuv muvaffaqiyatli tasdiqlandi');
     };
 
     const handleDeliverTransaction = (id: number) => {
         markAsDelivered(id);
-        message.success('Yozuv kassirga topshirilgan deb belgilandi');
+        messageApi.success('Yozuv kassirga topshirilgan deb belgilandi');
     };
 
     const filteredTransactions = allTransactions.filter(transaction => {
@@ -382,6 +384,8 @@ const CashTransactions: React.FC = () => {
 
     return (
         <Spin spinning={isLoading}>
+            {contextHolder}
+            {modalContextHolder}
             <div className="transaction-list-header">
                 <Title level={4}>Kassa operatsiyalari</Title>
                 <Button
@@ -395,7 +399,7 @@ const CashTransactions: React.FC = () => {
 
             {renderFilterForm()}
 
-            <Card className="transaction-card">
+            <Card className="transaction-card" variant="borderless">
                 <Table
                     columns={columns}
                     dataSource={filteredTransactions}
@@ -782,4 +786,4 @@ const CashTransactions: React.FC = () => {
     );
 };
 
-export default CashTransactions; 
+export default CashTransactions;
