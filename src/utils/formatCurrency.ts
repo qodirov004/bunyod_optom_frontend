@@ -7,29 +7,18 @@
  */
 export const formatCurrency = (
   amount?: number | null,
-  currencyType: string = 'USD',
+  currencyType: string = 'UZS',
   showSymbol: boolean = true
 ): string => {
   if (amount === undefined || amount === null) return "0";
   
-  // Format based on currency type
-  switch (currencyType.toUpperCase()) {
-    case 'USD':
-      return `${showSymbol ? '$' : ''}${amount.toLocaleString('en-US', {
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 2
-      })}`;
-    
-    case 'UZS':
-      return `${amount.toLocaleString('uz-UZ')}${showSymbol ? ' so\'m' : ''}`;
-    
-    default:
-      // For any other currency, use the passed currency type as suffix
-      return `${amount.toLocaleString('en-US', {
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 2
-      })}${showSymbol ? ` ${currencyType}` : ''}`;
-  }
+  // Format as UZS always
+  const formatted = (amount || 0).toLocaleString('uz-UZ', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  });
+  
+  return `${formatted}${showSymbol ? ' so\'m' : ''}`;
 };
 
 /**
@@ -42,17 +31,8 @@ export const isUsdPrice = (
   fieldName: string,
   currencyIndicator?: string | null
 ): boolean => {
-  // If currency indicator is provided, use that
-  if (currencyIndicator) {
-    return currencyIndicator.toUpperCase() === 'USD';
-  }
-  
-  // Otherwise, infer from field name
-  const usdFields = ['price', 'dr_price', 'expected_usd', 'paid_usd', 'remaining_usd', 'total_usd'];
-  
-  // Check if field name is in USD fields list or has 'usd' in the name
-  return usdFields.includes(fieldName.toLowerCase()) || 
-         fieldName.toLowerCase().includes('usd');
+  // Legacy support for USD fields, but we treat everything as UZS now
+  return false;
 };
 
 /**
@@ -69,8 +49,8 @@ export const formatPrice = (
 ): string => {
   if (amount === undefined || amount === null) return "0";
   
-  // Determine currency type
-  let currency = currencyType || (isUsdPrice(fieldName) ? 'USD' : 'UZS');
+  // Always use UZS
+  let currency = 'UZS';
   
   return formatCurrency(amount, currency);
 };

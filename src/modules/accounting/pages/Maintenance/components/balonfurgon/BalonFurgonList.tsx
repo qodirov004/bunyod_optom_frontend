@@ -111,8 +111,8 @@ const BalonFurgonList: React.FC<BalonFurgonListProps> = ({
       title: 'Narx',
       dataIndex: 'price',
       key: 'price',
-      render: (price: number, record: BalonFurgonType) => 
-        `${price?.toLocaleString()} ${getCurrencyName(record.currency)}`
+      render: (price: number) => 
+        `${price?.toLocaleString()} so'm`
     },
     {
       title: 'Kilometr',

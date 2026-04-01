@@ -24,7 +24,7 @@ const TripStatsSummary: React.FC<TripStatsProps> = ({
   
   // Format currency function
   const formatCurrency = (value: number = 0) => {
-    return `${value.toLocaleString('uz-UZ')} $`;
+    return `${(value * 12800).toLocaleString('uz-UZ')} so'm`;
   };
 
   if (isLoadingOverview) {

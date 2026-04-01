@@ -160,9 +160,9 @@ const LocationManagement: React.FC = () => {
     try {
       const fromLocs = await fetchFromLocations();
       setFromLocations(fromLocs);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching from locations:', error);
-      messageApi.error('Qayerdan manzillarini yuklashda xatolik');
+      messageApi.error(error.message || 'Qayerdan manzillarini yuklashda xatolik');
     } finally {
       setLoadingFromLocations(false);
     }
@@ -170,9 +170,9 @@ const LocationManagement: React.FC = () => {
     try {
       const toLocs = await fetchToLocations();
       setToLocations(toLocs);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching to locations:', error);
-      messageApi.error('Qayerga manzillarini yuklashda xatolik');
+      messageApi.error(error.message || 'Qayerga manzillarini yuklashda xatolik');
     } finally {
       setLoadingToLocations(false);
     }
@@ -188,9 +188,9 @@ const LocationManagement: React.FC = () => {
       const newLocation = await createFromLocation(name);
       setFromLocations([...fromLocations, newLocation]);
       messageApi.success(`"${name}" manzili qo'shildi`);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating from location:', error);
-      messageApi.error('Manzil qo\'shishda xatolik');
+      messageApi.error(error.message || 'Manzil qo\'shishda xatolik');
     } finally {
       setCreatingFromLocation(false);
     }
@@ -202,9 +202,9 @@ const LocationManagement: React.FC = () => {
       const newLocation = await createToLocation(name);
       setToLocations([...toLocations, newLocation]);
       messageApi.success(`"${name}" manzili qo'shildi`);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating to location:', error);
-      messageApi.error('Manzil qo\'shishda xatolik');
+      messageApi.error(error.message || 'Manzil qo\'shishda xatolik');
     } finally {
       setCreatingToLocation(false);
     }
@@ -216,9 +216,9 @@ const LocationManagement: React.FC = () => {
       await deleteFromLocation(id);
       setFromLocations(fromLocations.filter(location => location.id !== id));
       messageApi.success("Manzil muvaffaqiyatli o'chirildi");
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error deleting from location:', error);
-      messageApi.error("Manzilni o'chirishda xatolik");
+      messageApi.error(error.message || "Manzilni o'chirishda xatolik");
     } finally {
       setDeletingFromLocationId(null);
     }
@@ -230,9 +230,9 @@ const LocationManagement: React.FC = () => {
       await deleteToLocation(id);
       setToLocations(toLocations.filter(location => location.id !== id));
       messageApi.success("Manzil muvaffaqiyatli o'chirildi");
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error deleting to location:', error);
-      messageApi.error("Manzilni o'chirishda xatolik");
+      messageApi.error(error.message || "Manzilni o'chirishda xatolik");
     } finally {
       setDeletingToLocationId(null);
     }
@@ -268,9 +268,9 @@ const LocationManagement: React.FC = () => {
       setIsEditModalVisible(false);
       setEditingLocation(null);
       messageApi.success("Manzil muvaffaqiyatli yangilandi");
-    } catch (error) {
+    } catch (error: any) {
       console.error(`Error updating ${editingLocationType} location:`, error);
-      messageApi.error("Manzilni yangilashda xatolik");
+      messageApi.error(error.message || "Manzilni yangilashda xatolik");
     } finally {
       setUpdatingLocation(false);
     }

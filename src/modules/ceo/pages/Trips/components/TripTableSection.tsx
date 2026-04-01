@@ -98,19 +98,19 @@ export const TripTableSection: React.FC<TripTableSectionProps> = ({
       ),
     },
     {
-      title: 'Narx (USD)',
+      title: 'Narx (so\'m)',
       dataIndex: 'price',
       key: 'price',
       render: (price: number) => (
-        <Text strong>{formatPrice(price, 'price', 'USD')}</Text>
+        <Text strong>{formatPrice(price, 'price', 'UZS')}</Text>
       ),
     },
     {
-      title: 'Haydovchi to\'lovi (USD)',
+      title: 'Haydovchi to\'lovi (so\'m)',
       dataIndex: 'dr_price',
       key: 'driverPayment',
       render: (drPrice: number) => (
-        <Text>{formatPrice(drPrice, 'dr_price', 'USD')}</Text>
+        <Text>{formatPrice(drPrice, 'dr_price', 'UZS')}</Text>
       ),
     },
     {
@@ -118,8 +118,7 @@ export const TripTableSection: React.FC<TripTableSectionProps> = ({
       key: 'otherExpense',
       render: (record: any) => (
         <Text>
-          {formatPrice(record.dp_price, 'dp_price', record.dp_currency_name || 'UZS')}
-          {record.dp_currency_name && <small> ({record.dp_currency_name})</small>}
+          {formatPrice(record.dp_price, 'dp_price', 'UZS')}
         </Text>
       ),
     },

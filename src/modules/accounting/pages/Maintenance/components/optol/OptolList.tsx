@@ -119,22 +119,14 @@ const OptolList: React.FC<OptolListProps> = ({
       title: 'Narxi',
       dataIndex: 'price',
       key: 'price',
-      render: (price: number, record: OptolServiceType) => 
-        `${price.toLocaleString()} ${getCurrencyName(record.currency)}`,
+      render: (price: number) => 
+        `${price.toLocaleString()} so'm`,
     },
     {
       title: 'Kilometr',
       dataIndex: 'kilometr',
       key: 'kilometr',
       render: (km: number) => `${km.toLocaleString()} km`,
-    },
-    {
-      title:"kurs narxi",
-      dataIndex: 'custom_rate_to_uzs',
-      key: 'custom_rate_to_uzs',
-      render: (custom_rate_to_uzs: number) => (
-        <span>{custom_rate_to_uzs}</span>
-      )
     },
     {
       title: 'Mashina',
@@ -222,19 +214,7 @@ const OptolList: React.FC<OptolListProps> = ({
             <InputNumber style={{ width: '100%' }} formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')} />
           </Form.Item>
           
-          <Form.Item
-            name="currency"
-            label="Valyuta"
-            rules={[{ required: true, message: 'Iltimos, valyutani tanlang!' }]}
-          >
-            <Select placeholder="Valyutani tanlang" loading={currenciesLoading}>
-              {currencies?.map((currency) => (
-                <Select.Option key={currency.id} value={currency.id}>
-                  {currency.currency} ({parseFloat(currency.rate_to_uzs).toLocaleString()} UZS)
-                </Select.Option>
-              ))}
-            </Select>
-          </Form.Item>
+
           
           <Form.Item
             name="kilometr"

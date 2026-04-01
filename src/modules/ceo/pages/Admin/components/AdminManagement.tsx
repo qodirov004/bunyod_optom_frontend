@@ -7,7 +7,7 @@ import AdminForm from './AdminForm';
 
 const { Title } = Typography;
 
-const AdminManagement: React.FC = () => {
+const AdminManagementContent: React.FC = () => {
   const { modal } = App.useApp(); // Use modal from App context
   const { admins, loading, errors, addAdmin, editAdmin, removeAdmin } = useAdmin();
   
@@ -302,68 +302,65 @@ const AdminManagement: React.FC = () => {
     },
   ];
 
-  // Debug information
-  console.log('Current state:', {
-    adminsCount: admins?.length,
-    loading,
-    formVisible,
-    selectedAdmin,
-    isEdit
-  });
+  return (
+    <Card 
+      title={<Title level={4}>Administratorlarni boshqarish</Title>}
+      extra={
+        <Button
+          type="primary"
+          icon={<PlusOutlined />}
+          onClick={handleAdd}
+          disabled={loading}
+        >
+          Yangi administrator
+        </Button>
+      }
+      style={{ marginBottom: '24px' }}
+    >
+      <Table
+        columns={columns}
+        dataSource={admins || []}
+        rowKey={(record) => record.id?.toString() || Math.random().toString()}
+        loading={loading}
+        bordered
+        pagination={{ 
+          pageSize: 10,
+          showSizeChanger: true,
+          showQuickJumper: true,
+          showTotal: (total, range) => 
+            `${range[0]}-${range[1]} of ${total} administrators`
+        }}
+        locale={{ emptyText: 'Administratorlar mavjud emas' }}
+        scroll={{ x: 800 }}
+        onRow={(record) => ({
+          // Prevent row click when action buttons are clicked
+          onClick: (e) => {
+            const target = e.target as HTMLElement;
+            if (target.closest('.ant-btn') || target.closest('.ant-tooltip')) {
+              e.stopPropagation();
+            }
+          }
+        })}
+      />
 
+      <AdminForm
+        visible={formVisible}
+        onCancel={handleFormCancel}
+        onSubmit={handleFormSubmit}
+        initialValues={selectedAdmin}
+        title={formTitle}
+        loading={loading}
+        isEdit={isEdit}
+        errors={errors}
+      />
+    </Card>
+  );
+};
+
+const AdminManagement: React.FC = () => {
   return (
     <App>
-      <Card 
-        title={<Title level={4}>Administratorlarni boshqarish</Title>}
-        extra={
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={handleAdd}
-            disabled={loading}
-          >
-            Yangi administrator
-          </Button>
-        }
-        style={{ marginBottom: '24px' }}
-      >
-        <Table
-          columns={columns}
-          dataSource={admins || []}
-          rowKey={(record) => record.id?.toString() || Math.random().toString()}
-          loading={loading}
-          bordered
-          pagination={{ 
-            pageSize: 10,
-            showSizeChanger: true,
-            showQuickJumper: true,
-            showTotal: (total, range) => 
-              `${range[0]}-${range[1]} of ${total} administrators`
-          }}
-          locale={{ emptyText: 'Administratorlar mavjud emas' }}
-          scroll={{ x: 800 }}
-          onRow={(record) => ({
-            // Prevent row click when action buttons are clicked
-            onClick: (e) => {
-              const target = e.target as HTMLElement;
-              if (target.closest('.ant-btn') || target.closest('.ant-tooltip')) {
-                e.stopPropagation();
-              }
-            }
-          })}
-        />
-
-        <AdminForm
-          visible={formVisible}
-          onCancel={handleFormCancel}
-          onSubmit={handleFormSubmit}
-          initialValues={selectedAdmin}
-          title={formTitle}
-          loading={loading}
-          isEdit={isEdit}
-          errors={errors}
-        />
-      </Card>
+      <AdminManagementContent />
     </App>
   );
 };

@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Form, Input, Button, Select, Card, Tag, InputNumber } from 'antd';
+import { Form, Input, Button, Select, Card, Tag } from 'antd';
 import { PlusOutlined, CarOutlined } from '@ant-design/icons';
 import { TehnicalService } from '@/modules/accounting/types/maintenance';
 import axiosInstance from '@/api/axiosInstance';
-import { useCurrencies } from '@/modules/accounting/hooks/useCurrencies';
 
 const { Option } = Select;
 
@@ -15,7 +14,6 @@ const TehnicalServiceAdd: React.FC<TehnicalServiceAddProps> = ({ addTehnicalServ
   const [form] = Form.useForm();
   const [cars, setCars] = useState<any[]>([]);
   const [services, setServices] = useState<any[]>([]);
-  const { currencies, loading: currenciesLoading } = useCurrencies();
 
   useEffect(() => {
     // Fetch cars
@@ -48,8 +46,8 @@ const TehnicalServiceAdd: React.FC<TehnicalServiceAddProps> = ({ addTehnicalServ
       kilometer: values.kilometer,
       car: values.car,
       service: values.service,
-      currency: values.currency,
-      custom_rate_to_uzs: values.custom_rate_to_uzs,
+      currency: 4, // Hardcoded UZS
+      custom_rate_to_uzs: 1, // 1 to 1 for UZS
     };
 
     addTehnicalService(newService);
@@ -109,43 +107,6 @@ const TehnicalServiceAdd: React.FC<TehnicalServiceAddProps> = ({ addTehnicalServ
           <Input type="number" placeholder="Narxni kiriting" />
         </Form.Item>
 
-        <Form.Item
-          name="currency"
-          label="Valyuta"
-          rules={[{ required: true, message: 'Iltimos, valyutani tanlang!' }]}
-          initialValue={currencies?.length > 0 ? currencies[0].id : undefined}
-        >
-          <Select placeholder="Valyutani tanlang" loading={currenciesLoading}
-            onChange={(value) => {
-              const selectedCurrency = currencies?.find(c => c.id === value);
-              if (selectedCurrency) {
-                form.setFieldsValue({
-                  custom_rate_to_uzs: selectedCurrency.rate_to_uzs
-                });
-              }
-            }}
-          >
-            {currencies?.map((currency) => (
-              <Option key={currency.id} value={currency.id}>
-                {currency.currency} ({parseFloat(currency.rate_to_uzs).toLocaleString()} UZS)
-              </Option>
-            ))}
-          </Select>
-        </Form.Item>
-
-        <Form.Item
-          name="custom_rate_to_uzs"
-          label="Valyuta kursi"
-          rules={[{ required: true, message: 'Iltimos, valyuta kursini kiriting!' }]}
-        >
-          <InputNumber
-            style={{ width: '100%' }}
-            placeholder="Valyuta kursi"
-            formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-            parser={value => value!.replace(/\$\s?|,*/g, '')}
-          />
-        </Form.Item>
-
         <Form.Item>
           <Button type="primary" htmlType="submit" icon={<PlusOutlined />}>
             Qo'shish
@@ -156,4 +117,4 @@ const TehnicalServiceAdd: React.FC<TehnicalServiceAddProps> = ({ addTehnicalServ
   );
 };
 
-export default TehnicalServiceAdd; 
+export default TehnicalServiceAdd;

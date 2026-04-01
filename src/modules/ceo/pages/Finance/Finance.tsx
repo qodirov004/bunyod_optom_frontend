@@ -3,13 +3,11 @@
 import React, { useState } from 'react';
 import { Spin } from 'antd';
 import { DashboardLayout } from '../../components/layout/DashboardLayout';
-import { useCurrencies } from '../../../accounting/hooks/useCurrencies';
 import { useFinanceData } from './hooks/useFinanceData';
 
 // Import our new components
 import FinanceHeader from './components/Header/FinanceHeader';
 import FinanceAlerts from './components/Alerts/FinanceAlerts';
-import CurrencyCards from './components/CurrencyCards/CurrencyCards';
 import SummaryCards from './components/SummaryCards/SummaryCards';
 import FinanceTabs from './components/FinanceTabs/FinanceTabs';
 
@@ -25,8 +23,6 @@ const Finance: React.FC = () => {
     dashboardStats
   } = useFinanceData();
 
-  const { currencies, loading: isLoadingCurrencies } = useCurrencies();
-
   const [activeTab, setActiveTab] = useState<string>('dashboard');
   const handleTabChange = (key: string) => {
     setActiveTab(key);
@@ -40,7 +36,7 @@ const Finance: React.FC = () => {
   const error = cashError 
     ? (cashError as any).response?.data?.detail || (cashError as any).message || 'Ma\'lumotlarni yuklashda xatolik yuz berdi' 
     : null;
-  const isLoading = isLoadingCash || isLoadingCurrencies;
+  const isLoading = isLoadingCash;
   return (
     <DashboardLayout title="Moliya va Buxgalteriya">
       <div className="kassa-page finance-dashboard">
@@ -63,11 +59,6 @@ const Finance: React.FC = () => {
           </div>
         ) : (
           <>
-            <CurrencyCards
-              currencies={currencies || []}
-              cashOverview={cashOverview}
-            />
-
             <SummaryCards
               cashOverview={cashOverview}
             />

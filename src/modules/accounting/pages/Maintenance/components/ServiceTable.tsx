@@ -60,7 +60,7 @@ const ServiceTable: React.FC<ServiceTableProps> = ({
       dataIndex: 'price',
       key: 'price',
       render: (price: number) =>
-        price ? `${price.toLocaleString()} $` : "0 $",
+        price ? `${price.toLocaleString()} so'm` : "0 so'm",
     },
     {
       title: 'Sana',

@@ -32,7 +32,6 @@ import '../style/TripAdd.module.css'
 import { FromLocation, ToLocation, ProductCreate } from '../../../types/freight.types'
 import { freightApi } from '../../../api/freight/freightapi'
 import ClientPayment from '../../../pages/Kassa/components/ClientPayment'
-import { useCurrencies } from '../../../hooks/useCurrencies'
 import { useCountries } from '../../../hooks/useCountries'
 
 const { Option } = Select
@@ -72,8 +71,8 @@ interface Fourgon {
   is_busy?: boolean;
 }
 interface ClientProduct {
-  id?: number; // Make id optional since it won't have one until saved to backend
-  tempId: string; // Add a temporary ID for frontend tracking
+  id?: number; 
+  tempId: string; 
   name: string;
   price: number;
   count: number;
@@ -81,8 +80,6 @@ interface ClientProduct {
   from_location: string;
   to_location: string;
   clientId: number;
-  currency: string;
-  custom_rate_to_uzs?: number | null;
 }
 
 // Tanlangan mijoz va mahsulotlari
@@ -99,8 +96,6 @@ interface ProductFormValues {
   description?: string;
   from_location?: string;
   to_location?: string;
-  currency?: string;
-  custom_rate_to_uzs?: number | null;
 }
 
 // Trip form values type
@@ -111,7 +106,6 @@ interface TripFormValues {
   price?: number;
   dr_price?: number;
   dp_price: number;
-  dp_currency: string;
   from1?: string;
   to_go?: string;
   kilometer: number;
@@ -188,7 +182,6 @@ const TripAdd: React.FC<TripAddProps> = ({ onSuccess }) => {
   const [toLocations, setToLocations] = useState<ToLocation[]>([])
   const [showPaymentModal, setShowPaymentModal] = useState(false)
   const [selectedRaysId, setSelectedRaysId] = useState<number | null>(null)
-  const { currencies, loading: currenciesLoading } = useCurrencies();
   const { countries: apiCountries, loading: countriesLoading } = useCountries();
   const [messageApi, contextHolder] = message.useMessage();
 
@@ -199,8 +192,7 @@ const TripAdd: React.FC<TripAddProps> = ({ onSuccess }) => {
       product1.price === product2.price && 
       product1.count === product2.count &&
       product1.from_location === product2.from_location &&
-      product1.to_location === product2.to_location &&
-      product1.currency === product2.currency
+      product1.to_location === product2.to_location
     );
   };
 
@@ -496,9 +488,7 @@ const TripAdd: React.FC<TripAddProps> = ({ onSuccess }) => {
         description: values.description || '',
         from_location: values.from_location || '',
         to_location: values.to_location || '',
-        clientId: currentClientId,
-        currency: values.currency || '',
-        custom_rate_to_uzs: values.custom_rate_to_uzs || null
+        clientId: currentClientId
       };
 
       // Check if a similar product already exists for this client using the helper function
@@ -572,15 +562,10 @@ const TripAdd: React.FC<TripAddProps> = ({ onSuccess }) => {
       return;
     }
 
-    // Check if currency is selected
-    if (!values.dp_currency) {
-      messageApi.error("Haydovchiga to'lov valyutasini tanlang");
-      return;
-    }
+
 
     console.log("Driver payment data:", {
-      amount: values.dp_price,
-      currency: values.dp_currency
+      amount: values.dp_price
     });
 
     setLoading(true);
@@ -596,15 +581,6 @@ const TripAdd: React.FC<TripAddProps> = ({ onSuccess }) => {
       for (const selectedClient of selectedClients) {
         for (const product of selectedClient.products) {
           try {
-            // Find the currency ID based on the currency code
-            const currencyObj = currencies.find(c => c.currency === product.currency);
-            const currencyId = currencyObj ? currencyObj.id : null;
-
-            if (!currencyId) {
-              console.error(`Currency ID not found for currency: ${product.currency}`);
-              continue;
-            }
-
             const productData: ProductCreate = {
               name: product.name,
               price: product.price,
@@ -613,8 +589,7 @@ const TripAdd: React.FC<TripAddProps> = ({ onSuccess }) => {
               from_location: Number(product.from_location),
               to_location: Number(product.to_location),
               client: selectedClient.client.id,
-              currency: currencyId,
-              custom_rate_to_uzs: product.custom_rate_to_uzs || null,
+              currency: 4, // UZS
               is_total_price: true
             };
 
@@ -652,18 +627,7 @@ const TripAdd: React.FC<TripAddProps> = ({ onSuccess }) => {
         price: values.price ? Number(values.price) : 0,
         dr_price: values.dr_price ? Number(values.dr_price) : 0,
         dp_price: Number(values.dp_price),
-        // Find the currency ID based on the currency code
-        dp_currency: (() => {
-          // Find the currency object by code
-          const currencyObj = currencies.find(c => c.currency === values.dp_currency);
-          if (!currencyObj) {
-            console.error(`Currency ID not found for: ${values.dp_currency}`);
-            // Use the first currency as fallback
-            return currencies.length > 0 ? currencies[0].id : 0;
-          }
-          console.log(`Using currency ID ${currencyObj.id} for ${values.dp_currency}`);
-          return currencyObj.id;
-        })(),
+        dp_currency: 4, // UZS
         from1: values.from1 || '',
         to_go: values.to_go || '',
         kilometer: Number(values.kilometer),
@@ -841,41 +805,17 @@ const TripAdd: React.FC<TripAddProps> = ({ onSuccess }) => {
               </Row>
 
               <Row gutter={[16, 16]}>
-                <Col span={12}>
+                <Col span={24}>
                   <Form.Item
-                    name="currency"
-                    label="Valyuta"
-                    initialValue="USD"
-                    rules={[{ required: true, message: 'Valyutani tanlang!' }]}
-                  >
-                    {currenciesLoading ? (
-                      <div style={{ display: 'flex', alignItems: 'center' }}>
-                        <Spin size="small" style={{ marginRight: 8 }} />
-                        <span>Valyutalar yuklanmoqda...</span>
-                      </div>
-                    ) : (
-                      <Select placeholder="Valyutani tanlang">
-                        {(currencies || []).map(currency => (
-                          <Option key={`currency-${currency.id}`} value={currency.currency}>
-                            {currency.currency} ({parseFloat(currency.rate_to_uzs).toLocaleString()} UZS)
-                          </Option>
-                        ))}
-                      </Select>
-                    )}
-                  </Form.Item>
-                </Col>
-
-                <Col span={12}>
-                  <Form.Item
-                    name="custom_rate_to_uzs"
-                    label="Kurs (UZS)"
-                    rules={[{ required: false, message: "Kursni kiriting (agar kerak bo\"lsa)" }]}
+                    name="price"
+                    label="Narxi (so'm)"
+                    rules={[{ required: true, message: 'Narxni kiriting!' }]}
                   >
                     <InputNumber
-                      placeholder="Kurs (UZS)"
+                      placeholder="Narx"
                       min={0}
                       style={{ width: '100%' }}
-                      formatter={value => value ? `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',') : ''}
+                      formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
                     />
                   </Form.Item>
                 </Col>
@@ -919,13 +859,7 @@ const TripAdd: React.FC<TripAddProps> = ({ onSuccess }) => {
                     title: 'Narxi',
                     dataIndex: 'price',
                     key: 'price',
-                    render: (price, record) => `${Number(price).toLocaleString()} ${record.currency || 'so\'m'}`,
-                  },
-                  {
-                    title: 'Kurs (UZS)',
-                    dataIndex: 'custom_rate_to_uzs',
-                    key: 'custom_rate_to_uzs',
-                    render: (rate) => rate ? Number(rate).toLocaleString() : '-',
+                    render: (price) => `${Number(price).toLocaleString()} so'm`,
                   },
                   {
                     title: 'Kubi',
@@ -935,7 +869,7 @@ const TripAdd: React.FC<TripAddProps> = ({ onSuccess }) => {
                   {
                     title: 'Umumiy',
                     key: 'total',
-                    render: (_, record) => `${record.price.toLocaleString()} ${record.currency || 'so\'m'}`,
+                    render: (_, record) => `${record.price.toLocaleString()} so'm`,
                   },
                   {
                     title: 'Amallar',
@@ -954,18 +888,14 @@ const TripAdd: React.FC<TripAddProps> = ({ onSuccess }) => {
                 ]}
                 pagination={false}
                 summary={(pageData) => {
-                  let totalPrice = 0;
-                  const currency = pageData.length > 0 ? pageData[0].currency || 'so\'m' : 'so\'m';
-                  pageData.forEach(({ price }) => {
-                    totalPrice += price;
-                  });
+                  const totalPrice = pageData.reduce((sum, current) => sum + current.price, 0);
                   return (
                     <Table.Summary.Row>
-                      <Table.Summary.Cell index={0} colSpan={3}>
+                      <Table.Summary.Cell index={0} colSpan={2}>
                         <Text strong>Jami</Text>
                       </Table.Summary.Cell>
                       <Table.Summary.Cell index={1}>
-                        <Text strong>{totalPrice.toLocaleString()} {currency}</Text>
+                        <Text strong>{totalPrice.toLocaleString()} so'm</Text>
                       </Table.Summary.Cell>
                       <Table.Summary.Cell index={2} />
                     </Table.Summary.Row>
@@ -1001,8 +931,7 @@ const TripAdd: React.FC<TripAddProps> = ({ onSuccess }) => {
                 }}
                 initialValues={{
                   count: 0,
-                  is_completed: false,
-                  dp_currency: currencies.length > 0 ? currencies[0].currency : ''
+                  is_completed: false
                 }}
               >
                 <Row gutter={[16, 16]}>
@@ -1088,28 +1017,7 @@ const TripAdd: React.FC<TripAddProps> = ({ onSuccess }) => {
                     </Form.Item>
                   </Col>
 
-                  <Col span={12}>
-                    <Form.Item
-                      name="dp_currency"
-                      label="To'lov valyutasi"
-                      rules={[{ required: true, message: "Valyutani tanlang!" }]}
-                    >
-                      {currenciesLoading ? (
-                        <div style={{ display: 'flex', alignItems: 'center' }}>
-                          <Spin size="small" style={{ marginRight: 8 }} />
-                          <span>Valyutalar yuklanmoqda...</span>
-                        </div>
-                      ) : (
-                        <Select placeholder="Valyutani tanlang">
-                          {(currencies || []).map(currency => (
-                            <Option key={`driver-currency-${currency.id}`} value={currency.currency}>
-                              {currency.currency} ({parseFloat(currency.rate_to_uzs).toLocaleString()} UZS)
-                            </Option>
-                          ))}
-                        </Select>
-                      )}
-                    </Form.Item>
-                  </Col>
+
                 </Row>
 
                 <Row gutter={[16, 16]}>
@@ -1295,14 +1203,9 @@ const TripAdd: React.FC<TripAddProps> = ({ onSuccess }) => {
                         title: 'Narxi',
                         dataIndex: 'price',
                         key: 'price',
-                        render: (price, record) => `${Number(price).toLocaleString()} ${record.currency || 'so\'m'}`,
+                        render: (price) => `${Number(price).toLocaleString()} so'm`,
                       },
-                      {
-                        title: 'Kurs (UZS)',
-                        dataIndex: 'custom_rate_to_uzs',
-                        key: 'custom_rate_to_uzs',
-                        render: (rate) => rate ? Number(rate).toLocaleString() : '-',
-                      },
+
                       {
                         title: 'Kubi',
                         dataIndex: 'count',
@@ -1311,7 +1214,7 @@ const TripAdd: React.FC<TripAddProps> = ({ onSuccess }) => {
                       {
                         title: 'Umumiy',
                         key: 'total',
-                        render: (_, record) => `${record.price.toLocaleString()} ${record.currency || 'so\'m'}`,
+                        render: (_, record) => `${record.price.toLocaleString()} so'm`,
                       },
                       {
                         title: 'Amallar',
@@ -1330,18 +1233,14 @@ const TripAdd: React.FC<TripAddProps> = ({ onSuccess }) => {
                     ]}
                     pagination={false}
                     summary={(pageData) => {
-                      let totalPrice = 0;
-                      const currency = pageData.length > 0 ? pageData[0].currency || 'so\'m' : 'so\'m';
-                      pageData.forEach(({ price }) => {
-                        totalPrice += price;
-                      });
+                      const totalPrice = pageData.reduce((sum, item) => sum + item.price, 0);
                       return (
                         <Table.Summary.Row>
-                          <Table.Summary.Cell index={0} colSpan={3}>
+                          <Table.Summary.Cell index={0} colSpan={2}>
                             <Text strong>Jami</Text>
                           </Table.Summary.Cell>
                           <Table.Summary.Cell index={1}>
-                            <Text strong>{totalPrice.toLocaleString()} {currency}</Text>
+                            <Text strong>{totalPrice.toLocaleString()} so'm</Text>
                           </Table.Summary.Cell>
                           <Table.Summary.Cell index={2} />
                         </Table.Summary.Row>

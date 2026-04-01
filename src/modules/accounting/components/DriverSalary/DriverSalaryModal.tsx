@@ -65,8 +65,8 @@ const DriverSalaryModal: React.FC<DriverSalaryModalProps> = ({
       const salaryData = {
         driver: Number(values.driver),
         amount: Number(values.amount),
-        currency: values.currency.toString(),
-        custom_rate_to_uzs: Number(values.custom_rate_to_uzs),
+        currency: "4", // Hardcoded UZS
+        custom_rate_to_uzs: 1, // 1 to 1 for UZS
         title: 'To\'lov',
         comment: ''       
       };
@@ -154,54 +154,6 @@ const DriverSalaryModal: React.FC<DriverSalaryModalProps> = ({
             style={{ width: '100%' }}
             min={1}
             placeholder="Miqdorni kiriting"
-            formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-          />
-        </Form.Item>
-
-        <Form.Item
-          name="currency"
-          label="Valyuta"
-          rules={[{ required: true, message: 'Iltimos, valyutani tanlang' }]}
-        >
-          {currenciesLoading ? (
-            <div style={{ display: 'flex', alignItems: 'center' }}>
-              <Spin size="small" style={{ marginRight: 8 }} />
-              <span>Valyutalar yuklanmoqda...</span>
-            </div>
-          ) : currenciesError ? (
-            <Select placeholder="Valyutani tanlang">
-              <Option value={1}>UZS</Option>
-              <Option value={2}>USD</Option>
-            </Select>
-          ) : (
-            <Select placeholder="Valyutani tanlang"
-              onChange={(value) => {
-                const selectedCurrency = currencies.find(c => c.id === value);
-                if (selectedCurrency) {
-                  form.setFieldsValue({
-                    custom_rate_to_uzs: selectedCurrency.rate_to_uzs
-                  });
-                }
-              }}
-            >
-              {currencies.map(currency => (
-                <Option key={`currency-${currency.id}`} value={currency.id}>
-                  {currency.currency} ({parseFloat(currency.rate_to_uzs).toLocaleString()} UZS)
-                </Option>
-              ))}
-            </Select>
-          )}
-        </Form.Item>
-
-        <Form.Item
-          name="custom_rate_to_uzs"
-          label="Valyuta kursi"
-          rules={[{ required: true, message: 'Iltimos, valyuta kursini kiriting' }]}
-        >
-          <InputNumber
-            style={{ width: '100%' }}
-            min={0}
-            placeholder="Valyuta kursini kiriting"
             formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
           />
         </Form.Item>

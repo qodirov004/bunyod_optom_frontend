@@ -76,13 +76,18 @@ export interface CashOverview {
         UZS: number;
         KZT: number;
         total_in_usd: number;
+        total_in_uzs?: number;
     };
     expenses: {
         dp_price_usd: number;
+        dp_price_uzs?: number;
         salaries_usd: number;
+        salaries_uzs?: number;
         total_expenses_usd: number;
+        total_expenses_uzs?: number;
     };
     final_balance_usd: number;
+    final_balance_uzs?: number;
 }
 
 export interface RaysClient {
@@ -174,6 +179,7 @@ export interface ServiceTotals {
 }
 
 export interface ServiceRecord {
+    id?: number;
     type: string;
     price: number;
     currency: string;

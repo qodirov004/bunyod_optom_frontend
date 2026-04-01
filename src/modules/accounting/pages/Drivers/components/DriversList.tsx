@@ -59,7 +59,7 @@ const DriversList: React.FC<DriversListProps> = ({
       title: 'Haydovchi',
       dataIndex: 'fullname',
       key: 'fullname',
-      fixed: 'left',
+      fixed: 'left' as const,
       width: 250,
       render: (_: string, record: DriverType) => {
         const { photoUrl, hasPhoto } = getAvatarProps(record);
@@ -117,13 +117,13 @@ const DriversList: React.FC<DriversListProps> = ({
       ),
     },
     {
-      title: 'Umumiy summa (USD)',
+      title: 'Umumiy summa (so\'m)',
       dataIndex: 'total_rays_usd',
       key: 'total_rays_usd',
       width: 160,
       render: (total: number | undefined) => (
         <Tag color="green">
-          ${(total || 0).toLocaleString()}
+          {(total || 0).toLocaleString()} so'm
         </Tag>
       ),
     },

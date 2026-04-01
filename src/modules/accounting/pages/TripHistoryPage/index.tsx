@@ -598,7 +598,7 @@ const TripHistoryPage: React.FC = () => {
         title: 'Narx',
         dataIndex: 'price',
         key: 'price',
-        render: (price: number) => <Text strong style={{ color: '#52c41a' }}>{price?.toLocaleString() || 0} $</Text>,
+        render: (price: number) => <Text strong style={{ color: '#52c41a' }}>{price?.toLocaleString() || 0} so'm</Text>,
       },
       {
         title: 'Sana',
@@ -739,7 +739,7 @@ const TripHistoryPage: React.FC = () => {
                   <Statistic 
                     title="Reys narxi" 
                     value={selectedTrip.price || 0} 
-                    suffix="$"
+                    suffix="so'm"
                     valueStyle={{ color: '#1890ff' }}
                     precision={0}
                     formatter={value => value.toLocaleString()}
@@ -749,7 +749,7 @@ const TripHistoryPage: React.FC = () => {
                   <Statistic
                     title="Haydovchi xarajatlari"
                     value={selectedTrip.dr_price || 0}
-                    suffix="$"
+                    suffix="so'm"
                     valueStyle={{ color: '#fa8c16' }}
                     precision={0}
                     formatter={value => value.toLocaleString()}
@@ -759,7 +759,7 @@ const TripHistoryPage: React.FC = () => {
 
               <Descriptions bordered column={1} style={{ marginTop: 24 }}>
                 <Descriptions.Item label="Haydovchiga to'lov">
-                  {selectedTrip.dp_price?.toLocaleString() || 0} {selectedTrip.dp_currency_name || '$'}
+                  {selectedTrip.dp_price?.toLocaleString() || 0} so'm
                 </Descriptions.Item>
               </Descriptions>
             </Card>
@@ -780,7 +780,7 @@ const TripHistoryPage: React.FC = () => {
                           title: 'Narx',
                           dataIndex: 'price',
                           key: 'price',
-                          render: (price: number) => <Text strong>{price?.toLocaleString()} $</Text>,
+                          render: (price: number) => <Text strong>{price?.toLocaleString()} so'm</Text>,
                         },
                         {
                           title: 'Kilometr',
@@ -820,7 +820,7 @@ const TripHistoryPage: React.FC = () => {
                           title: 'Narx',
                           dataIndex: 'price',
                           key: 'price',
-                          render: (price: number) => <Text strong>{price?.toLocaleString()} $</Text>,
+                          render: (price: number) => <Text strong>{price?.toLocaleString()} so'm</Text>,
                         },
                         {
                           title: 'Kilometr',
@@ -859,7 +859,7 @@ const TripHistoryPage: React.FC = () => {
                           title: 'Narx',
                           dataIndex: 'price',
                           key: 'price',
-                          render: (price: number) => <Text strong>{price?.toLocaleString()} $</Text>,
+                          render: (price: number) => <Text strong>{price?.toLocaleString()} so'm</Text>,
                         },
                         {
                           title: 'Kilometr',
@@ -893,7 +893,7 @@ const TripHistoryPage: React.FC = () => {
                           title: 'Narx',
                           dataIndex: 'price',
                           key: 'price',
-                          render: (price: number) => <Text strong>{price?.toLocaleString()} $</Text>,
+                          render: (price: number) => <Text strong>{price?.toLocaleString()} so'm</Text>,
                         },
                         {
                           title: 'Kilometr',
@@ -928,7 +928,7 @@ const TripHistoryPage: React.FC = () => {
                           title: 'Narx',
                           dataIndex: 'price',
                           key: 'price',
-                          render: (price: number) => <Text strong>{price?.toLocaleString()} $</Text>,
+                          render: (price: number) => <Text strong>{price?.toLocaleString()} so'm</Text>,
                         },
                         {
                           title: 'Izoh',
@@ -1000,7 +1000,7 @@ const TripHistoryPage: React.FC = () => {
                   <Statistic
                     title="Jami xarajatlar"
                     value={selectedTrip.expenses.total_usd || 0}
-                    suffix="$"
+                    suffix="so'm"
                     valueStyle={{ color: '#fa8c16' }}
                     precision={2}
                     formatter={value => value.toLocaleString()}
@@ -1044,17 +1044,17 @@ const TripHistoryPage: React.FC = () => {
                           key: 'price',
                           render: (price: number, record: any) => (
                             <Text strong style={{ color: '#52c41a' }}>
-                              {price?.toLocaleString() || 0} {record.currency_name}
+                              {price?.toLocaleString() || 0} so'm
                             </Text>
                           ),
                         },
                         {
-                          title: 'USD narxi',
+                          title: 'Narxi (so\'m)',
                           dataIndex: 'price_in_usd',
                           key: 'price_in_usd',
                           render: (price: string) => (
                             <Text strong style={{ color: '#1890ff' }}>
-                              {parseFloat(price).toLocaleString()} $
+                              {parseFloat(price).toLocaleString()} so'm
                             </Text>
                           ),
                         },
@@ -1068,10 +1068,10 @@ const TripHistoryPage: React.FC = () => {
                         return (
                           <Table.Summary.Row>
                             <Table.Summary.Cell index={0} colSpan={4}>
-                              <Text strong>Jami USD:</Text>
+                              <Text strong>Jami:</Text>
                             </Table.Summary.Cell>
                             <Table.Summary.Cell index={1}>
-                              <Text strong style={{ color: '#52c41a' }}>{selectedTrip.price?.toLocaleString()} $</Text>
+                              <Text strong style={{ color: '#52c41a' }}>{selectedTrip.price?.toLocaleString()} so'm</Text>
                             </Table.Summary.Cell>
                           </Table.Summary.Row>
                         );
@@ -1216,7 +1216,7 @@ const TripHistoryPage: React.FC = () => {
             <Statistic
               title="Jami summa"
               value={stats.rays_price}
-              suffix="$"
+              suffix="so'm"
               prefix={<DollarOutlined />}
               valueStyle={{ color: '#fa8c16' }}
               formatter={value => value.toLocaleString()}
@@ -1229,7 +1229,7 @@ const TripHistoryPage: React.FC = () => {
             <Statistic
               title="Jami foyda"
               value={stats.rays_total_price}
-              suffix="$"
+              suffix="so'm"
               prefix={<DollarOutlined />}
               valueStyle={{ color: '#722ed1' }}
               formatter={value => value.toLocaleString()}

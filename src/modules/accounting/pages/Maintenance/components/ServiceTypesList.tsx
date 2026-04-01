@@ -137,10 +137,7 @@ const ServiceTypesList: React.FC = () => {
       title: 'Narxi',
       key: 'price',
       render: (_, record: ServiceData) => (
-        <Space direction="vertical" size="small">
-          <Text>{formatMoney(record.price)} {record.currency}</Text>
-          <Text type="secondary">(${formatMoney(record.usd_value)} USD)</Text>
-        </Space>
+        <Text>{formatMoney(record.price)} {record.currency}</Text>
       )
     }
   ];
@@ -154,31 +151,31 @@ const ServiceTypesList: React.FC = () => {
           <Statistic 
             title={<Space><ToolOutlined /> Umumiy</Space>}
             value={formatMoney(totals_usd.total)}
-            suffix="USD"
+            suffix="so'm"
             valueStyle={{ color: '#1677ff' }}
           />
           <Statistic 
             title={<Space><SettingOutlined /> Texnik xizmat</Space>}
             value={formatMoney(totals_usd.texnic)}
-            suffix="USD"
+            suffix="so'm"
             valueStyle={{ color: '#52c41a' }}
           />
           <Statistic 
             title={<Space><CarOutlined /> Balon</Space>}
             value={formatMoney(totals_usd.balon)}
-            suffix="USD"
+            suffix="so'm"
             valueStyle={{ color: '#faad14' }}
           />
           <Statistic 
             title={<Space><TruckOutlined /> Balon Furgon</Space>}
             value={formatMoney(totals_usd.balon_furgon)}
-            suffix="USD"
+            suffix="so'm"
             valueStyle={{ color: '#722ed1' }}
           />
           <Statistic 
             title={<Space><ExperimentOutlined /> Moy</Space>}
             value={formatMoney(totals_usd.optol)}
-            suffix="USD"
+            suffix="so'm"
             valueStyle={{ color: '#eb2f96' }}
           />
         </Space>

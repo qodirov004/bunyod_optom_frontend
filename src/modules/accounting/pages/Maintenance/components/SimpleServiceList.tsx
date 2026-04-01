@@ -170,10 +170,7 @@ const SimpleServiceList: React.FC = () => {
       title: 'Narxi',
       key: 'price',
       render: (_, record: ServiceData) => (
-        <Space direction="vertical" size="small">
-          <Text>{formatMoney(record.price)} {record.currency}</Text>
-          <Text type="secondary">(${formatMoney(record.usd_value)} USD)</Text>
-        </Space>
+        <Text>{formatMoney(record.price)} {record.currency}</Text>
       )
     }
   ];

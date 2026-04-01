@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Form, Input, Select, Button, InputNumber, Checkbox, Table, message, Space, Tag } from 'antd';
 import { useCash } from '../../../hooks/useCash';
-import { useCurrencies } from '../../../hooks/useCurrencies';
 import { CashTransaction } from '../../../api/cashTransaction';
 
 interface ClientPaymentModalProps {
@@ -17,7 +16,6 @@ const ClientPaymentModal: React.FC<ClientPaymentModalProps> = ({
 }) => {
   const [form] = Form.useForm();
   const { loading, createTransaction, getClientsForRays} = useCash();
-  const { currencies, loading: currenciesLoading } = useCurrencies();
   const [selectedClient, setSelectedClient] = useState<any>(null);
 
   useEffect(() => {
@@ -38,7 +36,7 @@ const ClientPaymentModal: React.FC<ClientPaymentModalProps> = ({
         client: selectedClient.id,
         rays: raysId || undefined,
         amount: values.amount,
-        currency: values.currency,
+        currency: 'UZS',
         payment_way: values.payment_way,
         comment: values.comment,
         is_debt: values.is_debt || false,
@@ -136,28 +134,7 @@ const ClientPaymentModal: React.FC<ClientPaymentModalProps> = ({
               />
             </Form.Item>
 
-            <Form.Item
-              name="currency"
-              label="Valyuta"
-              rules={[{ required: true, message: 'Valyutani tanlang' }]}
-            >
-              <Select loading={currenciesLoading}>
-                {currencies.length > 0 ? (
-                  currencies.map(currency => (
-                    <Select.Option key={currency.id} value={currency.currency}>
-                      {currency.currency} ({parseFloat(currency.rate_to_uzs).toLocaleString()} UZS)
-                    </Select.Option>
-                  ))
-                ) : (
-                  <>
-                    <Select.Option value="USD">USD</Select.Option>
-                    <Select.Option value="UZS">UZS</Select.Option>
-                    <Select.Option value="RUB">RUB</Select.Option>
-                    <Select.Option value="EUR">EUR</Select.Option>
-                  </>
-                )}
-              </Select>
-            </Form.Item>
+
 
             <Form.Item
               name="payment_way"

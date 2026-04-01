@@ -60,7 +60,8 @@ const BalonForm: React.FC<BalonFormProps> = ({
         type: 'qishki',
         kilometr: null,
         count: 1,
-        currency: currencies?.length > 0 ? currencies[0].id : undefined,
+        currency: 4,
+        custom_rate_to_uzs: 1,
         created_at: dayjs()
       }}
     >
@@ -107,47 +108,11 @@ const BalonForm: React.FC<BalonFormProps> = ({
           style={{ width: '100%' }}
           placeholder="Narx"
           formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-          parser={value => value!.replace(/\$\s?|(,*)/g, '')}
+          parser={value => value!.replace(/so'm\s?|(,*)/g, '')}
         />
       </Form.Item>
 
-      <Form.Item
-        name="currency"
-        label="Valyuta"
-        rules={[{ required: true, message: 'Iltimos, valyutani tanlang!' }]}
-      >
-        <Select 
-          placeholder="Valyutani tanlang" 
-          loading={currenciesLoading}
-          onChange={(value) => {
-            const selectedCurrency = currencies?.find(c => c.id === value);
-            if (selectedCurrency) {
-              form.setFieldsValue({
-                custom_rate_to_uzs: selectedCurrency.rate_to_uzs
-              });
-            }
-          }}
-        >
-          {currencies?.map((currency) => (
-            <Select.Option key={currency.id} value={currency.id}>
-              {currency.currency} ({parseFloat(currency.rate_to_uzs).toLocaleString()} UZS)
-            </Select.Option>
-          ))}
-        </Select>
-      </Form.Item>
 
-      <Form.Item
-        name="custom_rate_to_uzs"
-        label="Valyuta kursi"
-        rules={[{ required: true, message: 'Iltimos, valyuta kursini kiriting!' }]}
-      >
-        <InputNumber
-          style={{ width: '100%' }}
-          placeholder="Valyuta kursi"
-          formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-          parser={value => value!.replace(/\$\s?|,*/g, '')}
-        />
-      </Form.Item>
 
       <Form.Item
         name="kilometr"

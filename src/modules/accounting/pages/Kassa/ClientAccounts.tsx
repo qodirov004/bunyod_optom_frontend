@@ -11,7 +11,7 @@ import {
   ClockCircleOutlined, ReloadOutlined
 } from '@ant-design/icons';
 import axiosInstance from '@/api/axiosInstance';
-import { formatMoney } from '@/utils/format';
+import { formatCurrency } from '@/utils/formatCurrency';
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -69,7 +69,6 @@ const ClientAccounts: React.FC = () => {
   const [clientHistory, setClientHistory] = useState<PaymentHistory[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [selectedClientName, setSelectedClientName] = useState('');
-  const [currencies, setCurrencies] = useState<Currency[]>([]);
   const [paymentMethods, setPaymentMethods] = useState<{ id: number, name: string }[]>([]);
 
   // Filter states
@@ -86,15 +85,7 @@ const ClientAccounts: React.FC = () => {
 
   const [refreshing, setRefreshing] = useState(false);
 
-  // Fetch currencies from backend
-  const fetchCurrencies = async () => {
-    try {
-      const response = await axiosInstance.get('/currency/');
-      setCurrencies(response.data);
-    } catch (error) {
-      console.error('Error fetching currencies:', error);
-    }
-  };
+
 
   // Fetch payment methods from backend
   const fetchPaymentMethods = async () => {
@@ -177,7 +168,7 @@ const ClientAccounts: React.FC = () => {
   const fetchDebts = async () => {
     try {
       setLoading(true);
-      await Promise.all([fetchCurrencies(), fetchPaymentMethods()]);
+      await fetchPaymentMethods();
       const response = await axiosInstance.get(`/casa/all-debts/`);
 
       console.log('Boshlang\'ich API javob:', response.data);
@@ -285,22 +276,7 @@ const ClientAccounts: React.FC = () => {
     }
   };
 
-  // Get currency code from ID
-  const getCurrencyCode = (currencyId: number): string => {
-    const currency = currencies.find(c => c.id === currencyId);
-    if (currency) return currency.currency;
 
-    // Fallback to default mapping if not found in the currencies list
-    const currencyMap: { [key: number]: string } = {
-      1: 'RUB',
-      2: 'USD',
-      3: 'EUR',
-      4: 'UZS',
-      5: 'KZT'
-    };
-
-    return currencyMap[currencyId] || 'USD';
-  };
 
   const columns = [
     {
@@ -322,28 +298,28 @@ const ClientAccounts: React.FC = () => {
         a.fullname.localeCompare(b.fullname),
     },
     {
-      title: 'Umumiy summa (USD)',
+      title: 'Umumiy summa (so\'m)',
       dataIndex: 'expected_usd',
       key: 'expected_usd',
-      render: (amount: number) => formatMoney(amount),
+      render: (amount: number) => formatCurrency(amount),
       sorter: (a: ClientDebt, b: ClientDebt) =>
         a.expected_usd - b.expected_usd,
     },
     {
-      title: 'To\'langan summa (USD)',
+      title: 'To\'langan summa (so\'m)',
       dataIndex: 'paid_usd',
       key: 'paid_usd',
-      render: (amount: number) => formatMoney(amount),
+      render: (amount: number) => formatCurrency(amount),
       sorter: (a: ClientDebt, b: ClientDebt) =>
         a.paid_usd - b.paid_usd,
     },
     {
-      title: 'Qolgan qarz (USD)',
+      title: 'Qolgan qarz (so\'m)',
       dataIndex: 'remaining_usd',
       key: 'remaining_usd',
       render: (debt: number) => (
         <Tag color={debt > 0 ? 'red' : 'green'} style={{ fontSize: '14px', padding: '4px 8px' }}>
-          {formatMoney(debt)} {debt > 0 ? <ArrowUpOutlined /> : <ArrowDownOutlined />}
+          {formatCurrency(debt)} {debt > 0 ? <ArrowUpOutlined /> : <ArrowDownOutlined />}
         </Tag>
       ),
       sorter: (a: ClientDebt, b: ClientDebt) =>
@@ -414,8 +390,8 @@ const ClientAccounts: React.FC = () => {
       title: 'Summa',
       dataIndex: 'amount',
       key: 'amount',
-      render: (amount: number, record: PaymentHistory) => (
-        <span>{formatMoney(amount)} {getCurrencyCode(record.currency)}</span>
+      render: (amount: number) => (
+        <span>{formatCurrency(amount)}</span>
       ),
     },
     {
@@ -451,10 +427,7 @@ const ClientAccounts: React.FC = () => {
       render: (comment: string) => comment || '-',
     },
   ];
-  const getCurrencyIdByCode = (code: string): number => {
-    const currency = currencies.find(c => c.currency === code);
-    return currency ? currency.id : 2;
-  };
+
   return (
     <div className="client-accounts">
       <Row gutter={[16, 16]} className="client-stats-row">
@@ -471,10 +444,10 @@ const ClientAccounts: React.FC = () => {
         <Col xs={24} sm={12} md={6}>
           <Card className="summary-card debt-card">
             <Statistic
-              title="Jami qarz (USD)"
+              title="Jami qarz (so'm)"
               value={totalStats.totalDebt}
               prefix={<FallOutlined />}
-              precision={2}
+              precision={0}
               valueStyle={{ color: '#f5222d' }}
             />
           </Card>
@@ -482,9 +455,9 @@ const ClientAccounts: React.FC = () => {
         <Col xs={24} sm={12} md={6}>
           <Card className="summary-card action-card">
             <Statistic
-              title="O'rtacha qarz (USD)"
+              title="O'rtacha qarz (so'm)"
               value={totalStats.averageDebt}
-              precision={2}
+              precision={0}
               valueStyle={{ color: '#722ed1' }}
             />
           </Card>
@@ -555,10 +528,10 @@ const ClientAccounts: React.FC = () => {
                       <Table.Summary.Cell index={0}>Jami</Table.Summary.Cell>
                       <Table.Summary.Cell index={1}></Table.Summary.Cell>
                       <Table.Summary.Cell index={2}></Table.Summary.Cell>
-                      <Table.Summary.Cell index={3}>{formatMoney(totalPaid)} USD</Table.Summary.Cell>
+                      <Table.Summary.Cell index={3}>{formatCurrency(totalPaid)}</Table.Summary.Cell>
                       <Table.Summary.Cell index={4}>
                         <Tag color={totalDebt > 0 ? 'red' : 'green'} style={{ fontSize: '14px', padding: '4px 8px' }}>
-                          {formatMoney(totalDebt)} USD
+                          {formatCurrency(totalDebt)}
                         </Tag>
                       </Table.Summary.Cell>
                       <Table.Summary.Cell index={5}></Table.Summary.Cell>
@@ -587,7 +560,7 @@ const ClientAccounts: React.FC = () => {
                   <div style={{ fontSize: 12, color: '#666' }}>{debtor.client_company}</div>
                 )}
                 <Tag color="red" style={{ margin: '8px 0', padding: '0 8px' }}>
-                  {formatMoney(debtor.remaining_usd)} USD
+                  {formatCurrency(debtor.remaining_usd)}
                 </Tag>
                 <div>
                   <Button
@@ -649,7 +622,7 @@ const ClientAccounts: React.FC = () => {
             <Tag icon={<UserOutlined />}>{selectedClientName}</Tag>
             <span style={{ marginLeft: 8 }}>Qarz miqdori: </span>
             <Tag icon={<DollarOutlined />} color="red">
-              ${(filteredDebts.find(d => d.client_id === selectedClient)?.remaining_usd || 0).toLocaleString()}
+              {formatCurrency(filteredDebts.find(d => d.client_id === selectedClient)?.remaining_usd || 0)}
             </Tag>
           </div>
         )}
@@ -658,7 +631,6 @@ const ClientAccounts: React.FC = () => {
           form={form}
           layout="vertical"
           initialValues={{
-            currency: 'USD',
             payment_way: paymentMethods.length > 0 ? paymentMethods[0].id : 1,
             is_debt: false,
           }}
@@ -670,11 +642,10 @@ const ClientAccounts: React.FC = () => {
               const paymentData = {
                 client: selectedClient,
                 amount: values.amount,
-                currency: getCurrencyIdByCode(values.currency),
+                currency: 4, // UZS
                 payment_way: values.payment_way,
                 comment: values.comment || "Qarz to'lovi",
                 is_debt: false,
-                custom_rate_to_uzs: values.custom_rate_to_uzs.toString()
               };
 
               // API ga yuboramiz
@@ -713,52 +684,12 @@ const ClientAccounts: React.FC = () => {
         >
           <Form.Item
             name="amount"
-            label="To'lov summasi"
+            label="To'lov summasi (so'm)"
             rules={[{ required: true, message: 'Iltimos, to\'lov summasini kiriting' }]}
           >
             <InputNumber
               style={{ width: '100%' }}
               placeholder="To'lov miqdori"
-              formatter={value => `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-              parser={(value) => {
-                if (!value) return 0;
-                return Number(value.replace(/\$\s?|(,*)/g, ''));
-              }}
-            />
-          </Form.Item>
-
-          <Form.Item
-            name="currency"
-            label="Valyuta"
-            rules={[{ required: true, message: 'Iltimos, valyutani tanlang' }]}
-          >
-            <Select onChange={(value) => {
-              const selectedCurrency = currencies.find(c => c.currency === value);
-              if (selectedCurrency) {
-                const amount = form.getFieldValue('amount');
-                if (amount) {
-                  form.setFieldsValue({
-                    custom_rate_to_uzs: selectedCurrency.rate_to_uzs
-                  });
-                }
-              }
-            }}>
-              {currencies.map(currency => (
-                <Option key={`currency-${currency.id}`} value={currency.currency}>
-                  {currency.currency} ({parseFloat(currency.rate_to_uzs || "0").toLocaleString()} UZS)
-                </Option>
-              ))}
-            </Select>
-          </Form.Item>
-
-          <Form.Item
-            name="custom_rate_to_uzs"
-            label="Valyuta kursi"
-            rules={[{ required: true, message: 'Iltimos, valyuta kursini kiriting' }]}
-          >
-            <InputNumber
-              style={{ width: '100%' }}
-              placeholder="Valyuta kursi"
               formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
               parser={value => value.replace(/\$\s?|(,*)/g, '')}
             />

@@ -121,7 +121,7 @@ const ServiceSummary: React.FC<ServiceSummaryProps> = ({ totals }) => {
   };
   
   const formatCurrency = (value: number) => {
-    return `${value.toLocaleString()} $`;
+    return `${value.toLocaleString()} so'm`;
   };
 
   return (

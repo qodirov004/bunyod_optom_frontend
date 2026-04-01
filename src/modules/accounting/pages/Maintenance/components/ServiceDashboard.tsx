@@ -179,7 +179,7 @@ const ServiceDashboard: React.FC = () => {
       title: 'Narx',
       dataIndex: 'price',
       key: 'price',
-      render: (price) => (price ? `${price.toLocaleString()} $` : 'Belgilanmagan'),
+      render: (price) => (price ? `${price.toLocaleString()} so'm` : 'Belgilanmagan'),
     },
     {
       title: 'Tavsif',
@@ -201,7 +201,7 @@ const ServiceDashboard: React.FC = () => {
   }
 
   const formatCurrency = (value: number) => {
-    return `${value.toLocaleString()} $`;
+    return `${value.toLocaleString()} so'm`;
   };
 
   return (

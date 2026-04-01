@@ -29,15 +29,11 @@ import {
   RightOutlined
 } from '@ant-design/icons';
 import axiosInstance from '@/api/axiosInstance';
+import { formatCurrency } from '@/utils/formatCurrency';
 
 const { Option } = Select;
 
-interface Currency {
-  id: number;
-  currency: string;
-  rate_to_uzs: string;
-  updated_at: string;
-}
+
 
 interface Client {
   company: string;
@@ -110,42 +106,12 @@ const RaysTulovlar: React.FC = () => {
   const [paymentForm] = Form.useForm();
   const [activeRaysPayments, setActiveRaysPayments] = useState<RaysPayment[]>([]);
   const [isClient, setIsClient] = useState<boolean>(false);
-  const [currencies, setCurrencies] = useState<Currency[]>([]);
-  const [currenciesLoading, setCurrenciesLoading] = useState<boolean>(true);
   const [drivers, setDrivers] = useState<Driver[]>([]);
   const [paymentCategories, setPaymentCategories] = useState<PaymentCategory[]>([]);
   const [paymentCategoriesLoading, setPaymentCategoriesLoading] = useState<boolean>(false);
 
   useEffect(() => {
     setIsClient(true);
-  }, []);
-
-  // Fetch currencies
-  useEffect(() => {
-    const fetchCurrencies = async () => {
-      try {
-        setCurrenciesLoading(true);
-        const response = await axiosInstance.get('/currency/');
-        // Ensure we're correctly handling the API response
-        if (response.data && Array.isArray(response.data)) {
-          setCurrencies(response.data);
-        } else {
-          console.error('Unexpected currency data format:', response.data);
-          message.error('Valyuta ma\'lumotlari noto\'g\'ri formatda');
-          // Empty array instead of fallback values
-          setCurrencies([]);
-        }
-      } catch (error) {
-        console.error('Error fetching currencies:', error);
-        message.error('Valyuta ma\'lumotlarini yuklashda xatolik yuz berdi');
-        // Empty array instead of fallback values
-        setCurrencies([]);
-      } finally {
-        setCurrenciesLoading(false);
-      }
-    };
-
-    fetchCurrencies();
   }, []);
 
   // Fetch drivers
@@ -220,23 +186,7 @@ const RaysTulovlar: React.FC = () => {
     }
   }, [isClient]);
 
-  // Helper function to convert currency code to ID
-  const getCurrencyIdByCode = (code: string): number => {
-    const currency = currencies.find(c => c.currency === code);
-    return currency ? currency.id : 1;
-  };
 
-  // Helper function to get currency name by ID
-  const getCurrencyNameById = (currencyId: number): string => {
-    const currency = currencies.find(c => c.id === currencyId);
-    return currency ? currency.currency : currencyId.toString();
-  };
-
-  // Fix InputNumber parser return type
-  const inputParser = (value: string | undefined): number => {
-    if (!value) return 0;
-    return Number(value.replace(/\$\s?|(,*)/g, ''));
-  };
 
   const handleCreatePayment = async (values: PaymentFormValues) => {
     if (!selectedRays || !selectedClient) {
@@ -250,13 +200,13 @@ const RaysTulovlar: React.FC = () => {
       rays: selectedRays,
       amount: values.amount,
       amount_in_usd: values.amount.toString(),
-      currency: getCurrencyIdByCode(values.currency || 'USD'),
+      currency: 4, // UZS
       payment_way: values.payment_way,
       comment: values.comment || '',
       is_debt: values.is_debt || false,
       is_via_driver: values.is_via_driver || false,
       is_delivered_to_cashier: values.is_delivered_to_cashier || false,
-      custom_rate_to_uzs: values.custom_rate_to_uzs.toString()
+      custom_rate_to_uzs: "1"
     };
 
     console.log('Payment Data being sent:', paymentData);
@@ -337,19 +287,19 @@ const RaysTulovlar: React.FC = () => {
                     <p>
                       <strong>Kelishilgan summa:</strong>{' '}
                       <span style={{ color: '#1890ff' }}>
-                        ${expectedAmount?.toLocaleString() || 'Belgilanmagan'}
+                        {expectedAmount ? formatCurrency(expectedAmount) : 'Belgilanmagan'}
                       </span>
                     </p>
                     <p>
                       <strong>To&apos;langan:</strong>{' '}
                       <span style={{ color: '#52c41a' }}>
-                        ${totalPaid.toLocaleString()}
+                        {formatCurrency(totalPaid)}
                       </span>
                     </p>
                     <p>
                       <strong>Qolgan qarz:</strong>{' '}
                       <span style={{ color: '#f5222d' }}>
-                        ${remainingDebt.toLocaleString()}
+                        {formatCurrency(remainingDebt)}
                       </span>
                     </p>
                     <Divider />
@@ -374,7 +324,7 @@ const RaysTulovlar: React.FC = () => {
                             <p>
                               <Tag color="green">{payment.payment_way_name || 'Naqd'}</Tag>
                               <span style={{ marginLeft: 8 }}>
-                                {payment.amount} {getCurrencyNameById(payment.currency)}
+                                {formatCurrency(payment.amount)}
                               </span>
                               <span style={{ float: 'right', color: '#8c8c8c', fontSize: 12 }}>
                                 {new Date(payment.created_at).toLocaleDateString()}
@@ -424,9 +374,9 @@ const RaysTulovlar: React.FC = () => {
                 title: 'Summa',
                 dataIndex: 'amount',
                 key: 'amount',
-                render: (amount: number, record: RaysPayment) => (
+                render: (amount: number) => (
                   <span style={{ color: '#52c41a' }}>
-                    {amount} {getCurrencyNameById(record.currency)}
+                    {formatCurrency(amount)}
                   </span>
                 ),
               },
@@ -543,7 +493,6 @@ const RaysTulovlar: React.FC = () => {
               form={paymentForm}
               layout="vertical"
               initialValues={{
-                currency: 'USD',
                 payment_way: paymentCategories.length > 0 ? paymentCategories[0].id : undefined,
                 is_debt: false,
                 is_via_driver: false,
@@ -553,57 +502,18 @@ const RaysTulovlar: React.FC = () => {
             >
               <Form.Item
                 name="amount"
-                label="To'lov summasi"
+                label="To'lov summasi (so'm)"
                 rules={[{ required: true, message: 'Iltimos, to\'lov summasini kiriting' }]}
               >
                 <InputNumber
                   style={{ width: '100%' }}
                   placeholder="To'lov miqdori"
-                  formatter={value => `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                  parser={inputParser}
-                />
-              </Form.Item>
-
-              <Form.Item
-                name="currency"
-                label="Valyuta"
-                rules={[{ required: true, message: 'Iltimos, valyutani tanlang' }]}
-              >
-                {currenciesLoading ? (
-                  <div>Loading currencies...</div>
-                ) : (
-                  <Select onChange={(value) => {
-                    const selectedCurrency = currencies.find(c => c.currency === value);
-                    if (selectedCurrency) {
-                      const amount = paymentForm.getFieldValue('amount');
-                      if (amount) {
-                        paymentForm.setFieldsValue({
-                          custom_rate_to_uzs: selectedCurrency.rate_to_uzs
-                        });
-                      }
-                    }
-                  }}>
-                    {currencies.map(currency => (
-                      <Option key={`currency-${currency.id}`} value={currency.currency}>
-                        {currency.currency} ({parseFloat(currency.rate_to_uzs).toLocaleString()} UZS)
-                      </Option>
-                    ))}
-                  </Select>
-                )}
-              </Form.Item>
-
-              <Form.Item
-                name="custom_rate_to_uzs"
-                label="Valyuta kursi"
-                rules={[{ required: true, message: 'Iltimos, valyuta kursini kiriting' }]}
-              >
-                <InputNumber
-                  style={{ width: '100%' }}
-                  placeholder="Valyuta kursi"
                   formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                  parser={value => value.replace(/\$\s?|(,*)/g, '')}
+                  parser={value => value ? value.replace(/\$\s?|(,*)/g, '') : ''}
                 />
               </Form.Item>
+
+
 
               <Form.Item
                 name="payment_way"

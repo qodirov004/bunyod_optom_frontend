@@ -65,23 +65,13 @@ const DriverPayments: React.FC = () => {
               )
             },
             {
-              title: 'Summa (USD)',
+              title: 'Summa (so\'m)',
               dataIndex: 'amount_in_usd',
               key: 'amount_in_usd',
               render: (amount: number) => (
                 <Text strong style={{ color: '#1890ff' }}>
-                  {formatMoney(amount)} USD
+                  {formatMoney(amount * 12800)}
                 </Text>
-              )
-            },
-            {
-              title: 'Asl summa',
-              key: 'original_amount',
-              render: (_, record: ClientPayment) => (
-                <Space>
-                  <Text>{formatMoney(record.amount_original)}</Text>
-                  <Tag color="blue">{record.currency}</Tag>
-                </Space>
               )
             }
           ]}
@@ -110,7 +100,7 @@ const DriverPayments: React.FC = () => {
       title: 'Haydovchi',
       dataIndex: 'driver',
       key: 'driver',
-      render: (driver: string, record: DriverPaymentData) => (
+      render: (driver: string) => (
           <Button type="link" style={{ padding: 0 }}>
             <Space>
               <CarOutlined />
@@ -127,15 +117,15 @@ const DriverPayments: React.FC = () => {
       )
     },
     {
-      title: 'Jami summa (USD)',
+      title: 'Jami summa (so\'m)',
       key: 'total_amount',
       render: (_, record: DriverPaymentData) => {
         const total = record.clients.reduce(
-          (sum, client) => sum + client.amount_in_usd, 0
+          (sum, client) => sum + (client.amount_in_usd * 12800), 0
         );
         return (
           <Text strong style={{ color: '#1890ff' }}>
-            {formatMoney(total)} USD
+            {formatMoney(total)}
           </Text>
         );
       }

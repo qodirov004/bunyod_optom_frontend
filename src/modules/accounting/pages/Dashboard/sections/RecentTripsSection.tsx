@@ -5,6 +5,7 @@ import {
     EyeOutlined
 } from '@ant-design/icons';
 import { useTrips } from '../../../hooks/useTrips';
+import { formatCurrency } from '@/utils/formatCurrency';
 import dayjs from 'dayjs';
 import { RaysResponseType } from '../../../types/freight';
 
@@ -40,7 +41,7 @@ const RecentTripsSection = () => {
             key: 'price',
             width: 120,
             render: (price: number) => (
-                <span>{price?.toLocaleString() || 0} $</span>
+                <span>{formatCurrency(price)}</span>
             ),
         },
         {

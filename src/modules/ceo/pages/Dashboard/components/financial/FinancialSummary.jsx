@@ -29,8 +29,8 @@ const FinancialSummary = ({
         <Col xs={24} lg={8}>
           <Card className="dashboard-card financial-summary-card" loading={isLoading} variant="borderless">
             <Statistic
-              title="Jami daromad (USD)"
-              value={formatCurrency(totalRevenue)}
+              title="Jami daromad (so'm)"
+              value={formatCurrency(totalRevenue * 12800)}
               valueStyle={{ color: '#3f8600', fontSize: '28px' }}
               prefix={<RiseOutlined />}
             />
@@ -40,8 +40,8 @@ const FinancialSummary = ({
         <Col xs={24} lg={8}>
           <Card className="dashboard-card financial-summary-card" loading={isLoading} variant="borderless">
             <Statistic
-              title="Jami xarajat (USD)"
-              value={formatCurrency(totalExpenses)}
+              title="Jami xarajat (so'm)"
+              value={formatCurrency(totalExpenses * 12800)}
               valueStyle={{ color: '#cf1322', fontSize: '28px' }}
               prefix={<FallOutlined />}
             />
@@ -51,8 +51,8 @@ const FinancialSummary = ({
         <Col xs={24} lg={8}>
           <Card className="dashboard-card financial-summary-card" loading={isLoading} variant="borderless">
             <Statistic
-              title="Sof foyda (USD)"
-              value={formatCurrency(netProfit)}
+              title="Sof foyda (so'm)"
+              value={formatCurrency(netProfit * 12800)}
               valueStyle={{ 
                 color: netProfit >= 0 ? '#3f8600' : '#cf1322', 
                 fontSize: '28px' 
@@ -79,7 +79,7 @@ const FinancialSummary = ({
                   O'rtacha oylik daromad
                 </div>
                 <div className="metric-value">
-                  {formatCurrency(totalRevenue / (monthlyIncome.length || 1))} USD
+                  {formatCurrency((totalRevenue * 12800) / (monthlyIncome.length || 1))}
                 </div>
               </div>
               <Divider style={{ margin: '12px 0' }} />

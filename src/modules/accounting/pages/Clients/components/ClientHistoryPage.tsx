@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Card, Button, Spin, Row, Col, Typography, Badge, Empty, Statistic, Timeline } from 'antd';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams, usePathname } from 'next/navigation';
 import { 
   UserOutlined, 
   PhoneOutlined, 
@@ -20,16 +20,26 @@ const ClientHistoryPage = () => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const params = useParams();
+  const pathname = usePathname();
+  
+  const clientId = React.useMemo(() => {
+    if (params?.id) return params.id;
+    
+    // Fallback for custom routing: /clients/:id/history or /clients/history/:id
+    const parts = pathname.split('/');
+    const clientsIdx = parts.indexOf('clients');
+    if (clientsIdx !== -1) {
+      if (parts[clientsIdx + 2] === 'history') return parts[clientsIdx + 1];
+      if (parts[clientsIdx + 1] === 'history') return parts[clientsIdx + 2];
+    }
+    return null;
+  }, [params, pathname]);
 
   // Ma'lumotlarni yuklash
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // URL dan ID ni olish
-        const currentUrl = window.location.pathname;
-        const urlParts = currentUrl.split('/');
-        const clientId = urlParts[urlParts.length - 2];
-        
         if (!clientId) {
           setLoading(false);
           return;
@@ -66,11 +76,11 @@ const ClientHistoryPage = () => {
   };
   
   // Pul birligini formatlash
-  const formatCurrency = (amount, currency) => {
+  const formatCurrency = (amount) => {
     return new Intl.NumberFormat('uz-UZ', { 
-      minimumFractionDigits: 2,
+      minimumFractionDigits: 0,
       maximumFractionDigits: 2
-    }).format(amount) + ' ' + currency;
+    }).format(amount) + ' so\'m';
   };
   
   // Yuklanish holati
@@ -136,7 +146,7 @@ const ClientHistoryPage = () => {
       
       {/* Statistika */}
       <Row gutter={[24, 24]} style={{ marginBottom: '24px' }}>
-        <Col xs={24} sm={12} lg={6}>
+        <Col xs={24} sm={12} lg={12}>
           <Card variant="outlined" style={{ background: '#f6ffed', borderRadius: '8px' }}>
             <Statistic
               title="Reyslar soni"
@@ -146,37 +156,14 @@ const ClientHistoryPage = () => {
             />
           </Card>
         </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <Card variant="outlined" style={{ background: '#fff2e8', borderRadius: '8px' }}>
-            <Statistic
-              title="USD to&apos;lovlari"
-              value={total_paid?.USD || 0}
-              precision={2}
-              prefix={<DollarOutlined />}
-              suffix="USD"
-              valueStyle={{ color: '#fa541c' }}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
+        <Col xs={24} sm={12} lg={12}>
           <Card variant="outlined" style={{ background: '#e6f7ff', borderRadius: '8px' }}>
             <Statistic
-              title="UZS to&apos;lovlari"
-              value={total_paid?.UZS || 0}
+              title="Jami to'lovlar"
+              value={data.total_paid_uzs || (total_paid?.UZS || 0) + (total_paid?.USD || 0) + (total_paid?.RUB || 0)}
               prefix={<DollarOutlined />}
-              suffix="UZS"
+              suffix="so'm"
               valueStyle={{ color: '#1890ff' }}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <Card variant="outlined" style={{ background: '#f9f0ff', borderRadius: '8px' }}>
-            <Statistic
-              title="RUB to&apos;lovlari"
-              value={total_paid?.RUB || 0}
-              prefix={<DollarOutlined />}
-              suffix="RUB"
-              valueStyle={{ color: '#722ed1' }}
             />
           </Card>
         </Col>
@@ -274,10 +261,10 @@ const ClientHistoryPage = () => {
               justifyContent: 'space-between'
             }}>
               <div>
-                <Text type="secondary">Umumiy to&apos;lovlar (USD hisobida)</Text>
+                <Text type="secondary">Umumiy to'lovlar (so'm hisobida)</Text>
                 <div>
                   <Text style={{ fontSize: '24px', fontWeight: 'bold', color: '#1890ff' }}>
-                    {formatCurrency(data.total_paid_usd || 0, 'USD')}
+                    {formatCurrency(data.total_paid_uzs || (total_paid?.UZS || 0) + (total_paid?.USD || 0) + (total_paid?.RUB || 0))}
                   </Text>
                 </div>
               </div>
@@ -285,37 +272,8 @@ const ClientHistoryPage = () => {
             </div>
             
             <div>
-              <Title level={5}>Valyutalar bo&apos;yicha to&apos;lovlar</Title>
-              
-              {/* USD To'lovlar */}
-              {total_paid?.USD > 0 && (
-                <div style={{ marginBottom: '16px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                    <Text>USD</Text>
-                    <Text>{formatCurrency(total_paid.USD, 'USD')}</Text>
-                  </div>
-                </div>
-              )}
-              
-              {/* UZS To'lovlar */}
-              {total_paid?.UZS > 0 && (
-                <div style={{ marginBottom: '16px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                    <Text>UZS</Text>
-                    <Text>{formatCurrency(total_paid.UZS, 'UZS')}</Text>
-                  </div>
-                </div>
-              )}
-              
-              {/* RUB To'lovlar */}
-              {total_paid?.RUB > 0 && (
-                <div style={{ marginBottom: '16px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                    <Text>RUB</Text>
-                    <Text>{formatCurrency(total_paid.RUB, 'RUB')}</Text>
-                  </div>
-                </div>
-              )}
+              <Title level={5}>Mijoz to'lovlari</Title>
+              <Text type="secondary">Mijoz tomonidan amalga oshirilgan barcha to'lovlar jamlangan.</Text>
             </div>
           </Card>
         </Col>

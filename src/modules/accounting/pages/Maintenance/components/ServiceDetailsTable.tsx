@@ -57,7 +57,7 @@ const ServiceDetailsTable: React.FC<ServiceDetailsTableProps> = ({ totals }) => 
 
   const formatCurrency = (value: number) => {
     if (value === undefined || value === null) return '0 so\'m';
-    return `${value.toLocaleString()} $`;
+    return `${value.toLocaleString()} so'm`;
   };
 
   const calculatePercentage = (value: number) => {

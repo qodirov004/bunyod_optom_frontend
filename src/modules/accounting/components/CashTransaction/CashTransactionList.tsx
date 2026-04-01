@@ -294,14 +294,7 @@ const CashTransactionList: React.FC = () => {
         <span style={{ fontWeight: 500 }}>{company}</span>
       )
     },
-    {
-      title: 'kurs narxi',
-      dataIndex: 'custom_rate_to_uzs',
-      key: 'custom_rate_to_uzs',
-      render: (custom_rate_to_uzs: number) => (
-        <span>{custom_rate_to_uzs}</span>
-      )
-    },
+
 
     {
       title: 'Haydovchi',
@@ -312,9 +305,9 @@ const CashTransactionList: React.FC = () => {
       title: 'Summa',
       dataIndex: 'amount',
       key: 'amount',
-      render: (amount: number, record: Cash) => (
+      render: (amount: number) => (
         <span>
-          {formatMoney(amount)} {record.currency_name}
+          {formatMoney(amount)}
         </span>
       )
     },
@@ -475,7 +468,7 @@ const CashTransactionList: React.FC = () => {
       product: cash.product,
       driver: cash.driver,
       amount: cash.amount,
-      currency: cash.currency,
+      currency: 4, // Standardized to UZS
       payment_way: cash.payment_way,
       comment: cash.comment,
       is_debt: cash.is_debt,
@@ -569,9 +562,9 @@ const CashTransactionList: React.FC = () => {
       title: 'Summa',
       dataIndex: 'amount',
       key: 'amount',
-      render: (amount: number, record: CashHistory) => (
+      render: (amount: number) => (
         <span>
-          {formatMoney(amount)} {record.currency_name}
+          {formatMoney(amount)}
         </span>
       )
     },
@@ -588,19 +581,7 @@ const CashTransactionList: React.FC = () => {
         <span style={{ fontWeight: 500 }}>{company}</span>
       )
     },
-    {
-      title: 'Kurs narxi',
-      dataIndex: 'custom_rate_to_uzs',
-      key: 'custom_rate_to_uzs',
-      render: (custom_rate_to_uzs: number | string | null) => {
-        const value = Number(custom_rate_to_uzs);
-        return (
-          <span>
-            {value ? value.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '-'}
-          </span>
-        );
-      }
-    },
+
     {
       title: 'To\'lov turi',
       dataIndex: 'payment_name',
@@ -609,16 +590,7 @@ const CashTransactionList: React.FC = () => {
         <Tag color="blue">{payment_name || 'Aniqlanmagan'}</Tag>
       )
     },
-    {
-      title: 'Dollar qiymati',
-      dataIndex: 'amount_in_usd',
-      key: 'amount_in_usd',
-      render: (amount: string) => (
-        <span>
-          {formatMoney(Number(amount))} USD
-        </span>
-      )
-    },
+
     {
       title: 'Status',
       dataIndex: 'status',

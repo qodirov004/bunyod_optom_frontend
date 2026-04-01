@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Card, Row, Col, Typography, Progress, Spin, Alert, Button, Divider } from 'antd';
+import { Card, Row, Col, Typography, Progress, Spin, Alert, Button, Divider, Space } from 'antd';
 import { 
   SyncOutlined, 
   DollarOutlined, 
@@ -60,12 +60,12 @@ const Overview: React.FC = () => {
     );
   }
 
-  const totalInUSD = overview.cashbox.total_in_usd || 0;
-  const totalExpenses = overview.expenses.total_expenses_usd || 0;
-  const finalBalance = overview.final_balance_usd || 0;
-  const dpPayments = overview.expenses.dp_price_usd || 0;
-  const serviceExpenses = overview.expenses.salaries_usd || 0;
-  const expenseRatio = Math.min(Math.round((totalExpenses / (totalInUSD + 0.01)) * 100), 100);
+  const totalInUZS = overview.cashbox.total_in_uzs || (overview.cashbox.total_in_usd * 12800) || 0;
+  const totalExpenses = overview.expenses.total_expenses_uzs || (overview.expenses.total_expenses_usd * 12800) || 0;
+  const finalBalance = overview.final_balance_uzs || (overview.final_balance_usd * 12800) || 0;
+  const dpPayments = overview.expenses.dp_price_uzs || (overview.expenses.dp_price_usd * 12800) || 0;
+  const serviceExpenses = overview.expenses.salaries_uzs || (overview.expenses.salaries_usd * 12800) || 0;
+  const expenseRatio = Math.min(Math.round((totalExpenses / (totalInUZS + 0.01)) * 100), 100);
   return (
     <div className="overview-container">
       <div className="page-header">
@@ -92,7 +92,7 @@ const Overview: React.FC = () => {
             </div>
             <div className="stat-content">
               <div className="stat-title">Jami mablag'</div>
-              <div className="stat-value">${formatNumber(totalInUSD)}</div>
+              <div className="stat-value">{formatNumber(totalInUZS)} so'm</div>
               <div className="stat-description">
                 <ArrowUpOutlined /> Barcha kirimlar
               </div>
@@ -107,7 +107,7 @@ const Overview: React.FC = () => {
             </div>
             <div className="stat-content">
               <div className="stat-title">Jami xarajatlar</div>
-              <div className="stat-value">${formatNumber(totalExpenses)}</div>
+              <div className="stat-value">{formatNumber(totalExpenses)} so'm</div>
               <div className="stat-description">
                 <ArrowDownOutlined /> {expenseRatio}% xarajat
               </div>
@@ -122,7 +122,7 @@ const Overview: React.FC = () => {
             </div>
             <div className="stat-content">
               <div className="stat-title">Qolgan balans</div>
-              <div className="stat-value">${formatNumber(finalBalance)}</div>
+              <div className="stat-value">{formatNumber(finalBalance)} so'm</div>
               <div className="stat-description">
                 Hozirgi jami qolgan mablag'
               </div>
@@ -137,7 +137,7 @@ const Overview: React.FC = () => {
             </div>
             <div className="stat-content">
               <div className="stat-title">Service xarajatlari</div>
-              <div className="stat-value">${formatNumber(dpPayments)}</div>
+              <div className="stat-value">{formatNumber(dpPayments)} so'm</div>
               <div className="stat-description">
                 Mashina, furgon xarajatlari
               </div>
@@ -148,121 +148,65 @@ const Overview: React.FC = () => {
 
       <div className="section-container">
         <div className="section-header">
-          <WalletOutlined /> Kassadagi valyutalar
+           To&apos;lovlar tahlili (so&apos;m)
         </div>
         
-        <Card className="currency-section">
-          <Row gutter={[24, 24]}>
-            <Col xs={24} md={12}>
-              <div className="currency-boxes">
-                <div className="currency-box usd-box">
-                  <div className="currency-info">
-                    <span className="currency-name">USD</span>
-                    <span className="currency-value">{formatNumber(overview.cashbox.USD || 0)}</span>
-                  </div>
-                  <div className="currency-symbol">$</div>
-                </div>
-                
-                <div className="currency-box uzs-box">
-                  <div className="currency-info">
-                    <span className="currency-name">UZS</span>
-                    <span className="currency-value">{formatNumber(overview.cashbox.UZS || 0)}</span>
-                  </div>
-                  <div className="currency-symbol">soʻm</div>
-                </div>
-                
-                <div className="currency-box rub-box">
-                  <div className="currency-info">
-                    <span className="currency-name">RUB</span>
-                    <span className="currency-value">{formatNumber(overview.cashbox.RUB || 0)}</span>
-                  </div>
-                  <div className="currency-symbol">₽</div>
-                </div>
-                
-                <div className="currency-box eur-box">
-                  <div className="currency-info">
-                    <span className="currency-name">EUR</span>
-                    <span className="currency-value">{formatNumber(overview.cashbox.EUR || 0)}</span>
-                  </div>
-                  <div className="currency-symbol">€</div>
-                </div>
-                <div className="currency-box eur-box">
-                  <div className="currency-info">
-                    <span className="currency-name">KZT</span>
-                    <span className="currency-value">{formatNumber(overview.cashbox.KZT || 0)}</span>
-                  </div>
-                  <div className="currency-symbol">₸</div>
-                </div>
+        <Card bordered={false} className="analysis-card">
+          <Space direction="vertical" size="large" style={{ width: '100%' }}>
+            <div className="analysis-item">
+              <div className="analysis-header">
+                <span>Jami mablag&apos;</span>
+                <span className="analysis-value">{formatNumber(totalInUZS)} so&apos;m</span>
               </div>
-              
-              <Divider />
-              
-              <div className="total-box">
-                <span>Jami USD ekvivalenti:</span>
-                <span className="total-value">${formatNumber(totalInUSD)}</span>
-              </div>
-            </Col>
+              <Progress percent={100} strokeColor="#52c41a" showInfo={false} />
+            </div>
             
-            <Col xs={24} md={12}>
-              <div className="analysis-section">
-                <div className="analysis-title">Balans tahlili</div>
-                
-                <div className="analysis-item">
-                  <div className="analysis-header">
-                    <span>Jami mablag' (USD)</span>
-                    <span className="analysis-value">${formatNumber(totalInUSD)}</span>
-                  </div>
-                  <Progress percent={100} strokeColor="#52c41a" showInfo={false} />
-                </div>
-                
-                <div className="analysis-item">
-                  <div className="analysis-header">
-                    <span>Jami xarajatlar</span>
-                    <span className="analysis-value">${formatNumber(totalExpenses)}</span>
-                  </div>
-                  <Progress percent={expenseRatio} strokeColor="#ff4d4f" showInfo={false} />
-                </div>
-                
-                <div className="analysis-item">
-                  <div className="analysis-header">
-                    <span>Service xarajatlari</span>
-                    <span className="analysis-value">${formatNumber(dpPayments)}</span>
-                  </div>
-                  <Progress 
-                    percent={Math.round((dpPayments / (totalExpenses + 0.01)) * 100)} 
-                    strokeColor="#1890ff" 
-                    showInfo={false} 
-                  />
-                </div>
-                
-                <div className="analysis-item">
-                  <div className="analysis-header">
-                    <span>Haydovchi oylik maoshlari</span>
-                    <span className="analysis-value">${formatNumber(serviceExpenses)}</span>
-                  </div>
-                  <Progress 
-                    percent={Math.round((serviceExpenses / (totalExpenses + 0.01)) * 100)} 
-                    strokeColor="#722ed1" 
-                    showInfo={false} 
-                  />
-                </div>
-                
-                <div className="analysis-item result-item">
-                  <div className="analysis-header">
-                    <span>Qolgan balans</span>
-                    <span className={`analysis-value ${finalBalance >= 0 ? 'positive-value' : 'negative-value'}`}>
-                      ${formatNumber(finalBalance)}
-                    </span>
-                  </div>
-                  <Progress 
-                    percent={Math.round((Math.abs(finalBalance) / (totalInUSD + 0.01)) * 100)} 
-                    strokeColor={finalBalance >= 0 ? "#52c41a" : "#ff4d4f"} 
-                    showInfo={false} 
-                  />
-                </div>
+            <div className="analysis-item">
+              <div className="analysis-header">
+                <span>Jami xarajatlar</span>
+                <span className="analysis-value">{formatNumber(totalExpenses)} so&apos;m</span>
               </div>
-            </Col>
-          </Row>
+              <Progress percent={expenseRatio} strokeColor="#ff4d4f" showInfo={false} />
+            </div>
+            
+            <div className="analysis-item">
+              <div className="analysis-header">
+                <span>Service xarajatlari</span>
+                <span className="analysis-value">{formatNumber(dpPayments)} so&apos;m</span>
+              </div>
+              <Progress 
+                percent={Math.round((dpPayments / (totalExpenses + 0.01)) * 100)} 
+                strokeColor="#1890ff" 
+                showInfo={false} 
+              />
+            </div>
+            
+            <div className="analysis-item">
+              <div className="analysis-header">
+                <span>Haydovchi oylik maoshlari</span>
+                <span className="analysis-value">{formatNumber(serviceExpenses)} so&apos;m</span>
+              </div>
+              <Progress 
+                percent={Math.round((serviceExpenses / (totalExpenses + 0.01)) * 100)} 
+                strokeColor="#722ed1" 
+                showInfo={false} 
+              />
+            </div>
+            
+            <div className="analysis-item result-item">
+              <div className="analysis-header">
+                <span>Qolgan balans</span>
+                <span className={`analysis-value ${finalBalance >= 0 ? 'positive-value' : 'negative-value'}`}>
+                  {formatNumber(finalBalance)} so&apos;m
+                </span>
+              </div>
+              <Progress 
+                percent={Math.round((Math.abs(finalBalance) / (totalInUZS + 0.01)) * 100)} 
+                strokeColor={finalBalance >= 0 ? "#52c41a" : "#ff4d4f"} 
+                showInfo={false} 
+              />
+            </div>
+          </Space>
         </Card>
       </div>
     </div>

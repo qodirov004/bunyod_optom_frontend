@@ -50,7 +50,6 @@ import { useTrips } from '@/modules/accounting/hooks/useTrips'
 import { motion } from 'framer-motion'
 import './style/style.css'
 import axiosInstance from '@/api/axiosInstance'
-import { useCurrencies } from '@/modules/accounting/hooks/useCurrencies'
 import dayjs from 'dayjs'
 
 const { Title, Text } = Typography
@@ -82,7 +81,6 @@ const FreightDeliveryPage: React.FC = () => {
   const [selectedTripId, setSelectedTripId] = useState<number | null>(null)
   const [paymentForm] = Form.useForm()
   const [paymentLoading, setPaymentLoading] = useState(false)
-  const { currencies, loading: currenciesLoading } = useCurrencies()
   const [messageApi, contextHolder] = message.useMessage()
   
   // Fetch triphistory count on component mount
@@ -168,7 +166,7 @@ const FreightDeliveryPage: React.FC = () => {
       if (trip) {
         paymentForm.setFieldsValue({
           amount: trip.dp_price,
-          currency: trip.dp_currency || 'USD',
+          currency: 4,
           payment_date: dayjs(),
           payment_method: 'cash'
         });
@@ -212,7 +210,7 @@ const FreightDeliveryPage: React.FC = () => {
       const paymentData = {
         driver: driverId,
         amount: values.amount.toString(),
-        currency: values.currency
+        currency: 4
       };
       
       console.log('Payment data being sent:', paymentData);
@@ -250,20 +248,7 @@ const FreightDeliveryPage: React.FC = () => {
     }
   };
   
-  const getCurrencySymbol = (currency: string): string => {
-    switch (currency) {
-      case 'USD':
-        return '$';
-      case 'UZS':
-        return 'so\'m';
-      case 'RUB':
-        return '₽';
-      case 'EUR':
-        return '€';
-      default:
-        return 'so\'m';
-    }
-  };
+
   
   const TripDashboard = () => {
     if (isLoading) return <Spin size="large" className="centered-spin" />
@@ -354,7 +339,7 @@ const FreightDeliveryPage: React.FC = () => {
                 <Statistic
                   title="Umumiy daromad"
                   value={totalRevenue}
-                  suffix="$"
+                  suffix="so'm"
                   precision={0}
                   valueStyle={{ color: '#3f8600' }}
                   prefix={<DollarCircleOutlined />}
@@ -380,7 +365,7 @@ const FreightDeliveryPage: React.FC = () => {
                 <Statistic
                   title="Service xarajatlari"
                   value={totalDriverExpenses}
-                  suffix="$"
+                  suffix="so'm"
                   precision={0}
                   valueStyle={{ color: '#cf1322' }}
                   prefix={<FallOutlined />}
@@ -406,7 +391,7 @@ const FreightDeliveryPage: React.FC = () => {
                 <Statistic
                   title="Haydovchiga to'lovlar"
                   value={totalDriverPayments}
-                  suffix="$"
+                  suffix="so'm"
                   precision={0}
                   valueStyle={{ color: '#1890ff' }}
                   prefix={<DollarOutlined />}
@@ -432,7 +417,7 @@ const FreightDeliveryPage: React.FC = () => {
                 <Statistic
                   title="Sof foyda"
                   value={totalProfit}
-                  suffix="$"
+                  suffix="so'm"
                   precision={0}
                   valueStyle={{ 
                     color: totalProfit >= 0 ? '#3f8600' : '#cf1322' 
@@ -650,7 +635,7 @@ const FreightDeliveryPage: React.FC = () => {
                   <Text>#{trip.id}</Text>
                   <br />
                   <Text strong>To`lov summasi: </Text>
-                  <Text>{trip.dp_price.toLocaleString()} {getCurrencySymbol(trip.dp_currency || 'USD')}</Text>
+                  <Text>{trip.dp_price.toLocaleString()} so'm</Text>
                 </div>
               ) : null;
             })()}
@@ -673,26 +658,7 @@ const FreightDeliveryPage: React.FC = () => {
                 />
               </Form.Item>
 
-              <Form.Item
-                name="currency"
-                label="Valyuta"
-                rules={[{ required: true, message: 'Valyutani tanlang' }]}
-              >
-                {currenciesLoading ? (
-                  <div style={{ display: 'flex', alignItems: 'center' }}>
-                    <Spin size="small" style={{ marginRight: 8 }} />
-                    <span>Valyutalar yuklanmoqda...</span>
-                  </div>
-                ) : (
-                  <Select placeholder="Valyutani tanlang">
-                    {currencies.map(currency => (
-                      <Option key={`drv-payment-${currency.id}`} value={currency.id}>
-                        {currency.currency} ({parseFloat(currency.rate_to_uzs).toLocaleString()} UZS)
-                      </Option>
-                    ))}
-                  </Select>
-                )}
-              </Form.Item>
+
               <Form.Item
                 name="payment_date"
                 label="To'lov sanasi"

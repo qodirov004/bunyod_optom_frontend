@@ -83,33 +83,7 @@ const NavRight: React.FC = () => {
         </Badge>
 
         <Space size={8}>
-          {currencies
-            .filter(curr => curr.currency !== 'UZS') // Skip UZS as it's the base currency
-            .map(currency => (
-              <Tooltip 
-                key={currency.id} 
-                title={`1 ${currency.currency} = ${Number(currency.rate_to_uzs).toLocaleString()} UZS`}
-                >
-                <Tag 
-                  color={currency.currency === 'USD' ? 'green' : 
-                        currency.currency === 'EUR' ? 'blue' : 
-                        'orange'} 
-                  icon={getCurrencyIcon(currency.currency)}
-                  style={{ 
-                    padding: '4px 10px',
-                    fontWeight: 600,
-                    boxShadow: '0 2px 6px rgba(0, 0, 0, 0.06)',
-                    borderRadius: '8px',
-                    cursor: 'default',
-                    display: 'flex',
-                    alignItems: 'center',
-                    fontSize: '12px'
-                  }}
-                >
-                  {getCurrencySymbol(currency.currency)} {Number(currency.rate_to_uzs).toLocaleString()}
-                </Tag>
-              </Tooltip>
-            ))}
+          {/* Currency rates removed as per UZS standardization */}
         </Space>
       </div>
       

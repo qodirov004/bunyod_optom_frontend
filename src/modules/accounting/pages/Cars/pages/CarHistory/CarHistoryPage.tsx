@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Card, Button, Spin, Row, Col, Typography, Tag, Space, Empty, Tabs, Collapse, Pagination, Table } from 'antd';
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter, usePathname, useParams } from 'next/navigation';
 import {
   CarOutlined,
   HistoryOutlined,
@@ -192,11 +192,22 @@ const maintenanceStyles = `
 const CarHistoryPage = () => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [carId, setCarId] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState('reyslar');
-
   const router = useRouter();
   const pathname = usePathname();
+  const params = useParams();
+  
+  const carId = React.useMemo(() => {
+    if (params?.id) return params.id;
+    
+    // Fallback for custom routing: /cars/:id/history or /cars/history/:id
+    const parts = pathname.split('/');
+    const carsIdx = parts.indexOf('cars');
+    if (carsIdx !== -1) {
+      if (parts[carsIdx + 2] === 'history') return parts[carsIdx + 1];
+      if (parts[carsIdx + 1] === 'history') return parts[carsIdx + 2];
+    }
+    return null;
+  }, [params, pathname]);
 
   const [oilPage, setOilPage] = useState(1);
   const [tirePage, setTirePage] = useState(1);
@@ -220,14 +231,7 @@ const CarHistoryPage = () => {
     };
   }, []);
 
-  // Extract car ID from URL path on mount
-  useEffect(() => {
-    if (pathname) {
-      const urlParts = pathname.split('/');
-      const id = urlParts[urlParts.length - 2];
-      setCarId(id);
-    }
-  }, [pathname]);
+  const [activeTab, setActiveTab] = useState('reyslar');
 
   // Fetch data after we have the car ID
   useEffect(() => {
@@ -252,11 +256,9 @@ const CarHistoryPage = () => {
   // Format currency
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('uz-UZ', {
-      style: 'currency',
-      currency: 'UZS',
       minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(amount);
+      maximumFractionDigits: 2
+    }).format(amount) + ' so\'m';
   };
 
   // Format number with commas
@@ -782,24 +784,24 @@ const CarHistoryPage = () => {
           >
             <div style={{ padding: '16px 0' }}>
               <div style={{ marginBottom: '24px', backgroundColor: '#f0f5ff', padding: '16px', borderRadius: '8px', textAlign: 'center' }}>
-                <Text style={{ fontSize: '16px', display: 'block', marginBottom: '4px' }}>Umumiy xarajatlar (USD)</Text>
-                <Text style={{ fontSize: '24px', color: '#1890ff', fontWeight: 'bold' }}>${total_usd.toFixed(2)}</Text>
+                <Text style={{ fontSize: '16px', display: 'block', marginBottom: '4px' }}>Umumiy xarajatlar (so'm)</Text>
+                <Text style={{ fontSize: '24px', color: '#1890ff', fontWeight: 'bold' }}>{formatCurrency(total_usd)}</Text>
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 <div style={{ padding: '12px', backgroundColor: '#f9f9f9', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <Text>Moy almashtirish</Text>
-                  <Text style={{ color: '#f5222d' }}>${details_expense_usd.optol.toFixed(2)}</Text>
+                  <Text style={{ color: '#f5222d' }}>{formatCurrency(details_expense_usd.optol)}</Text>
                 </div>
 
                 <div style={{ padding: '12px', backgroundColor: '#f9f9f9', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <Text>Balon xarajatlari</Text>
-                  <Text style={{ color: '#f5222d' }}>${details_expense_usd.bolon.toFixed(2)}</Text>
+                  <Text style={{ color: '#f5222d' }}>{formatCurrency(details_expense_usd.bolon)}</Text>
                 </div>
 
                 <div style={{ padding: '12px', backgroundColor: '#f9f9f9', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <Text>Servis xarajatlari</Text>
-                  <Text style={{ color: '#f5222d' }}>${details_expense_usd.texnic.toFixed(2)}</Text>
+                  <Text style={{ color: '#f5222d' }}>{formatCurrency(details_expense_usd.texnic)}</Text>
                 </div>
               </div>
             </div>

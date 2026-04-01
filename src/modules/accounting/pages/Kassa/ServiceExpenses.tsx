@@ -200,7 +200,7 @@ const ServiceExpenses: React.FC = () => {
                       title={<Space><ToolOutlined /> Texnik xizmat</Space>}
                       value={serviceTotals.totals_usd.texnic}
                       precision={2}
-                      suffix="USD"
+                      suffix="so'm"
                       valueStyle={{ color: '#52c41a' }}
                     />
                   </Card>
@@ -211,7 +211,7 @@ const ServiceExpenses: React.FC = () => {
                       title={<Space><CarOutlined /> Balon xizmati</Space>}
                       value={serviceTotals.totals_usd.balon}
                       precision={2}
-                      suffix="USD"
+                      suffix="so'm"
                       valueStyle={{ color: '#1890ff' }}
                     />
                   </Card>
@@ -222,7 +222,7 @@ const ServiceExpenses: React.FC = () => {
                       title={<Space><CarFilled /> Furgon balon</Space>}
                       value={serviceTotals.totals_usd.balon_furgon}
                       precision={2}
-                      suffix="USD"
+                      suffix="so'm"
                       valueStyle={{ color: '#2f54eb' }}
                     />
                   </Card>
@@ -233,7 +233,7 @@ const ServiceExpenses: React.FC = () => {
                       title={<Space><FireOutlined /> Chiqim xarajat</Space>}
                       value={serviceTotals.totals_usd.chiqimlik}
                       precision={2}
-                      suffix="USD"
+                      suffix="so'm"
                       valueStyle={{ color: '#fa8c16' }}
                     />
                   </Card>
@@ -244,7 +244,7 @@ const ServiceExpenses: React.FC = () => {
                       title={<Space><ShoppingOutlined /> Yoqilg&apos;i</Space>}
                       value={serviceTotals.totals_usd.optol}
                       precision={2}
-                      suffix="USD"
+                      suffix="so'm"
                       valueStyle={{ color: '#722ed1' }}
                     />
                   </Card>
@@ -255,7 +255,7 @@ const ServiceExpenses: React.FC = () => {
                       title={<Space><DollarOutlined /> Jami xarajat</Space>}
                       value={serviceTotals.totals_usd.total}
                       precision={2}
-                      suffix="USD"
+                      suffix="so'm"
                       valueStyle={{ color: '#000000', fontWeight: 'bold' }}
                     />
                   </Card>
@@ -270,7 +270,7 @@ const ServiceExpenses: React.FC = () => {
               <div style={{ marginBottom: 16 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <Text strong>Xarajatlar taqsimoti:</Text>
-                  <Text strong style={{ fontSize: 16 }}>{serviceTotals.totals_usd.total.toFixed(2)} USD</Text>
+                  <Text strong style={{ fontSize: 16 }}>{serviceTotals.totals_usd.total.toLocaleString()} so'm</Text>
                 </div>
                 <Progress 
                   percent={100} 
@@ -286,27 +286,27 @@ const ServiceExpenses: React.FC = () => {
                   }}
                 />
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8 }}>
-                  <Tooltip title={`${serviceTotals.totals_usd.texnic.toFixed(2)} USD`}>
+                  <Tooltip title={`${serviceTotals.totals_usd.texnic.toLocaleString()} so'm`}>
                     <Tag color="green">
                       Texnik: {((serviceTotals.totals_usd.texnic / serviceTotals.totals_usd.total) * 100).toFixed(1)}%
                     </Tag>
                   </Tooltip>
-                  <Tooltip title={`${serviceTotals.totals_usd.balon.toFixed(2)} USD`}>
+                  <Tooltip title={`${serviceTotals.totals_usd.balon.toLocaleString()} so'm`}>
                     <Tag color="blue">
                       Balon: {((serviceTotals.totals_usd.balon / serviceTotals.totals_usd.total) * 100).toFixed(1)}%
                     </Tag>
                   </Tooltip>
-                  <Tooltip title={`${serviceTotals.totals_usd.balon_furgon.toFixed(2)} USD`}>
+                  <Tooltip title={`${serviceTotals.totals_usd.balon_furgon.toLocaleString()} so'm`}>
                     <Tag color="cyan">
                       Furgon balon: {((serviceTotals.totals_usd.balon_furgon / serviceTotals.totals_usd.total) * 100).toFixed(1)}%
                     </Tag>
                   </Tooltip>
-                  <Tooltip title={`${serviceTotals.totals_usd.chiqimlik.toFixed(2)} USD`}>
+                  <Tooltip title={`${serviceTotals.totals_usd.chiqimlik.toLocaleString()} so'm`}>
                     <Tag color="orange">
                       Chiqim: {((serviceTotals.totals_usd.chiqimlik / serviceTotals.totals_usd.total) * 100).toFixed(1)}%
                     </Tag>
                   </Tooltip>
-                  <Tooltip title={`${serviceTotals.totals_usd.optol.toFixed(2)} USD`}>
+                  <Tooltip title={`${serviceTotals.totals_usd.optol.toLocaleString()} so'm`}>
                     <Tag color="purple">
                       Yoqilg&apos;i: {((serviceTotals.totals_usd.optol / serviceTotals.totals_usd.total) * 100).toFixed(1)}%
                     </Tag>
@@ -329,8 +329,8 @@ const ServiceExpenses: React.FC = () => {
                             <Statistic 
                               title="Jami xarajat" 
                               value={vehicle.totalSpent} 
-                              precision={2}
-                              suffix="USD" 
+                              precision={0}
+                              suffix="so'm" 
                               valueStyle={{ fontSize: '16px' }}
                             />
                             <Space>
@@ -454,10 +454,10 @@ const ServiceExpenses: React.FC = () => {
                 sorter: (a, b) => a.price - b.price,
               },
               {
-                title: 'USD qiymati',
+                title: 'Qiymati (so\'m)',
                 dataIndex: 'usd_value',
                 key: 'usd_value',
-                render: (value: number) => `${value.toLocaleString()} USD`,
+                render: (value: number) => `${value.toLocaleString()} so'm`,
                 sorter: (a, b) => a.usd_value - b.usd_value,
               }
             ]}
@@ -470,7 +470,7 @@ const ServiceExpenses: React.FC = () => {
                       <strong>Jami:</strong>
                     </Table.Summary.Cell>
                     <Table.Summary.Cell index={4}>
-                      <strong>{total.toFixed(2)} USD</strong>
+                      <strong>{total.toLocaleString()} so'm</strong>
                     </Table.Summary.Cell>
                   </Table.Summary.Row>
                 </>
@@ -511,8 +511,8 @@ const ServiceExpenses: React.FC = () => {
                         <Statistic
                           title="Jami xarajat"
                           value={vehicle.totalSpent}
-                          precision={2}
-                          suffix="USD"
+                          precision={0}
+                          suffix="so'm"
                           valueStyle={{ color: '#1890ff' }}
                         />
                       </Col>

@@ -3,26 +3,12 @@ import { CheckCircleOutlined, EnvironmentOutlined, DollarOutlined, UserOutlined,
 import React, { useState } from 'react'
 import { RaysResponseType } from '@/modules/accounting/types/freight'
 import { useUpdateTripStatus } from '@/modules/accounting/hooks/useTrips'
+import { formatCurrency } from '@/utils/formatCurrency'
 import axiosInstance from '@/api/axiosInstance'
 import dayjs from 'dayjs'
 
 const { Text, Paragraph } = Typography;
-const getCurrencySymbol = (currency: string): string => {
-  switch (currency) {
-    case 'USD':
-      return '$';
-    case 'UZS':
-      return 'so\'m';
-    case 'RUB':
-      return '₽';
-    case 'EUR':
-      return '€';
-    case 'KZT':
-      return "Kz";
-    default:
-      return 'so\'m';
-  }
-};
+
 
 const completeRaceWithAllClients = async (tripId: number) => {
   try {
@@ -238,7 +224,7 @@ const TripTable = ({
                     {clientObj.products.map((prod: any, pIndex: number) => (
                       <div key={prod.id || pIndex} style={{ display: 'flex', justifyContent: 'space-between' }}>
                         <span>• {prod.name} x{prod.count}</span>
-                        <Text type="secondary" style={{ fontSize: '10px' }}>{prod.price?.toLocaleString()} $</Text>
+                        <Text type="secondary" style={{ fontSize: '10px' }}>{formatCurrency(prod.price)}</Text>
                       </div>
                     ))}
                   </div>
@@ -265,23 +251,19 @@ const TripTable = ({
       title: 'Narxi',
       dataIndex: 'price',
       key: 'price',
-      render: (price: number) => `${price.toLocaleString()} $`,
+      render: (price: number) => formatCurrency(price),
     },
     {
       title: "Haydovchining xarajatlari",
       dataIndex: 'dr_price',
       key: 'dr_price',
-      render: (payment: number) => `$${payment.toLocaleString()}`,
+      render: (payment: number) => formatCurrency(payment),
     },
     {
       title: "Haydovchiga to'lov",
       dataIndex: 'dp_price',
       key: 'dp_price',
-      render: (payment: number, record: RaysResponseType) => {
-        const currency = (record as any).dp_currency_name || 'UZS';
-        const symbol = getCurrencySymbol(currency);
-        return `${payment.toLocaleString()} ${symbol}`;
-      },
+      render: (payment: number) => formatCurrency(payment),
     },
     {
       title: 'Soni',
@@ -372,8 +354,6 @@ const TripTable = ({
         {displayTrips.map(trip => {
           const isCompleted = getTripCompletionStatus(trip);
           const driverInfo = trip.client.length > 0 ? trip.client[0] : null;
-          const dpCurrency = (trip as any).dp_currency_name || 'UZS';
-          const dpCurrencySymbol = getCurrencySymbol(dpCurrency);
 
           return (
             <Card
@@ -549,9 +529,9 @@ const TripTable = ({
                 </div>
 
                 <div className="price-info">
-                  <p><DollarOutlined /> Narxi: <Text strong>{trip.price.toLocaleString()} $</Text></p>
-                  <p>Haydovchining xarajatlari: ${trip.dr_price.toLocaleString()}</p>
-                  <p>Haydovchiga to`lov: {trip.dp_price.toLocaleString()} {dpCurrencySymbol}</p>
+                  <p><DollarOutlined /> Narxi: <Text strong>{formatCurrency(trip.price)}</Text></p>
+                  <p>Haydovchining xarajatlari: {formatCurrency(trip.dr_price)}</p>
+                  <p>Haydovchiga to`lov: {formatCurrency(trip.dp_price)}</p>
                 </div>
 
                 <div className="trip-footer">
@@ -571,9 +551,6 @@ const TripTable = ({
     ? displayTrips.find(trip => trip.id === completedTripId) || trips.find(trip => trip.id === completedTripId)
     : null;
 
-  // Get currency symbol for completed trip if available
-  const completedTripDpCurrency = (completedTrip as any)?.dp_currency_name || 'UZS';
-  const completedTripDpSymbol = getCurrencySymbol(completedTripDpCurrency);
 
   return (
     <>
@@ -669,16 +646,16 @@ const TripTable = ({
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
                   <Text strong>Jami:</Text>
-                  <Text type="success">{completedTrip.price.toLocaleString()} so`m</Text>
+                  <Text type="success">{formatCurrency(completedTrip.price)}</Text>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
                   <Text strong>Haydovchiga to`lov:</Text>
-                  <Text>{completedTrip.dp_price.toLocaleString()} {completedTripDpSymbol}</Text>
+                  <Text>{formatCurrency(completedTrip.dp_price)}</Text>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <Text strong>Foyda:</Text>
                   <Text type="success">
-                    {(completedTrip.price - completedTrip.dr_price - completedTrip.dp_price).toLocaleString()} so`m
+                    {formatCurrency(completedTrip.price - completedTrip.dr_price - completedTrip.dp_price)}
                   </Text>
                 </div>
               </Card>

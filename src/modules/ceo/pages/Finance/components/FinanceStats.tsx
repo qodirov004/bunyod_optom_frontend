@@ -246,18 +246,6 @@ const FinanceStats: React.FC<FinanceStatsProps> = ({ dateRange, refresh }) => {
             <Option value="quarter">Choraklik</Option>
             <Option value="year">Yillik</Option>
           </Select>
-          <Select
-            value={selectedCurrency}
-            onChange={setSelectedCurrency}
-            loading={currenciesLoading}
-            style={{ width: 120 }}
-          >
-            {availableCurrencies.map(currency => (
-              <Option key={currency.id} value={currency.currency}>
-                {currency.currency} {getCurrencySymbol(currency.currency)}
-              </Option>
-            ))}
-          </Select>
         </Space>
       </div>
       

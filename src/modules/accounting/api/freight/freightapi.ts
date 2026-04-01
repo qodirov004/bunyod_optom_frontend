@@ -109,32 +109,25 @@ export const createRays = async (data: raysType): Promise<ApiRaysResponseType> =
     console.log('Formatted payload:', payload);
     const response = await axiosInstance.post<ApiRaysResponseType>(API_URLS.rays, payload);
     return response.data;
-  } catch (error: unknown) {
-    const axiosError = error as ApiError;
+  } catch (error: any) {
     console.error('API Error Details:', {
-      response: axiosError.response?.data,
-      status: axiosError.response?.status,
-      headers: axiosError.response?.headers
+      response: error.response?.data,
+      status: error.response?.status,
+      headers: error.response?.headers
     });
     
-    // Handle specific error for busy vehicles
-    if (axiosError.response?.data) {
-      const errorData = axiosError.response.data as any;
-      
-      // Check for busy car error
-      if (errorData && errorData.car && Array.isArray(errorData.car) && 
-          errorData.car.some((msg: string) => msg.includes('busy'))) {
+    if (error.response?.data) {
+      const errorData = error.response.data;
+      if (errorData.car && Array.isArray(errorData.car) && errorData.car.some((msg: string) => msg.includes('busy'))) {
         throw new Error('Tanlangan mashina band. Iltimos, boshqa mashina tanlang.');
       }
-      
-      // Check for busy furgon error
-      if (errorData && errorData.fourgon && Array.isArray(errorData.fourgon) && 
-          errorData.fourgon.some((msg: string) => msg.includes('busy'))) {
+      if (errorData.fourgon && Array.isArray(errorData.fourgon) && errorData.fourgon.some((msg: string) => msg.includes('busy'))) {
         throw new Error('Tanlangan furgon band. Iltimos, boshqa furgon tanlang.');
       }
     }
     
-    throw new Error(axiosError.response?.data?.message || 'Reys yaratishda xatolik yuz berdi');
+    const errorDetail = error.response?.data?.detail || error.response?.data?.message || error.message || 'Reys yaratishda xatolik yuz berdi';
+    throw new Error(errorDetail);
   }
 };
 
@@ -151,17 +144,12 @@ export const fetchAllRays = async (): Promise<ApiRaysResponseType[]> => {
     }));
 
     return transformedData;
-  } catch (error: unknown) {
-    const axiosError = error as ApiError;
-    if (axiosError.response?.status !== 401) {
-      console.error(
-        '❌ Error fetching rays:',
-        axiosError.response?.data || axiosError.message,
-      );
+  } catch (error: any) {
+    if (error.response?.status !== 401) {
+      console.error('❌ Error fetching rays:', error.response?.data || error.message);
     }
-    throw new Error(
-      axiosError.response?.data?.message || 'Reyslarni olishda xatolik yuz berdi',
-    )
+    const errorDetail = error.response?.data?.detail || error.response?.data?.message || error.message || 'Reyslarni olishda xatolik yuz berdi';
+    throw new Error(errorDetail);
   }
 }
 
@@ -193,17 +181,12 @@ export const updateRayStatus = async (
     }
 
     return response.data
-  } catch (error: unknown) {
-    const axiosError = error as ApiError;
-    if (axiosError.response?.status !== 401) {
-      console.error(
-        `❌ Error updating ray ${id}:`,
-        axiosError.response?.data || axiosError.message,
-      );
+  } catch (error: any) {
+    if (error.response?.status !== 401) {
+      console.error(`❌ Error updating ray ${id}:`, error.response?.data || error.message);
     }
-    throw new Error(
-      axiosError.response?.data?.message || 'Reysni yangilashda xatolik yuz berdi',
-    )
+    const errorDetail = error.response?.data?.detail || error.response?.data?.message || error.message || 'Reysni yangilashda xatolik yuz berdi';
+    throw new Error(errorDetail);
   }
 }
 
@@ -242,17 +225,12 @@ export const completeRace = async (id: number): Promise<HistoryResponseData> => 
     const historyResponse = await axiosInstance.post(API_URLS.history, historyData)
     console.log(`✅ Ray ${id} completed and moved to history:`, historyResponse.data)
     return historyResponse.data
-  } catch (error: unknown) {
-    const axiosError = error as ApiError;
-    if (axiosError.response?.status !== 401) {
-      console.error(
-        `❌ Error completing ray ${id}:`,
-        axiosError.response?.data || axiosError.message,
-      );
+  } catch (error: any) {
+    if (error.response?.status !== 401) {
+      console.error(`❌ Error completing ray ${id}:`, error.response?.data || error.message);
     }
-    throw new Error(
-      axiosError.response?.data?.message || 'Reysni tarixga o\'tkazishda xatolik yuz berdi',
-    )
+    const errorDetail = error.response?.data?.detail || error.response?.data?.message || error.message || 'Reysni tarixga o\'tkazishda xatolik yuz berdi';
+    throw new Error(errorDetail);
   }
 }
 
@@ -263,17 +241,12 @@ export const completeAllRays = async (): Promise<TripFormValues[]> => {
     )
     console.log('✅ Fetched rays history:', response.data)
     return response.data;
-  } catch (error: unknown) {
-    const axiosError = error as ApiError;
-    if (axiosError.response?.status !== 401) {
-      console.error(
-        '❌ Error fetching rays history:',
-        axiosError.response?.data || axiosError.message,
-      );
+  } catch (error: any) {
+    if (error.response?.status !== 401) {
+      console.error('❌ Error fetching rays history:', error.response?.data || error.message);
     }
-    throw new Error(
-      axiosError.response?.data?.message || 'Reyslar tarixini olishda xatolik yuz berdi',
-    )
+    const errorDetail = error.response?.data?.detail || error.response?.data?.message || error.message || 'Reyslar tarixini olishda xatolik yuz berdi';
+    throw new Error(errorDetail);
   }
 }
 
@@ -332,16 +305,10 @@ export const returnTripFromHistory = async (id: number): Promise<{ id: number; s
     const restoreResponse = await axiosInstance.post(`/rayshistory-actions/${id}/restore/`)
     console.log(`✅ Trip ${id} successfully returned to active list:`, restoreResponse.data)
     return restoreResponse.data
-  } catch (error: unknown) {
-    const axiosError = error as ApiError;
-    console.error(
-      `❌ Error returning trip ${id}:`,
-      axiosError.response?.data || axiosError.message,
-    )
-    const errorMessage = axiosError.response?.data?.message ||
-      axiosError.message ||
-      'Reysni qaytarishda xatolik yuz berdi'
-    throw new Error(errorMessage)
+  } catch (error: any) {
+    console.error(`❌ Error returning trip ${id}:`, error.response?.data || error.message);
+    const errorDetail = error.response?.data?.detail || error.response?.data?.message || error.message || 'Reysni qaytarishda xatolik yuz berdi';
+    throw new Error(errorDetail);
   }
 }
 
@@ -349,10 +316,10 @@ export const fetchFromLocations = async (): Promise<FromLocation[]> => {
   try {
     const response = await axiosInstance.get<FromLocation[]>('/fromlocation/');
     return response.data;
-  } catch (error: unknown) {
-    const axiosError = error as ApiError;
-    console.error('Error fetching from locations:', axiosError);
-    throw new Error(axiosError.response?.data?.message || 'Failed to fetch from locations');
+  } catch (error: any) {
+    const errorDetail = error.response?.data?.detail || error.response?.data?.message || error.message || 'Failed to fetch from locations';
+    console.error('Error fetching from locations:', error.response?.data || error);
+    throw new Error(errorDetail);
   }
 };
 
@@ -360,10 +327,10 @@ export const fetchToLocations = async (): Promise<ToLocation[]> => {
   try {
     const response = await axiosInstance.get<ToLocation[]>('/tolocation/');
     return response.data;
-  } catch (error: unknown) {
-    const axiosError = error as ApiError;
-    console.error('Error fetching to locations:', axiosError);
-    throw new Error(axiosError.response?.data?.message || 'Failed to fetch to locations');
+  } catch (error: any) {
+    const errorDetail = error.response?.data?.detail || error.response?.data?.message || error.message || 'Failed to fetch to locations';
+    console.error('Error fetching to locations:', error.response?.data || error);
+    throw new Error(errorDetail);
   }
 };
 
@@ -371,10 +338,10 @@ export const createFromLocation = async (name: string): Promise<FromLocation> =>
   try {
     const response = await axiosInstance.post<FromLocation>('/fromlocation/', { name });
     return response.data;
-  } catch (error: unknown) {
-    const axiosError = error as ApiError;
-    console.error('Error creating from location:', axiosError);
-    throw new Error(axiosError.response?.data?.message || 'Failed to create from location');
+  } catch (error: any) {
+    const errorDetail = error.response?.data?.detail || error.response?.data?.message || error.message || (error.response?.data && typeof error.response.data === 'object' ? JSON.stringify(error.response.data) : null) || 'Failed to create from location';
+    console.error('Error creating from location:', error.response?.data || error);
+    throw new Error(errorDetail);
   }
 };
 
@@ -382,30 +349,30 @@ export const createToLocation = async (name: string): Promise<ToLocation> => {
   try {
     const response = await axiosInstance.post<ToLocation>('/tolocation/', { name });
     return response.data;
-  } catch (error: unknown) {
-    const axiosError = error as ApiError;
-    console.error('Error creating to location:', axiosError);
-    throw new Error(axiosError.response?.data?.message || 'Failed to create to location');
+  } catch (error: any) {
+    const errorDetail = error.response?.data?.detail || error.response?.data?.message || error.message || (error.response?.data && typeof error.response.data === 'object' ? JSON.stringify(error.response.data) : null) || 'Failed to create to location';
+    console.error('Error creating to location:', error.response?.data || error);
+    throw new Error(errorDetail);
   }
 };
 
 export const deleteFromLocation = async (id: number): Promise<void> => {
   try {
     await axiosInstance.delete(`/fromlocation/${id}/`);
-  } catch (error: unknown) {
-    const axiosError = error as ApiError;
-    console.error('Error deleting from location:', axiosError);
-    throw new Error(axiosError.response?.data?.message || 'Failed to delete from location');
+  } catch (error: any) {
+    const errorDetail = error.response?.data?.detail || error.response?.data?.message || error.message || 'Failed to delete from location';
+    console.error('Error deleting from location:', error.response?.data || error);
+    throw new Error(errorDetail);
   }
 };
 
 export const deleteToLocation = async (id: number): Promise<void> => {
   try {
     await axiosInstance.delete(`/tolocation/${id}/`);
-  } catch (error: unknown) {
-    const axiosError = error as ApiError;
-    console.error('Error deleting to location:', axiosError);
-    throw new Error(axiosError.response?.data?.message || 'Failed to delete to location');
+  } catch (error: any) {
+    const errorDetail = error.response?.data?.detail || error.response?.data?.message || error.message || 'Failed to delete to location';
+    console.error('Error deleting to location:', error.response?.data || error);
+    throw new Error(errorDetail);
   }
 };
 
@@ -413,10 +380,10 @@ export const updateFromLocation = async (id: number, name: string): Promise<From
   try {
     const response = await axiosInstance.put<FromLocation>(`/fromlocation/${id}/`, { name });
     return response.data;
-  } catch (error: unknown) {
-    const axiosError = error as ApiError;
-    console.error('Error updating from location:', axiosError);
-    throw new Error(axiosError.response?.data?.message || 'Failed to update from location');
+  } catch (error: any) {
+    const errorDetail = error.response?.data?.detail || error.response?.data?.message || error.message || 'Failed to update from location';
+    console.error('Error updating from location:', error.response?.data || error);
+    throw new Error(errorDetail);
   }
 };
 
@@ -424,18 +391,24 @@ export const updateToLocation = async (id: number, name: string): Promise<ToLoca
   try {
     const response = await axiosInstance.put<ToLocation>(`/tolocation/${id}/`, { name });
     return response.data;
-  } catch (error: unknown) {
-    const axiosError = error as ApiError;
-    console.error('Error updating to location:', axiosError);
-    throw new Error(axiosError.response?.data?.message || 'Failed to update to location');
+  } catch (error: any) {
+    const errorDetail = error.response?.data?.detail || error.response?.data?.message || error.message || 'Failed to update to location';
+    console.error('Error updating to location:', error.response?.data || error);
+    throw new Error(errorDetail);
   }
 };
 
 export const freightApi = {
   // Get all freight deliveries
   getAllFreight: async () => {
-    const response = await axiosInstance.get('/rays/');
-    return response.data;
+    try {
+      const response = await axiosInstance.get('/rays/');
+      return response.data;
+    } catch (error: any) {
+      console.error('Error fetching all freight:', error.response?.data || error);
+      const errorMsg = error.response?.data?.detail || error.response?.data?.message || error.message || 'Error fetching freight data';
+      throw new Error(errorMsg);
+    }
   },
 
   // Create new rays (route)
@@ -466,7 +439,8 @@ export const freightApi = {
       return response.data;
     } catch (error: any) {
       console.error('Error creating rays:', error.response?.data || error);
-      throw error;
+      const errorMsg = error.response?.data?.detail || error.response?.data?.message || (error.response?.data && typeof error.response.data === 'object' ? JSON.stringify(error.response.data) : null) || error.message || 'Error creating rays';
+      throw new Error(errorMsg);
     }
   },
 
@@ -478,19 +452,32 @@ export const freightApi = {
       return response.data;
     } catch (error: any) {
       console.error('Error creating product:', error.response?.data || error);
-      throw error;
+      const errorMsg = error.response?.data?.detail || error.response?.data?.message || (error.response?.data && typeof error.response.data === 'object' ? JSON.stringify(error.response.data) : null) || error.message || 'Error creating product';
+      throw new Error(errorMsg);
     }
   },
 
   // Get all locations
   getLocations: async (): Promise<Location[]> => {
-    const response = await axiosInstance.get('/fromlocation/');
-    return response.data;
+    try {
+      const response = await axiosInstance.get('/fromlocation/');
+      return response.data;
+    } catch (error: any) {
+      console.error('Error getting locations:', error.response?.data || error);
+      const errorMsg = error.response?.data?.detail || error.response?.data?.message || error.message || 'Error getting locations';
+      throw new Error(errorMsg);
+    }
   },
 
   getRaysById: async (id: number) => {
-    const response = await axiosInstance.get(`/rays/${id}/`);
-    return response.data;
+    try {
+      const response = await axiosInstance.get(`/rays/${id}/`);
+      return response.data;
+    } catch (error: any) {
+      console.error(`Error getting ray ${id}:`, error.response?.data || error);
+      const errorMsg = error.response?.data?.detail || error.response?.data?.message || error.message || `Error getting ray details`;
+      throw new Error(errorMsg);
+    }
   },
 
   updateRays: async (id: number, data: Partial<RaysCreate>) => {
@@ -498,33 +485,58 @@ export const freightApi = {
       const response = await axiosInstance.patch(`/rays/${id}/`, data);
       return response.data;
     } catch (error: any) {
-      console.error('Error updating rays:', error.response?.data || error);
-      throw error;
+      console.error(`Error updating ray ${id}:`, error.response?.data || error);
+      const errorMsg = error.response?.data?.detail || error.response?.data?.message || error.message || 'Error updating rays';
+      throw new Error(errorMsg);
     }
   },
 
   // Delete rays
   deleteRays: async (id: number) => {
-    await axiosInstance.delete(`/rays/${id}/`);
+    try {
+      await axiosInstance.delete(`/rays/${id}/`);
+    } catch (error: any) {
+      console.error(`Error deleting ray ${id}:`, error.response?.data || error);
+      const errorMsg = error.response?.data?.detail || error.response?.data?.message || error.message || 'Error deleting rays';
+      throw new Error(errorMsg);
+    }
   },
 
   // Get all rays
   getAllRays: async () => {
-    const response = await axiosInstance.get('/rays/');
-    return response.data;
+    try {
+      const response = await axiosInstance.get('/rays/');
+      return response.data;
+    } catch (error: any) {
+      console.error('Error getting all rays:', error.response?.data || error);
+      const errorMsg = error.response?.data?.detail || error.response?.data?.message || error.message || 'Error fetching all rays';
+      throw new Error(errorMsg);
+    }
   },
 
   // Get active rays
   getActiveRays: async () => {
-    const response = await axiosInstance.get('/rays/?is_completed=false');
-    return response.data;
+    try {
+      const response = await axiosInstance.get('/rays/?is_completed=false');
+      return response.data;
+    } catch (error: any) {
+      console.error('Error getting active rays:', error.response?.data || error);
+      const errorMsg = error.response?.data?.detail || error.response?.data?.message || error.message || 'Error fetching active rays';
+      throw new Error(errorMsg);
+    }
   },
 
   // Complete rays
   completeRays: async (id: number) => {
-    const response = await axiosInstance.patch(`/rays/${id}/`, {
-      is_completed: true
-    });
-    return response.data;
+    try {
+      const response = await axiosInstance.patch(`/rays/${id}/`, {
+        is_completed: true
+      });
+      return response.data;
+    } catch (error: any) {
+      console.error(`Error completing ray ${id}:`, error.response?.data || error);
+      const errorMsg = error.response?.data?.detail || error.response?.data?.message || error.message || 'Error completing rays';
+      throw new Error(errorMsg);
+    }
   }
 };

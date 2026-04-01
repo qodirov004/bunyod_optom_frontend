@@ -12,7 +12,7 @@ import {
   Alert,
   Typography
 } from 'antd';
-import { CashCreate, RaysClientsMap, Currency } from '../../types/cash.types';
+import { CashCreate, RaysClientsMap } from '../../types/cash.types';
 import { cashApi } from '../../api/cash/cashApi';
 import dayjs from 'dayjs';
 
@@ -32,7 +32,6 @@ interface CashTransactionModalProps {
   raysClientsMap?: RaysClientsMap[]; 
   preSelectedClient?: number | null;
   form?: any;
-  currencies?: Currency[];
 }
 
 const CashTransactionModal: React.FC<CashTransactionModalProps> = ({
@@ -42,8 +41,7 @@ const CashTransactionModal: React.FC<CashTransactionModalProps> = ({
   editingTransaction,
   raysClientsMap = [], 
   preSelectedClient,
-  form: externalForm,
-  currencies = []
+  form: externalForm
 }) => {
   const [internalForm] = Form.useForm();
   const form = externalForm || internalForm; 
@@ -54,16 +52,13 @@ const CashTransactionModal: React.FC<CashTransactionModalProps> = ({
   const [isDebtRepayment, setIsDebtRepayment] = useState(false);
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
 
-  // Use useWatch to avoid "not connected to form" warnings
   const isDebt = Form.useWatch('is_debt', form);
   const totalExpectedAmount = Form.useWatch('total_expected_amount', form);
-  const currencyValue = Form.useWatch('currency', form);
 
   useEffect(() => {
     const fetchPaymentMethods = async () => {
       try {
         const response = await cashApi.getPaymentWays();
-        console.log('Fetched payment methods:', response);
         setPaymentMethods(response);
       } catch (error) {
         console.error('Error fetching payment methods:', error);
@@ -96,7 +91,6 @@ const CashTransactionModal: React.FC<CashTransactionModalProps> = ({
     if (visible) {
       form.resetFields();
       
-      // Check if this is a debt repayment transaction
       const isRepayment = editingTransaction && 
                           editingTransaction.comment === "Qarz to'lovi" && 
                           editingTransaction.total_expected_amount > 0;
@@ -104,13 +98,13 @@ const CashTransactionModal: React.FC<CashTransactionModalProps> = ({
       setIsDebtRepayment(isRepayment);
       
       if (editingTransaction) {
-        // Set form values from existing transaction data
         form.setFieldsValue({
           ...editingTransaction,
           date: editingTransaction.created_at ? dayjs(editingTransaction.created_at) : dayjs(),
           is_debt: isRepayment ? false : (editingTransaction.is_debt || false),
           is_via_driver: editingTransaction.is_via_driver || false,
-          is_delivered_to_cashier: editingTransaction.is_delivered_to_cashier || false
+          is_delivered_to_cashier: editingTransaction.is_delivered_to_cashier || false,
+          currency: 4 // Standardize to UZS
         });
         
         if (editingTransaction.rays) {
@@ -118,10 +112,9 @@ const CashTransactionModal: React.FC<CashTransactionModalProps> = ({
           updateAvailableClients(editingTransaction.rays);
         }
       } else {
-        // Default values for new transaction
         form.setFieldsValue({
           date: dayjs(),
-          currency: 'USD',
+          currency: 4, // UZS
           is_debt: false,
           is_via_driver: false,
           is_delivered_to_cashier: true,
@@ -178,7 +171,6 @@ const CashTransactionModal: React.FC<CashTransactionModalProps> = ({
       const values = await form.validateFields();
       setLoading(true);
 
-      // For debt repayment, ensure we have a valid rays ID
       let raysId = values.rays;
       if (isDebtRepayment && (!raysId || raysId === 0)) {
         const validRays = await findValidRaysForClient(values.client);
@@ -191,9 +183,8 @@ const CashTransactionModal: React.FC<CashTransactionModalProps> = ({
         }
       }
 
-      // Ensure total_expected_amount and paid_amount are valid integers
       const amount = Number(values.amount);
-      const totalExpectedAmount = isDebtRepayment 
+      const totalExpectedAmountValue = isDebtRepayment 
         ? Number(values.total_expected_amount) 
         : (Number(values.total_expected_amount) || amount);
       
@@ -201,27 +192,23 @@ const CashTransactionModal: React.FC<CashTransactionModalProps> = ({
         ? amount 
         : (values.is_debt ? (Number(values.paid_amount) || 0) : amount);
 
-      // Prepare the data according to the API requirements
       const submitData: any = {
         client: values.client,
-        rays: raysId, // Use the valid rays ID
+        rays: raysId,
         ...(values.driver && { driver: values.driver }),
         ...(values.product && { product: values.product }),
         amount: amount,
-        currency: values.currency, // Should be ID number
+        currency: 4, // Always UZS
         payment_way: values.payment_way, 
         comment: values.comment || (isDebtRepayment ? "Qarz to'lovi" : ''),
-        is_debt: !!values.is_debt, // Include is_debt
+        is_debt: !!values.is_debt,
         is_via_driver: !!values.is_via_driver,
         is_delivered_to_cashier: values.is_delivered_to_cashier !== false,
-        // These fields may not be needed for basic API call
-        ...(values.total_expected_amount && { total_expected_amount: Math.round(totalExpectedAmount) }),
+        ...(values.total_expected_amount && { total_expected_amount: Math.round(totalExpectedAmountValue) }),
         ...(values.paid_amount && { paid_amount: Math.round(paidAmount) }),
         ...(values.date && { date: values.date.format('YYYY-MM-DD') }),
         move_type: 'cash'
       };
-
-      console.log('Sending data to API:', submitData);
 
       if (editingTransaction?.id) {
         await cashApi.updateCash(editingTransaction.id, submitData);
@@ -235,47 +222,15 @@ const CashTransactionModal: React.FC<CashTransactionModalProps> = ({
       onClose();
     } catch (error) {
       console.error('Error submitting form:', error);
-      if (error.response) {
-        const errorData = error.response.data;
-        let errorMessage = 'To\'lovni saqlashda muammo yuz berdi';
-        
-        // Display specific error messages
-        if (errorData) {
-          if (errorData.rays) {
-            errorMessage = `Reys xatosi: ${errorData.rays}`;
-          } else if (errorData.payment_way) {
-            errorMessage = `To'lov usuli xatosi: ${errorData.payment_way}`;
-          } else if (errorData.total_expected_amount) {
-            errorMessage = `Kutilayotgan summa xatosi: ${errorData.total_expected_amount}`;
-          } else if (errorData.detail) {
-            errorMessage = errorData.detail;
-          }
-        }
-        
-        message.error(`Xatolik: ${errorMessage}`);
-      } else {
-        message.error('Xatolik yuz berdi');
-      }
+      message.error('Xatolik yuz berdi');
     } finally {
       setLoading(false);
     }
   };
 
-  // Fix InputNumber parser return type
   const inputParser = (value: string | undefined): string => {
     if (!value) return '';
     return value.replace(/\$\s?|(,*)/g, '');
-  };
-
-  // Valyuta nomi ni ID dan olish funksiyasi
-  const getCurrencyName = (id: number): string => {
-    const currencyMap: {[key: number]: string} = {
-      1: 'RUB',
-      2: 'USD',
-      3: 'EUR',
-      4: 'UZS'
-    };
-    return currencyMap[id] || id.toString();
   };
 
   return (
@@ -303,10 +258,10 @@ const CashTransactionModal: React.FC<CashTransactionModalProps> = ({
         layout="vertical"
         initialValues={{
           date: dayjs(),
-          currency: 'USD',
+          currency: 4,
           is_via_driver: false,
           is_delivered_to_cashier: true,
-          payment_way: 1, // Default to cash
+          payment_way: 1, 
           client: preSelectedClient   
         }}
       >
@@ -354,49 +309,23 @@ const CashTransactionModal: React.FC<CashTransactionModalProps> = ({
             label="Joriy qarz miqdori"
           >
             <Text strong style={{ fontSize: 16, color: '#ff4d4f' }}>
-              {totalExpectedAmount} {currencyValue}
+              {totalExpectedAmount}
             </Text>
           </Form.Item>
         )}
 
-        <Space style={{ width: '100%' }} direction="horizontal">
-          <Form.Item
-            name="amount"
-            label={isDebtRepayment ? "To'lanayotgan summa" : "Summa"}
-            rules={[{ required: true, message: 'Iltimos, summani kiriting' }]}
-            style={{ width: '200px' }}
-          >
-            <InputNumber
-              style={{ width: '100%' }}
-              formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-              parser={inputParser}
-            />
-          </Form.Item>
-
-          <Form.Item
-            name="currency"
-            label="Valyuta"
-            rules={[{ required: true, message: 'Iltimos, valyutani tanlang' }]}
-            style={{ width: '120px' }}
-          >
-            <Select>
-              {currencies.length > 0 ? (
-                currencies.map(currency => (
-                  <Option key={currency.id} value={currency.id}>
-                    {currency.currency}
-                  </Option>
-                ))
-              ) : (
-                <>
-                  <Option value={2}>USD</Option>
-                  <Option value={4}>UZS</Option>
-                  <Option value={1}>RUB</Option>
-                  <Option value={3}>EUR</Option>
-                </>
-              )}
-            </Select>
-          </Form.Item>
-        </Space>
+        <Form.Item
+          name="amount"
+          label={isDebtRepayment ? "To'lanayotgan summa" : "Summa"}
+          rules={[{ required: true, message: 'Iltimos, summani kiriting' }]}
+          style={{ width: '100%' }}
+        >
+          <InputNumber
+            style={{ width: '100%' }}
+            formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+            parser={inputParser}
+          />
+        </Form.Item>
 
         <Form.Item
           name="payment_way"
@@ -412,78 +341,63 @@ const CashTransactionModal: React.FC<CashTransactionModalProps> = ({
           </Select>
         </Form.Item>
 
-        {/* Only show debt options for new transactions, not debt repayments */}
         {!isDebtRepayment && (
           <>
-        <Divider />
+            <Divider />
+            <Space style={{ width: '100%' }} direction="horizontal" wrap>
+              <Form.Item name="is_debt" valuePropName="checked" style={{ marginBottom: 0 }}>
+                <Radio.Group>
+                  <Radio value={true}>Qarz</Radio>
+                  <Radio value={false}>To`liq to`lov</Radio>
+                </Radio.Group>
+              </Form.Item>
 
-        <Space style={{ width: '100%' }} direction="horizontal">
-          <Form.Item
-            name="is_debt"
-            valuePropName="checked"
-            style={{ marginBottom: 0 }}
-          >
-            <Radio.Group>
-              <Radio value={true}>Qarz</Radio>
-              <Radio value={false}>To`liq to`lov</Radio>
-            </Radio.Group>
-          </Form.Item>
+              <Form.Item name="is_via_driver" valuePropName="checked" style={{ marginBottom: 0 }}>
+                <Radio.Group>
+                  <Radio value={true}>Haydovchi orqali</Radio>
+                  <Radio value={false}>To`g`ridan-to`g`ri</Radio>
+                </Radio.Group>
+              </Form.Item>
 
-          <Form.Item
-            name="is_via_driver"
-            valuePropName="checked"
-            style={{ marginBottom: 0 }}
-          >
-            <Radio.Group>
-              <Radio value={true}>Haydovchi orqali</Radio>
-              <Radio value={false}>To`g`ridan-to`g`ri</Radio>
-            </Radio.Group>
-          </Form.Item>
+              <Form.Item name="is_delivered_to_cashier" valuePropName="checked" style={{ marginBottom: 0 }}>
+                <Radio.Group>
+                  <Radio value={true}>Kassaga topshirildi</Radio>
+                  <Radio value={false}>Topshirilmadi</Radio>
+                </Radio.Group>
+              </Form.Item>
+            </Space>
 
-          <Form.Item
-            name="is_delivered_to_cashier"
-            valuePropName="checked"
-            style={{ marginBottom: 0 }}
-          >
-            <Radio.Group>
-              <Radio value={true}>Kassaga topshirildi</Radio>
-              <Radio value={false}>Topshirilmadi</Radio>
-            </Radio.Group>
-          </Form.Item>
-        </Space>
-
-        {isDebt && (
-          <Space style={{ width: '100%', marginTop: '20px' }} direction="horizontal">
-            <Form.Item
-              name="total_expected_amount"
-              label="Kutilayotgan summa"
-              rules={[{ required: true, message: 'Iltimos, kutilayotgan summani kiriting' }]}
-              style={{ width: '200px' }}
-            >
-              <InputNumber
-                style={{ width: '100%' }}
-                formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                parser={inputParser}
-              />
-            </Form.Item>
-            <Form.Item
-              name="paid_amount"
-              label="To'langan summa"
-              rules={[{ required: true, message: 'Iltimos, to\'langan summani kiriting' }]}
-              style={{ width: '200px' }}
-            >
-              <InputNumber
-                style={{ width: '100%' }}
-                formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                parser={inputParser}
-              />
-            </Form.Item>
-          </Space>
+            {isDebt && (
+              <Space style={{ width: '100%', marginTop: '20px' }} direction="horizontal">
+                <Form.Item
+                  name="total_expected_amount"
+                  label="Kutilayotgan summa"
+                  rules={[{ required: true, message: 'Iltimos, kutilayotgan summani kiriting' }]}
+                  style={{ width: '200px' }}
+                >
+                  <InputNumber
+                    style={{ width: '100%' }}
+                    formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                    parser={inputParser}
+                  />
+                </Form.Item>
+                <Form.Item
+                  name="paid_amount"
+                  label="To'langan summa"
+                  rules={[{ required: true, message: 'Iltimos, to\'langan summani kiriting' }]}
+                  style={{ width: '200px' }}
+                >
+                  <InputNumber
+                    style={{ width: '100%' }}
+                    formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                    parser={inputParser}
+                  />
+                </Form.Item>
+              </Space>
             )}
           </>
         )}
 
-        {/* Keep the total_expected_amount for debt repayments, but hidden */}
         {isDebtRepayment && (
           <Form.Item name="total_expected_amount" hidden>
             <InputNumber />

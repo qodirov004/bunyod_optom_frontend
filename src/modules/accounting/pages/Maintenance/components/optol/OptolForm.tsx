@@ -2,7 +2,6 @@ import React, { useEffect } from 'react';
 import { Form, Input, Button, Select, InputNumber, DatePicker, Tag } from 'antd';
 import { OptolType } from '../../types/maintenance';
 import dayjs from 'dayjs';
-import { useCurrencies } from '@/modules/accounting/hooks/useCurrencies';
 import { CarOutlined } from '@ant-design/icons';
 
 interface OptolFormProps {
@@ -21,7 +20,6 @@ const OptolForm: React.FC<OptolFormProps> = ({
   loading 
 }) => {
   const [form] = Form.useForm();
-  const { currencies, loading: currenciesLoading } = useCurrencies();
 
   useEffect(() => {
     if (initialValues) {
@@ -43,21 +41,21 @@ const OptolForm: React.FC<OptolFormProps> = ({
   };
 
   return (
-    <Form
-      form={form}
-      layout="vertical"
-      onFinish={handleFinish}
-      initialValues={{ 
-        price: 0,
-        car: null,
-        type: null,
-        kilometr: null,
-        count: 1,
-        currency: currencies?.length > 0 ? currencies[0].id : undefined,
-        custom_rate_to_uzs: currencies?.length > 0 ? currencies[0].rate_to_uzs : null,
-        created_at: dayjs()
-      }}
-    >
+      <Form
+        form={form}
+        layout="vertical"
+        onFinish={handleFinish}
+        initialValues={{ 
+          price: 0,
+          car: null,
+          type: null,
+          kilometr: null,
+          count: 1,
+          currency: 4,
+          custom_rate_to_uzs: 1,
+          created_at: dayjs()
+        }}
+      >
       <Form.Item
         name="car"
         label="Avtomobil"
@@ -92,47 +90,13 @@ const OptolForm: React.FC<OptolFormProps> = ({
           style={{ width: '100%' }} 
           placeholder="Narx" 
           formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-          parser={value => value!.replace(/\$\s?|(,*)/g, '')}
+          parser={value => value!.replace(/so'm\s?|(,*)/g, '')}
         />
       </Form.Item>
 
-      <Form.Item
-        name="currency"
-        label="Valyuta"
-        rules={[{ required: true, message: 'Iltimos, valyutani tanlang!' }]}
-      >
-        <Select 
-          placeholder="Valyutani tanlang" 
-          loading={currenciesLoading}
-          onChange={(value) => {
-            const selectedCurrency = currencies?.find(c => c.id === value);
-            if (selectedCurrency) {
-              form.setFieldsValue({
-                custom_rate_to_uzs: selectedCurrency.rate_to_uzs
-              });
-            }
-          }}
-        >
-          {currencies?.map((currency) => (
-            <Select.Option key={currency.id} value={currency.id}>
-              {currency.currency} ({parseFloat(currency.rate_to_uzs).toLocaleString()} UZS)
-            </Select.Option>
-          ))}
-        </Select>
-      </Form.Item>
 
-      <Form.Item
-        name="custom_rate_to_uzs"
-        label="Valyuta kursi"
-        rules={[{ required: true, message: 'Iltimos, valyuta kursini kiriting!' }]}
-      >
-        <InputNumber
-          style={{ width: '100%' }}
-          placeholder="Valyuta kursi"
-          formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-          parser={value => value!.replace(/\$\s?|,*/g, '')}
-        />
-      </Form.Item>
+
+
 
       <Form.Item
         name="kilometr"

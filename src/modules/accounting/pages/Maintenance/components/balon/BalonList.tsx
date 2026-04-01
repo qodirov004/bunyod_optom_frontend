@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Space, Modal, Form, Card, Tooltip, InputNumber, Select, message } from 'antd';
+import { Table, Button, Space, Modal, Form, Card, Tooltip, InputNumber, Select } from 'antd';
 import { DeleteOutlined, EditOutlined, UnorderedListOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import '../../style/maintenance.css';
-import { useCurrencies } from '@/modules/accounting/hooks/useCurrencies';
 
 // Inline styles
 const styles = {
@@ -56,19 +55,6 @@ const BalonList: React.FC<BalonListProps> = ({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedService, setSelectedService] = useState<BalonServiceType | null>(null);
   const [form] = Form.useForm();
-  const { currencies, loading: currenciesLoading } = useCurrencies();
-  const [currencyMap, setCurrencyMap] = useState<Record<number, any>>({});
-
-  // Create currency map when currencies are loaded
-  useEffect(() => {
-    if (currencies?.length > 0) {
-      const map: Record<number, any> = {};
-      currencies.forEach(currency => {
-        map[currency.id] = currency;
-      });
-      setCurrencyMap(map);
-    }
-  }, [currencies]);
   
   useEffect(() => {
     if (isModalOpen && selectedService) {
@@ -86,7 +72,12 @@ const BalonList: React.FC<BalonListProps> = ({
       if (selectedService && selectedService.id !== undefined) {
         updateBalonService({
           id: selectedService.id,
-          service: { ...selectedService, ...values },
+          service: { 
+            ...selectedService, 
+            ...values,
+            currency: 4, // Hardcoded UZS
+            custom_rate_to_uzs: 1 // 1 to 1 for UZS
+          },
         });
       }
       setIsModalOpen(false);
@@ -99,11 +90,6 @@ const BalonList: React.FC<BalonListProps> = ({
 
   const formatDate = (dateString: string) => {
     return dayjs(dateString).format('DD.MM.YYYY HH:mm');
-  };
-
-  const getCurrencyName = (currencyId: number | null): string => {
-    if (!currencyId) return 'UZS';
-    return currencyMap[currencyId]?.currency || 'UZS';
   };
 
   const columns = [
@@ -123,8 +109,7 @@ const BalonList: React.FC<BalonListProps> = ({
       title: 'Narxi',
       dataIndex: 'price',
       key: 'price',
-      render: (price: number, record: BalonServiceType) => 
-        `${price.toLocaleString()} ${getCurrencyName(record.currency)}`,
+      render: (price: number) => `${price.toLocaleString()} so'm`,
     },
     {
       title: 'Kilometr',
@@ -229,20 +214,6 @@ const BalonList: React.FC<BalonListProps> = ({
             rules={[{ required: true, message: 'Narxni kiriting!' }]}
           >
             <InputNumber style={{ width: '100%' }} formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')} />
-          </Form.Item>
-          
-          <Form.Item
-            name="currency"
-            label="Valyuta"
-            rules={[{ required: true, message: 'Iltimos, valyutani tanlang!' }]}
-          >
-            <Select placeholder="Valyutani tanlang" loading={currenciesLoading}>
-              {currencies?.map((currency) => (
-                <Select.Option key={currency.id} value={currency.id}>
-                  {currency.currency} ({parseFloat(currency.rate_to_uzs).toLocaleString()} UZS)
-                </Select.Option>
-              ))}
-            </Select>
           </Form.Item>
           
           <Form.Item

@@ -90,30 +90,14 @@ const ClientHistoryPage: React.FC = () => {
     }
   };
   
-  const formatCurrency = (amount: number, currency: string) => {
+  const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('uz-UZ', { 
-      minimumFractionDigits: 2,
+      minimumFractionDigits: 0,
       maximumFractionDigits: 2
-    }).format(amount) + ' ' + currency;
+    }).format(amount) + ' so\'m';
   };
 
-  // Calculate the percentage each currency contributes to the total
-  const calculatePercentage = (amount: number, currency: string) => {
-    if (!data) return 0;
-    
-    // Convert to USD for percentage calculation
-    let valueInUsd = 0;
-    if (currency === 'USD') {
-      valueInUsd = amount;
-    } else if (currency === 'UZS') {
-      valueInUsd = amount / 12270; // Approximate conversion rate
-    } else if (currency === 'RUB') {
-      valueInUsd = amount / 92; // Approximate conversion rate
-    }
-    
-    const total = data.total_paid_usd || 1; // Avoid division by zero
-    return Math.min(Math.round((valueInUsd / total) * 100), 100);
-  };
+
   
   if (loading) {
     return (
@@ -185,7 +169,7 @@ const ClientHistoryPage: React.FC = () => {
       
       {/* Summary statistics */}
       <Row gutter={[24, 24]} style={{ marginBottom: '24px' }}>
-        <Col xs={24} sm={12} lg={6}>
+        <Col xs={24} sm={12} lg={12}>
           <Card variant="borderless" style={{ background: '#f6ffed', borderRadius: '8px' }}>
             <Statistic
               title="Reyslar soni"
@@ -195,37 +179,14 @@ const ClientHistoryPage: React.FC = () => {
             />
           </Card>
         </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <Card variant="borderless" style={{ background: '#fff2e8', borderRadius: '8px' }}>
-            <Statistic
-              title="USD to'lovlari"
-              value={total_paid.USD}
-              precision={2}
-              prefix={<DollarOutlined />}
-              suffix="USD"
-              valueStyle={{ color: '#fa541c' }}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
+        <Col xs={24} sm={12} lg={12}>
           <Card variant="borderless" style={{ background: '#e6f7ff', borderRadius: '8px' }}>
             <Statistic
-              title="UZS to'lovlari"
-              value={total_paid.UZS}
+              title="Jami to'lovlar"
+              value={data.total_paid?.UZS || 0 + (data.total_paid?.USD || 0) + (data.total_paid?.RUB || 0)}
               prefix={<DollarOutlined />}
-              suffix="UZS"
+              suffix="so'm"
               valueStyle={{ color: '#1890ff' }}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <Card variant="borderless" style={{ background: '#f9f0ff', borderRadius: '8px' }}>
-            <Statistic
-              title="RUB to'lovlari"
-              value={total_paid.RUB}
-              prefix={<DollarOutlined />}
-              suffix="RUB"
-              valueStyle={{ color: '#722ed1' }}
             />
           </Card>
         </Col>
@@ -318,78 +279,19 @@ const ClientHistoryPage: React.FC = () => {
               justifyContent: 'space-between'
             }}>
               <div>
-                <Text type="secondary">Umumiy to&apos;lovlar (USD hisobida)</Text>
+                <Text type="secondary">Umumiy to'lovlar (so'm hisobida)</Text>
                 <div>
                   <Text style={{ fontSize: '24px', fontWeight: 'bold', color: '#1890ff' }}>
-                    {formatCurrency(data.total_paid_usd || 0, 'USD')}
+                    {formatCurrency((total_paid?.UZS || 0) + (total_paid?.USD || 0) + (total_paid?.RUB || 0))}
                   </Text>
                 </div>
               </div>
               <DollarOutlined style={{ fontSize: '32px', color: '#1890ff' }} />
             </div>
 
-            <div className="currency-breakdown">
-              <Title level={5}>Valyutalar bo&apos;yicha taqsimot</Title>
-              
-              {/* USD Breakdown */}
-              {total_paid.USD > 0 && (
-                <div style={{ marginBottom: '16px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                    <Text>USD</Text>
-                    <Text>{formatCurrency(total_paid.USD, 'USD')}</Text>
-                  </div>
-                  <Progress 
-                    percent={calculatePercentage(total_paid.USD, 'USD')} 
-                    status="active" 
-                    strokeColor="#52c41a"
-                    showInfo={false}
-                    style={{ marginBottom: '4px' }}
-                  />
-                  <Text type="secondary" style={{ fontSize: '12px' }}>
-                    {calculatePercentage(total_paid.USD, 'USD')}% of total payments
-                  </Text>
-                </div>
-              )}
-              
-              {/* UZS Breakdown */}
-              {total_paid.UZS > 0 && (
-                <div style={{ marginBottom: '16px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                    <Text>UZS</Text>
-                    <Text>{formatCurrency(total_paid.UZS, 'UZS')}</Text>
-                  </div>
-                  <Progress 
-                    percent={calculatePercentage(total_paid.UZS, 'UZS')} 
-                    status="active" 
-                    strokeColor="#1890ff"
-                    showInfo={false}
-                    style={{ marginBottom: '4px' }}
-                  />
-                  <Text type="secondary" style={{ fontSize: '12px' }}>
-                    {calculatePercentage(total_paid.UZS, 'UZS')}% of total payments
-                  </Text>
-                </div>
-              )}
-              
-              {/* RUB Breakdown */}
-              {total_paid.RUB > 0 && (
-                <div style={{ marginBottom: '16px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                    <Text>RUB</Text>
-                    <Text>{formatCurrency(total_paid.RUB, 'RUB')}</Text>
-                  </div>
-                  <Progress 
-                    percent={calculatePercentage(total_paid.RUB, 'RUB')} 
-                    status="active" 
-                    strokeColor="#722ed1"
-                    showInfo={false}
-                    style={{ marginBottom: '4px' }}
-                  />
-                  <Text type="secondary" style={{ fontSize: '12px' }}>
-                    {calculatePercentage(total_paid.RUB, 'RUB')}% of total payments
-                  </Text>
-                </div>
-              )}
+            <div className="payment-summary">
+              <Title level={5}>Mijoz to'lovlari</Title>
+              <Text type="secondary">Mijoz tomonidan amalga oshirilgan barcha to'lovlar jamlangan.</Text>
             </div>
           </Card>
         </Col>

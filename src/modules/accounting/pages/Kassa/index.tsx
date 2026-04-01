@@ -12,7 +12,6 @@ import {
   ReloadOutlined,
 } from '@ant-design/icons';
 import { useCash } from '../../hooks/useCash';
-import { useCurrencies } from '../../hooks/useCurrencies';
 import Overview from './Overview';
 import ClientAccounts from './ClientAccounts';
 import DriverPayments from './DriverPayments';
@@ -29,13 +28,10 @@ const KassaPage: React.FC = () => {
   
   // Pass messageApi to useCash hook for React 19 compatibility
   const { cashOverview, loading, isLoading, fetchCashOverview } = useCash(messageApi);
-  const { currencies, loading: currenciesLoading, error: currenciesError } = useCurrencies();
-
+  
   useEffect(() => {
-    if (currenciesError) {
-      messageApi.error('Valyuta kurslarini yuklashda xatolik yuz berdi');
-    }
-  }, [currenciesError, messageApi]);
+    fetchCashOverview();
+  }, []);
 
   const handleRefresh = () => {
     fetchCashOverview();
@@ -43,16 +39,7 @@ const KassaPage: React.FC = () => {
     messageApi.success('Ma\'lumotlar yangilandi');
   };
 
-  // Function to get currency symbol
-  const getCurrencySymbol = (currencyCode: string): string => {
-    switch (currencyCode) {
-      case 'USD': return '$';
-      case 'RUB': return '₽';
-      case 'EUR': return '€';
-      case 'UZS': return 'so\'m';
-      default: return currencyCode;
-    }
-  };
+
 
   const tabItems = [
     {
@@ -89,7 +76,7 @@ const KassaPage: React.FC = () => {
     }
   ];
 
-  if (isLoading || loading || currenciesLoading) {
+  if (isLoading || loading) {
     return (
       <div className="loading-container" style={{ textAlign: 'center', padding: '50px 0' }}>
         {contextHolder}
@@ -147,33 +134,25 @@ const KassaPage: React.FC = () => {
       )}
 
       <Row gutter={[24, 24]} className="currency-stats">
-        {currencies && currencies.length > 0 ? (
-          currencies.map(currency => (
-            <Col xs={24} sm={12} md={6} key={`currency-card-${currency.id}`}>
-              <Card className={`currency-card ${currency.currency.toLowerCase()}-card`} hoverable variant="borderless">
-                <div className="currency-card-header">
-                  <span className="currency-icon">{getCurrencySymbol(currency.currency)}</span>
-                  <div className="currency-title">{currency.currency}</div>
-                </div>
-                <div className="currency-amount">
-                  {cashOverview?.cashbox?.[currency.currency]?.toLocaleString() || 0}
-                </div>
-              </Card>
-            </Col>
-          ))
-        ) : (
-          <Col span={24}>
-            <Empty description="Valyuta ma'lumotlari mavjud emas" />
-          </Col>
-        )}
+        <Col xs={24} sm={12} md={6}>
+          <Card className="currency-card uzs-card" hoverable variant="borderless">
+            <div className="currency-card-header">
+              <span className="currency-icon">so'm</span>
+              <div className="currency-title">UZS (so'm)</div>
+            </div>
+            <div className="currency-amount">
+              {cashOverview?.cashbox?.UZS?.toLocaleString() || 0}
+            </div>
+          </Card>
+        </Col>
       </Row>
 
       <Row gutter={[24, 24]} style={{ marginTop: 24 }}>
         <Col xs={24} sm={12} md={8}>
           <Card className="summary-card total-card" hoverable variant="borderless">
-            <div className="summary-card-title">Jami kassa </div>
+            <div className="summary-card-title">Jami kassa</div>
             <div className="summary-card-value">
-              ${cashOverview?.cashbox?.total_in_usd?.toLocaleString() || 0}
+              {cashOverview?.cashbox?.total_in_uzs?.toLocaleString() || (cashOverview?.cashbox?.total_in_usd * 12800)?.toLocaleString() || 0} so'm
             </div>
             <LineChartOutlined className="summary-card-icon" />
           </Card>
@@ -182,11 +161,11 @@ const KassaPage: React.FC = () => {
           <Card className="summary-card expenses-card" hoverable variant="borderless">
             <div className="summary-card-title">Jami xarajatlar</div>
             <div className="summary-card-value">
-              ${cashOverview?.expenses?.total_expenses_usd?.toLocaleString() || 0}
+              {cashOverview?.expenses?.total_expenses_uzs?.toLocaleString() || (cashOverview?.expenses?.total_expenses_usd * 12800)?.toLocaleString() || 0} so'm
             </div>
             <div className="summary-card-subtitle">
-              <span>Service xarajatlar: ${cashOverview?.expenses?.dp_price_usd?.toLocaleString() || 0}</span> |
-              <span> Maosh: ${cashOverview?.expenses?.salaries_usd?.toLocaleString() || 0}</span>
+              <span>Service xarajatlar: {cashOverview?.expenses?.dp_price_uzs?.toLocaleString() || 0} so'm</span> |
+              <span> Maosh: {cashOverview?.expenses?.salaries_uzs?.toLocaleString() || 0} so'm</span>
             </div>
           </Card>
         </Col>
@@ -199,14 +178,14 @@ const KassaPage: React.FC = () => {
               borderTop: cashOverview?.final_balance_usd >= 0 ? '4px solid #52c41a' : '4px solid #f5222d'
             }}
           >
-            <div className="summary-card-title">Qolgan balans (USD)</div>
+            <div className="summary-card-title">Qolgan balans (so'm)</div>
             <div
               className="summary-card-value"
               style={{
                 color: cashOverview?.final_balance_usd >= 0 ? '#52c41a' : '#f5222d'
               }}
             >
-              ${cashOverview?.final_balance_usd?.toLocaleString() || 0}
+              {cashOverview?.final_balance_uzs?.toLocaleString() || (cashOverview?.final_balance_usd * 12800)?.toLocaleString() || 0} so'm
             </div>
           </Card>
         </Col>

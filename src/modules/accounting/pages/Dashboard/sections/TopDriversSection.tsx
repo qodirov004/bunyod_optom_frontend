@@ -1,26 +1,38 @@
-import React from 'react';
-import { Card, Table, Avatar, Tag, Spin, Button, Empty } from 'antd';
-import { UserOutlined, TrophyOutlined, EyeOutlined } from '@ant-design/icons';
+import React, { useState } from 'react';
+import { Card, Table, Avatar, Tag, Spin, Button, Empty, Modal, Descriptions, Space, Typography, Divider } from 'antd';
+import { UserOutlined, TrophyOutlined, EyeOutlined, PhoneOutlined, CarOutlined, DollarOutlined, HistoryOutlined } from '@ant-design/icons';
 import { useTopDrivers } from '../../../hooks/useTopDrivers';
-import { useRouter } from 'next/navigation';
+import { formatCurrency } from '@/utils/formatCurrency';
 import type { ColumnsType } from 'antd/es/table';
+
+const { Text, Title } = Typography;
 
 // Define proper type for driver
 interface DriverData {
     id: number;
     fullname: string;
+    username: string;
     phone_number: string;
     photo?: string;
     is_busy: boolean;
     rays_count: number;
+    total_rays_usd: number;
+    status: string;
 }
 
 const TopDriversSection = () => {
     const { data: drivers = [], isLoading, error } = useTopDrivers();
-    const router = useRouter();
+    const [selectedDriver, setSelectedDriver] = useState<DriverData | null>(null);
+    const [isModalVisible, setIsModalVisible] = useState(false);
 
-    const navigateToDriver = (driverId: number) => {
-        router.push(`/modules/accounting/drivers/history/${driverId}`);
+    const showDetails = (driver: DriverData) => {
+        setSelectedDriver(driver);
+        setIsModalVisible(true);
+    };
+
+    const handleClose = () => {
+        setIsModalVisible(false);
+        setSelectedDriver(null);
     };
 
     const columns: ColumnsType<DriverData> = [
@@ -29,15 +41,15 @@ const TopDriversSection = () => {
             dataIndex: 'fullname',
             key: 'fullname',
             render: (text: string, record: DriverData) => (
-                <div className="driver-info">
+                <div className="driver-info" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <Avatar
                         src={record.photo}
                         icon={<UserOutlined />}
                         style={{ backgroundColor: record.photo ? 'transparent' : '#1890ff' }}
                     />
                     <div>
-                        <div className="driver-name">{text}</div>
-                        <div className="driver-phone">{record.phone_number}</div>
+                        <div className="driver-name" style={{ fontWeight: 600 }}>{text}</div>
+                        <div className="driver-phone" style={{ fontSize: '12px', color: '#8c8c8c' }}>{record.phone_number}</div>
                     </div>
                 </div>
             ),
@@ -47,6 +59,9 @@ const TopDriversSection = () => {
             dataIndex: 'rays_count',
             key: 'rays_count',
             align: 'center' as const,
+            render: (count: number) => (
+                <Tag color="blue" style={{ borderRadius: '10px' }}>{count || 0}</Tag>
+            )
         },
         {
             title: 'Holat',
@@ -54,7 +69,7 @@ const TopDriversSection = () => {
             key: 'is_busy',
             align: 'center' as const,
             render: (busy: boolean) => (
-                <Tag color={busy ? 'red' : 'green'}>
+                <Tag color={busy ? 'volcano' : 'green'} style={{ borderRadius: '10px' }}>
                     {busy ? 'Band' : 'Bo\'sh'}
                 </Tag>
             ),
@@ -65,9 +80,11 @@ const TopDriversSection = () => {
             align: 'center' as const,
             render: (_, record: DriverData) => (
                 <Button
-                    type="link"
+                    type="primary"
+                    shape="circle"
                     icon={<EyeOutlined />}
-                    onClick={() => navigateToDriver(record.id)}
+                    onClick={() => showDetails(record)}
+                    style={{ backgroundColor: '#1890ff' }}
                 />
             ),
         }
@@ -75,7 +92,7 @@ const TopDriversSection = () => {
 
     const renderContent = () => {
         if (isLoading) {
-            return <div className="section-loading"><Spin /></div>;
+            return <div className="section-loading" style={{ textAlign: 'center', padding: '40px' }}><Spin size="large" /></div>;
         }
 
         if (error) {
@@ -93,6 +110,7 @@ const TopDriversSection = () => {
                 pagination={false}
                 rowKey="id"
                 className="dashboard-table"
+                size="middle"
             />
         );
     };
@@ -100,14 +118,85 @@ const TopDriversSection = () => {
     return (
         <Card
             title={
-                <div className="section-title">
-                    <TrophyOutlined className="section-icon" />
+                <div className="section-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <TrophyOutlined className="section-icon" style={{ color: '#faad14' }} />
                     <span>Eng yaxshi haydovchilar</span>
                 </div>
             }
             className="dashboard-card"
+            style={{ borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}
         >
             {renderContent()}
+
+            <Modal
+                title={
+                    <Space>
+                        <UserOutlined style={{ color: '#1890ff' }} />
+                        <span>Haydovchi ma'lumotlari</span>
+                    </Space>
+                }
+                open={isModalVisible}
+                onCancel={handleClose}
+                footer={[
+                    <Button key="close" type="primary" onClick={handleClose}>
+                        Yopish
+                    </Button>
+                ]}
+                width={550}
+                centered
+                styles={{
+                    body: { padding: '24px 32px' }
+                }}
+            >
+                {selectedDriver && (
+                    <div className="driver-detail-content">
+                        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '24px', gap: '20px' }}>
+                            <Avatar
+                                size={80}
+                                src={selectedDriver.photo}
+                                icon={<UserOutlined />}
+                                style={{ 
+                                    backgroundColor: selectedDriver.photo ? 'transparent' : '#1890ff',
+                                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                                }}
+                            />
+                            <div>
+                                <Title level={3} style={{ margin: 0 }}>{selectedDriver.fullname}</Title>
+                                <Text type="secondary">@{selectedDriver.username}</Text>
+                                <div style={{ marginTop: '8px' }}>
+                                    <Tag color={selectedDriver.is_busy ? 'volcano' : 'green'}>
+                                        {selectedDriver.is_busy ? 'Band' : 'Bo\'sh'}
+                                    </Tag>
+                                    <Tag color="blue">{selectedDriver.status}</Tag>
+                                </div>
+                            </div>
+                        </div>
+
+                        <Divider style={{ margin: '16px 0' }} />
+
+                        <Descriptions column={1} bordered size="small" labelStyle={{ width: '160px', fontWeight: 600 }}>
+                            <Descriptions.Item label={<Space><PhoneOutlined /> Telefon</Space>}>
+                                <Text copyable>{selectedDriver.phone_number}</Text>
+                            </Descriptions.Item>
+                            <Descriptions.Item label={<Space><HistoryOutlined /> Jami reyslar</Space>}>
+                                <Text strong>{selectedDriver.rays_count || 0}</Text>
+                            </Descriptions.Item>
+                            <Descriptions.Item label={<Space><DollarOutlined /> Umumiy tushum</Space>}>
+                                <Text strong type="success">
+                                    {formatCurrency(selectedDriver.total_rays_usd)}
+                                </Text>
+                            </Descriptions.Item>
+                            <Descriptions.Item label={<Space><CarOutlined /> Holati</Space>}>
+                                {selectedDriver.is_busy ? (
+                                    <Text type="danger">Hozirda reysda</Text>
+                                ) : (
+                                    <Text type="success">Navbatda / Bo'sh</Text>
+                                )}
+                            </Descriptions.Item>
+                        </Descriptions>
+                    </div>
+                )}
+            </Modal>
         </Card>
     );
 };

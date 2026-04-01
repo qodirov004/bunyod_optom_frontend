@@ -41,7 +41,6 @@ import type { ColumnsType } from 'antd/es/table';
 import dayjs from 'dayjs';
 import { driverSalaryApi } from '@/modules/accounting/api/driverSalary/driverSalaryApi';
 import axiosInstance from '@/api/axiosInstance';
-import { useCurrencies } from '@/modules/accounting/hooks/useCurrencies';
 
 const {  Text } = Typography;
 const { Option } = Select;
@@ -123,9 +122,6 @@ const DriverPayments: React.FC = () => {
   const [paymentHistory, setPaymentHistory] = useState<PaymentHistory[]>([]);
   const [driverPayments, setDriverPayments] = useState<DriverPaymentData[]>([]);
   
-  // Get currencies from the API using the useCurrencies hook
-  const { currencies, loading: currenciesLoading } = useCurrencies();
-
   // State for Kassa management statistics
   const [kassaStats, setKassaStats] = useState({
     totalDriverPayments: 0,
@@ -333,7 +329,7 @@ const DriverPayments: React.FC = () => {
       const paymentData = {
         driver: currentDriver.id,
         amount: values.paymentAmount.toString(),
-        currency: values.paymentType,
+        currency: 'UZS',
         title: `To'lov ${dayjs(values.paymentDate).format('YYYY-MM-DD')}`,
         comment: values.description || `Haydovchi ${currentDriver.name} uchun to'lov`
       };
@@ -635,10 +631,7 @@ const DriverPayments: React.FC = () => {
       render: (amount: number, record: any) => `${Number(amount).toLocaleString()} ${getCurrencyName(record.currency)}`,
     },
     {
-      title: 'To\'lov turi',
-      dataIndex: 'type',
-      key: 'type',
-      render: (type: number) => getCurrencyName(type),
+      render: () => 'UZS',
     },
     {
       title: 'Izoh',
@@ -736,20 +729,8 @@ const DriverPayments: React.FC = () => {
   };
 
   // Get currency name from ID
-  const getCurrencyName = (currencyId: number): string => {
-    // Try to find the currency in the fetched currencies list
-    const currency = currencies.find(c => c.id === currencyId);
-    if (currency) return currency.currency;
-    
-    // Fallback to default mapping if not found in the currencies list
-    const currencyMap: {[key: number]: string} = {
-      1: 'RUB',
-      2: 'USD',
-      3: 'EUR',
-      4: 'UZS'
-    };
-    
-    return currencyMap[currencyId] || currencyId.toString();
+  const getCurrencyName = (currencyId: any): string => {
+    return 'UZS';
   };
 
   return (
@@ -1008,28 +989,7 @@ const DriverPayments: React.FC = () => {
             />
           </Form.Item>
           
-          <Form.Item 
-            name="paymentType" 
-            label="To'lov turi"
-            rules={[{ required: true, message: 'To\'lov turini tanlang!' }]}
-          >
-            <Select loading={currenciesLoading}>
-              {currencies.length > 0 ? (
-                currencies.map(currency => (
-                  <Option key={currency.id} value={currency.currency}>
-                    {currency.currency} {currency.rate_to_uzs && `(${parseFloat(currency.rate_to_uzs).toLocaleString()} UZS)`}
-                  </Option>
-                ))
-              ) : (
-                <>
-                  <Option value="UZS">UZS ($)</Option>
-                  <Option value="USD">USD (Dollar)</Option>
-                  <Option value="RUB">RUB (Rubl)</Option>
-                  <Option value="EUR">EUR (Yevro)</Option>
-                </>
-              )}
-            </Select>
-          </Form.Item>
+
           
           <Form.Item 
             name="paymentDate" 

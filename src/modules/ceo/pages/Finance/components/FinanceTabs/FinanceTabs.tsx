@@ -11,7 +11,6 @@ import {
 } from '@ant-design/icons';
 
 import { DashboardStats } from '../../hooks/useFinanceData';
-import CurrencyManagement from '../CurrencyManagement';
 
 // Kassa Module Components - Integrating from accounting
 import Overview from '../../../../../accounting/pages/Kassa/Overview';
@@ -38,7 +37,7 @@ const FinanceTabs: React.FC<FinanceTabsProps> = ({
     {
       key: 'overview',
       label: (
-        <Badge count={Math.round(cashboxTotal) || 0} overflowCount={999999}>
+        <Badge count={Math.round(cashboxTotal * 12800) || 0} overflowCount={999999999}>
           <span>Umumiy ko&apos;rinish</span>
         </Badge>
       ),
@@ -81,12 +80,7 @@ const FinanceTabs: React.FC<FinanceTabsProps> = ({
       icon: <ToolOutlined />,
       children: <ServiceExpenses />
     },
-    {
-      key: 'currency',
-      label: 'Valyuta kurslari',
-      icon: <GlobalOutlined />,
-      children: <CurrencyManagement />
-    },
+
   ];
 
   return (

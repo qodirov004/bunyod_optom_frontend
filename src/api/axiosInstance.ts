@@ -1,21 +1,27 @@
 import axios from "axios";
 import { getToken, removeToken, syncTokenStatus } from "@/auth/authUtils";
 
-export const baseURL = 'https://logistika.api.ardentsoft.uz';
+// DIRECT PRODUCTION CONNECTION (Bypassing proxy to avoid HTML 500/404 errors)
+export const baseURL = 'https://logistika.api.ardentsoft.uz/';
+
+// For images, we use the same base
+export const apiRootURL = 'https://logistika.api.ardentsoft.uz/';
 
 export const formatImageUrl = (url: string | null | undefined) => {
     if (!url) return null;
     if (url.startsWith('http')) {
-        // If it's a full URL with old 127.0.0.1 or localhost but we're moving to production,
-        // try to fix it by using the correct baseURL
         if (url.includes('127.0.0.1') || url.includes('localhost')) {
             const parts = url.split(':8000/');
             const path = parts.length > 1 ? parts[1] : (url.split(':8000')[1] || '');
-            if (path) return `${baseURL}${path.startsWith('/') ? path : '/' + path}`;
+            if (path) {
+                const cleanUrl = path.startsWith('/') ? path.substring(1) : path;
+                return `${apiRootURL}${cleanUrl}`;
+            }
         }
         return url;
     }
-    return `${baseURL}${url.startsWith('/') ? url : '/' + url}`;
+    const cleanUrl = url.startsWith('/') ? url.substring(1) : url;
+    return `${apiRootURL}${cleanUrl}`;
 };
 
 const axiosInstance = axios.create({

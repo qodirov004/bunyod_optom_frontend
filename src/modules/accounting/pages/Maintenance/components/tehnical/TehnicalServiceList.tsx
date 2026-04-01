@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Space, Popconfirm, Modal, Form, Input, Select, Spin } from 'antd';
+import { Table, Button, Space, Popconfirm, Modal, Form, Input, Select } from 'antd';
 import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { TehnicalService } from '@/modules/accounting/types/maintenance';
 import axiosInstance from '@/api/axiosInstance';
-import { useCurrencies } from '@/modules/accounting/hooks/useCurrencies';
 
 const { Option } = Select;
 
@@ -25,8 +24,6 @@ const TehnicalServiceList: React.FC<TehnicalServiceListProps> = ({
   const [services, setServices] = useState<any[]>([]);
   const [carMap, setCarMap] = useState<Record<number, any>>({});
   const [serviceMap, setServiceMap] = useState<Record<number, any>>({});
-  const { currencies, loading: currenciesLoading } = useCurrencies();
-  const [currencyMap, setCurrencyMap] = useState<Record<number, any>>({});
 
   useEffect(() => {
     // Fetch cars
@@ -67,17 +64,6 @@ const TehnicalServiceList: React.FC<TehnicalServiceListProps> = ({
     fetchServices();
   }, []);
 
-  // Create currency map when currencies are loaded
-  useEffect(() => {
-    if (currencies?.length > 0) {
-      const map: Record<number, any> = {};
-      currencies.forEach(currency => {
-        map[currency.id] = currency;
-      });
-      setCurrencyMap(map);
-    }
-  }, [currencies]);
-
   useEffect(() => {
     if (isModalVisible && editingService) {
       form.setFieldsValue({
@@ -85,7 +71,6 @@ const TehnicalServiceList: React.FC<TehnicalServiceListProps> = ({
         service: editingService.service,
         kilometer: editingService.kilometer,
         price: editingService.price,
-        currency: editingService.currency,
       });
     }
   }, [isModalVisible, editingService, form]);
@@ -106,17 +91,12 @@ const TehnicalServiceList: React.FC<TehnicalServiceListProps> = ({
             service: values.service,
             kilometer: values.kilometer,
             price: values.price,
-            currency: values.currency,
+            currency: 4,
           },
         });
       }
       setIsModalVisible(false);
     });
-  };
-
-  const getCurrencyName = (currencyId: number | null): string => {
-    if (!currencyId) return '';
-    return currencyMap[currencyId]?.currency || '';
   };
 
   const columns = [
@@ -147,7 +127,7 @@ const TehnicalServiceList: React.FC<TehnicalServiceListProps> = ({
       title: 'Narxi',
       dataIndex: 'price',
       key: 'price',
-      render: (price: number, record: TehnicalService) => `${price.toLocaleString()} ${getCurrencyName(record.currency)}`,
+      render: (price: number) => `${price.toLocaleString()} so'm`,
     },
     {
       title: 'Sana',
@@ -244,31 +224,10 @@ const TehnicalServiceList: React.FC<TehnicalServiceListProps> = ({
           >
             <Input type="number" placeholder="Narxni kiriting" />
           </Form.Item>
-
-          <Form.Item
-            name="currency"
-            label="Valyuta"
-            rules={[{ required: true, message: 'Iltimos, valyutani tanlang!' }]}
-          >
-            {currenciesLoading ? (
-              <div style={{ display: 'flex', alignItems: 'center' }}>
-                <Spin size="small" style={{ marginRight: 8 }} />
-                <span>Valyutalar yuklanmoqda...</span>
-              </div>
-            ) : (
-              <Select placeholder="Valyutani tanlang">
-                {currencies?.map((currency) => (
-                  <Option key={`currency-${currency.id}`} value={currency.id}>
-                    {currency.currency} ({parseFloat(currency.rate_to_uzs).toLocaleString()} UZS)
-                  </Option>
-                ))}
-              </Select>
-            )}
-          </Form.Item>
         </Form>
       </Modal>
     </>
   );
 };
 
-export default TehnicalServiceList; 
+export default TehnicalServiceList;

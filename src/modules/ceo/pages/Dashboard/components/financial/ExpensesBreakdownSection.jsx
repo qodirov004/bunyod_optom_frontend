@@ -37,7 +37,7 @@ const ExpensesBreakdownSection = ({
   return (
     <div className="dashboard-section">
       <div className="section-header">
-        <Title level={4}><PieChartOutlined /> Xarajatlar taqsimoti (USD)</Title>
+        <Title level={4}><PieChartOutlined /> Xarajatlar taqsimoti (so'm)</Title>
       </div>
       <Row gutter={[24, 24]}>
         <Col xs={24} lg={16}>
@@ -46,10 +46,9 @@ const ExpensesBreakdownSection = ({
               <Row gutter={[16, 16]}>
                 <Col span={12}>
                   <Statistic
-                    title="Jami xarajatlar (USD)"
-                    value={formatCurrency(calculatedTotalExpenses)}
+                    title="Jami xarajatlar (so'm)"
+                    value={formatCurrency(calculatedTotalExpenses * 12800)}
                     valueStyle={{ color: '#cf1322', fontSize: '24px' }}
-                    prefix="$"
                   />
                 </Col>
                 {largestExpense && (
@@ -58,7 +57,7 @@ const ExpensesBreakdownSection = ({
                       title="Eng katta xarajat"
                       value={largestExpense.name}
                       valueStyle={{ color: '#2fc25b', fontSize: '18px' }}
-                      suffix={` ($${formatCurrency(largestExpense.value)})`}
+                      suffix={` (${formatCurrency(largestExpense.value * 12800)})`}
                     />
                   </Col>
                 )}
@@ -95,7 +94,7 @@ const ExpensesBreakdownSection = ({
                     Oylik xarajatlar
                   </div>
                   <div className="metric-value">
-                    ${formatCurrency(calculatedTotalExpenses)}
+                    {formatCurrency(calculatedTotalExpenses * 12800)}
                   </div>
                 </div>
                 
@@ -110,7 +109,7 @@ const ExpensesBreakdownSection = ({
                             <span className="breakdown-indicator" style={{ backgroundColor: item.color }}></span>
                             {item.name}
                           </div>
-                          <div className="breakdown-value">${formatCurrency(item.value)}</div>
+                          <div className="breakdown-value">{formatCurrency(item.value * 12800)}</div>
                         </div>
                         <div className="breakdown-bar-container">
                           <div 
