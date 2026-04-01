@@ -1,19 +1,17 @@
 import axios from "axios";
 import { getToken, removeToken, syncTokenStatus } from "@/auth/authUtils";
 
-export const baseURL = 'http://127.0.0.1:8000'; // Removed trailing slash to prevent double // in queries
+export const baseURL = 'https://logistika.api.ardentsoft.uz';
 
 export const formatImageUrl = (url: string | null | undefined) => {
     if (!url) return null;
     if (url.startsWith('http')) {
-        // If it's a full URL with 127.0.0.1 or localhost but we're not on localhost, 
+        // If it's a full URL with old 127.0.0.1 or localhost but we're moving to production,
         // try to fix it by using the correct baseURL
-        if (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-            if (url.includes('127.0.0.1') || url.includes('localhost')) {
-                const parts = url.split(':8000/');
-                const path = parts.length > 1 ? parts[1] : (url.split(':8000')[1] || '');
-                if (path) return `${baseURL}${path.startsWith('/') ? path.substring(1) : path}`;
-            }
+        if (url.includes('127.0.0.1') || url.includes('localhost')) {
+            const parts = url.split(':8000/');
+            const path = parts.length > 1 ? parts[1] : (url.split(':8000')[1] || '');
+            if (path) return `${baseURL}${path.startsWith('/') ? path : '/' + path}`;
         }
         return url;
     }
