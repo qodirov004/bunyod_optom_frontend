@@ -7,9 +7,10 @@ interface ClientPaymentProps {
   raysId: number;
   open: boolean;
   onClose: () => void;
+  initialClients?: any[];
 }
 
-const ClientPayment: React.FC<ClientPaymentProps> = ({ raysId, open, onClose }) => {
+const ClientPayment: React.FC<ClientPaymentProps> = ({ raysId, open, onClose, initialClients }) => {
   const [messageApi, contextHolder] = message.useMessage();
   const [form] = Form.useForm();
   
@@ -20,43 +21,62 @@ const ClientPayment: React.FC<ClientPaymentProps> = ({ raysId, open, onClose }) 
 
   useEffect(() => {
     if (open && raysId) {
-      const raysData = raysClientsMap.find(item => item.rays_id === raysId);
-      setClients(raysData?.clients || []);
+      if (initialClients && initialClients.length > 0) {
+        setClients(initialClients);
+      } else {
+        const raysData = raysClientsMap.find(item => item.rays_id === raysId);
+        setClients(raysData?.clients || []);
+      }
     }
-  }, [open, raysId, raysClientsMap]);
+  }, [open, raysId, raysClientsMap, initialClients]);
 
   const handleSubmit = async (values: any) => {
     try {
-      const transactionData: CashTransaction = {
+      const transactionData: any = {
         client: selectedClient!,
-        rays: raysId,
-        amount: Number(values.amount),
-        currency: values.currency,
+        rays: Number(raysId),
+        rays_id: Number(raysId),
+        amount: Math.round(Number(values.amount)),
+        currency: 4, // UZS
         payment_way: values.payment_way,
-        comment: values.comment,
-        is_debt: values.is_debt,
-        is_via_driver: values.is_via_driver,
-        is_delivered_to_cashier: values.is_delivered_to_cashier
+        comment: values.comment || '',
+        is_debt: !!values.is_debt,
+        is_via_driver: !!values.is_via_driver,
+        is_delivered_to_cashier: values.is_delivered_to_cashier !== false,
+        move_type: 'cash',
+        date: new Date().toISOString().split('T')[0] // YYYY-MM-DD
       };
 
-      await createTransaction(transactionData);
-      messageApi.success('Payment recorded successfully');
+      try {
+        await createTransaction(transactionData);
+      } catch (firstError: any) {
+        // If it fails with the 'rays' field error, try without it as a fallback
+        if (firstError.response?.data?.rays) {
+          console.warn('Retrying without rays field due to backend error');
+          const fallbackData = { ...transactionData };
+          delete fallbackData.rays;
+          await createTransaction(fallbackData);
+        } else {
+          throw firstError;
+        }
+      }
+      messageApi.success('To\'lov muvaffaqiyatli saqlandi');
       form.resetFields();
       onClose();
     } catch (error) {
-      messageApi.error('Failed to record payment');
+      messageApi.error('To\'lovni saqlashda xatolik yuz berdi');
       console.error('Error recording payment:', error);
     }
   };
 
   const columns = [
     {
-      title: 'Client Name',
+      title: 'Mijoz ismi',
       dataIndex: 'first_name',
       key: 'first_name',
     },
     {
-      title: 'Action',
+      title: 'Amal',
       key: 'action',
       render: (_, record: any) => (
         <Space size="middle">
@@ -65,7 +85,7 @@ const ClientPayment: React.FC<ClientPaymentProps> = ({ raysId, open, onClose }) 
             onClick={() => setSelectedClient(record.id)}
             disabled={selectedClient === record.id}
           >
-            Select
+            Tanlash
           </Button>
         </Space>
       ),
@@ -74,7 +94,7 @@ const ClientPayment: React.FC<ClientPaymentProps> = ({ raysId, open, onClose }) 
 
   return (
     <Modal
-      title="Client Payment"
+      title="Mijoz to'lovi"
       open={open}
       onCancel={onClose}
       footer={null}
@@ -87,6 +107,7 @@ const ClientPayment: React.FC<ClientPaymentProps> = ({ raysId, open, onClose }) 
           dataSource={clients} 
           rowKey="id"
           pagination={false}
+          locale={{ emptyText: 'Mijozlar topilmadi' }}
         />
       </div>
 
@@ -95,69 +116,65 @@ const ClientPayment: React.FC<ClientPaymentProps> = ({ raysId, open, onClose }) 
           form={form}
           layout="vertical"
           onFinish={handleSubmit}
+          initialValues={{
+            currency: 4,
+            payment_way: 1,
+            is_debt: false,
+            is_via_driver: false,
+            is_delivered_to_cashier: false
+          }}
         >
           <Form.Item
             name="amount"
-            label="Amount"
-            rules={[{ required: true, message: 'Please input the amount!' }]}
+            label="Summa (so'mda)"
+            rules={[{ required: true, message: 'Iltimos, summani kiriting!' }]}
           >
-            <Input type="number" />
-          </Form.Item>
-
-          <Form.Item
-            name="currency"
-            label="Currency"
-            rules={[{ required: true, message: 'Please select currency!' }]}
-          >
-            <Select>
-              <Select.Option value="USD">USD</Select.Option>
-              <Select.Option value="UZS">UZS</Select.Option>
-            </Select>
+            <Input type="number" placeholder="Summani kiriting" />
           </Form.Item>
 
           <Form.Item
             name="payment_way"
-            label="Payment Way"
-            rules={[{ required: true, message: 'Please select payment way!' }]}
+            label="To'lov turi"
+            rules={[{ required: true, message: 'Iltimos, to\'lov turini tanlang!' }]}
           >
-            <Select>
-              <Select.Option value={1}>Cash</Select.Option>
-              <Select.Option value={2}>Card</Select.Option>
-              <Select.Option value={3}>Bank Transfer</Select.Option>
+            <Select placeholder="To'lov turini tanlang">
+              <Select.Option value={1}>Naqd</Select.Option>
+              <Select.Option value={2}>Karta</Select.Option>
+              <Select.Option value={3}>Hisobdan (Pul o'tkazmasi)</Select.Option>
             </Select>
           </Form.Item>
 
           <Form.Item
             name="comment"
-            label="Comment"
+            label="Izoh"
           >
-            <Input.TextArea />
+            <Input.TextArea placeholder="Qo'shimcha izohlar" />
           </Form.Item>
 
           <Form.Item
             name="is_debt"
             valuePropName="checked"
           >
-            <Input type="checkbox" /> Client took on debt
+            <Input type="checkbox" /> Mijoz qarzga oldi
           </Form.Item>
 
           <Form.Item
             name="is_via_driver"
             valuePropName="checked"
           >
-            <Input type="checkbox" /> Payment via driver
+            <Input type="checkbox" /> Haydovchi orqali to'lov
           </Form.Item>
 
           <Form.Item
             name="is_delivered_to_cashier"
             valuePropName="checked"
           >
-            <Input type="checkbox" /> Delivered to cashier
+            <Input type="checkbox" /> Kassirga topshirildi
           </Form.Item>
 
           <Form.Item>
-            <Button type="primary" htmlType="submit" loading={loading}>
-              Record Payment
+            <Button type="primary" htmlType="submit" loading={loading} style={{ width: '100%', height: '40px' }}>
+              To'lovni saqlash
             </Button>
           </Form.Item>
         </Form>

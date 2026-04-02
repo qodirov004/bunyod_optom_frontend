@@ -106,7 +106,9 @@ export interface RaysResponseType {
   price: number;
   dr_price: number;
   dp_price: number;
-  dp_currency?: string;
+  dp_currency?: string | number;
+  currency?: number;
+  custom_rate_to_uzs?: string;
   kilometer: number;
   from1: string;
   to_go: string;

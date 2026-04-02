@@ -12,7 +12,9 @@ const { Text, Paragraph } = Typography;
 
 const completeRaceWithAllClients = async (tripId: number) => {
   try {
-    await axiosInstance.post(`/rays/${tripId}/complete-race/`);
+    // The previous endpoint '/complete-race/' returned 404. 
+    // Backend method was identified as 'complete_whole_race'.
+    await axiosInstance.post(`/rays/${tripId}/complete_whole_race/`);
     return true;
   } catch (error: any) {
     console.error('Reysni yakunlashda xatolik:', error);
@@ -249,21 +251,33 @@ const TripTable = ({
     },
     {
       title: 'Narxi',
-      dataIndex: 'price',
       key: 'price',
-      render: (price: number) => formatCurrency(price),
+      render: (_: any, record: RaysResponseType) => {
+        const rate = record.custom_rate_to_uzs ? parseFloat(record.custom_rate_to_uzs) : 1;
+        const isNotUZS = record.currency && record.currency !== 4;
+        const displayPrice = isNotUZS ? (record.price * rate) : record.price;
+        return formatCurrency(displayPrice);
+      },
     },
     {
       title: "Haydovchining xarajatlari",
-      dataIndex: 'dr_price',
       key: 'dr_price',
-      render: (payment: number) => formatCurrency(payment),
+      render: (_: any, record: RaysResponseType) => {
+        const rate = record.custom_rate_to_uzs ? parseFloat(record.custom_rate_to_uzs) : 1;
+        const isNotUZS = record.currency && record.currency !== 4;
+        const displayDrPrice = isNotUZS ? (record.dr_price * rate) : record.dr_price;
+        return formatCurrency(displayDrPrice);
+      },
     },
     {
       title: "Haydovchiga to'lov",
-      dataIndex: 'dp_price',
       key: 'dp_price',
-      render: (payment: number) => formatCurrency(payment),
+      render: (_: any, record: RaysResponseType) => {
+        const rate = record.custom_rate_to_uzs ? parseFloat(record.custom_rate_to_uzs) : 1;
+        const isNotUZS = record.dp_currency && record.dp_currency !== 4;
+        const displayDpPrice = isNotUZS ? (record.dp_price * rate) : record.dp_price;
+        return formatCurrency(displayDpPrice);
+      },
     },
     {
       title: 'Soni',
@@ -529,9 +543,23 @@ const TripTable = ({
                 </div>
 
                 <div className="price-info">
-                  <p><DollarOutlined /> Narxi: <Text strong>{formatCurrency(trip.price)}</Text></p>
-                  <p>Haydovchining xarajatlari: {formatCurrency(trip.dr_price)}</p>
-                  <p>Haydovchiga to`lov: {formatCurrency(trip.dp_price)}</p>
+                  {(() => {
+                    const rate = trip.custom_rate_to_uzs ? parseFloat(trip.custom_rate_to_uzs) : 1;
+                    const isPriceNotUZS = trip.currency && trip.currency !== 4;
+                    const isDpNotUZS = trip.dp_currency && trip.dp_currency !== 4;
+                    
+                    const dPrice = isPriceNotUZS ? (trip.price * rate) : trip.price;
+                    const dDrPrice = isPriceNotUZS ? (trip.dr_price * rate) : trip.dr_price;
+                    const dDpPrice = isDpNotUZS ? (trip.dp_price * rate) : trip.dp_price;
+
+                    return (
+                      <>
+                        <p><DollarOutlined /> Narxi: <Text strong>{formatCurrency(dPrice)}</Text></p>
+                        <p>Haydovchining xarajatlari: {formatCurrency(dDrPrice)}</p>
+                        <p>Haydovchiga to`lov: {formatCurrency(dDpPrice)}</p>
+                      </>
+                    );
+                  })()}
                 </div>
 
                 <div className="trip-footer">

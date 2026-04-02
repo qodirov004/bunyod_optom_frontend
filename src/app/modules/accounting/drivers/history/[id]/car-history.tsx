@@ -136,7 +136,7 @@ const CarHistoryPage: React.FC = () => {
       setLoading(true);
       try {
         // Fetch car history data
-        const response = await axiosInstance.get(`/history/${carId}/car-history/`);
+        const response = await axiosInstance.get(`/history/${carId}/cars-history/`);
         setCarData(response.data);
         setError(null);
       } catch (err) {

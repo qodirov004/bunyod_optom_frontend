@@ -79,7 +79,7 @@ const BalonFurgonForm: React.FC<BalonFurgonFormProps> = ({
     furgon: number | null;
     type: string | null;
     price: number | null;
-    kilometr: number | null;
+    kilometer: number | null;
     count: number | null;
     currency: number | null;
     custom_rate_to_uzs: number | null;
@@ -103,7 +103,7 @@ const BalonFurgonForm: React.FC<BalonFurgonFormProps> = ({
         price: null,
         furgon: null,
         type: 'qishki',
-        kilometr: null,
+        kilometer: null,
         count: 1,
         currency: 4,
         custom_rate_to_uzs: 1,
@@ -163,7 +163,7 @@ const BalonFurgonForm: React.FC<BalonFurgonFormProps> = ({
 
 
       <Form.Item
-        name="kilometr"
+        name="kilometer"
         label="Kilometr"
       >
         <InputNumber 

@@ -34,7 +34,7 @@ interface BalonServiceType {
   id: number;
   type: string;
   price: number;
-  kilometr: number;
+  kilometer: number;
   count: number;
   created_at: string;
   car: number;
@@ -113,9 +113,9 @@ const BalonList: React.FC<BalonListProps> = ({
     },
     {
       title: 'Kilometr',
-      dataIndex: 'kilometr',
-      key: 'kilometr',
-      render: (km: number) => `${km.toLocaleString()} km`,
+      dataIndex: 'kilometer',
+      key: 'kilometer',
+      render: (km: number | string) => km ? `${Number(km).toLocaleString()} km` : '-',
     },
     {
       title: 'Soni',
@@ -217,7 +217,7 @@ const BalonList: React.FC<BalonListProps> = ({
           </Form.Item>
           
           <Form.Item
-            name="kilometr"
+            name="kilometer"
             label="Kilometr"
             rules={[{ required: true, message: 'Kilometrni kiriting!' }]}
           >

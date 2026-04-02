@@ -274,8 +274,12 @@ interface Trip {
   client?: Client[];
   kilometer?: number;
   price?: number;
+  displayPrice?: number;
   dr_price?: number;
+  displayDrPrice?: number;
   dp_price?: number;
+  displayDpPrice?: number;
+  displayProfit?: number;
   dp_currency_name?: string;
   created_at: string;
   dp_information?: string;
@@ -283,6 +287,9 @@ interface Trip {
   status?: string;
   from1?: string;
   to_go?: string;
+  currency?: number;
+  custom_rate_to_uzs?: string;
+  hasJunkDistance?: boolean;
 }
 
 // Trip tarixi sahifasi
@@ -343,28 +350,114 @@ const TripHistoryPage: React.FC = () => {
       const response = await axiosInstance.get('/rayshistory/', { params });
       
       if (response.data) {
+        // Map history data to match the UI expectations (mapping snapshot data to regular fields)
+        const mapHistoryData = (data: any[]) => {
+          return data.map((item: any) => {
+            // Convert main trip price if it's not UZS OR if it looks like USD (heuristic)
+            const mainRate = item.custom_rate_to_uzs ? parseFloat(item.custom_rate_to_uzs) : 12500;
+            const isMainNotUZS = item.currency && item.currency !== 4;
+            const looksLikeUSD = item.price > 0 && item.price < 50000 && !isMainNotUZS; // Heuristic for missing currency ID
+
+            const finalPrice = (isMainNotUZS || looksLikeUSD) ? (item.price * mainRate) : item.price;
+            const finalDrPrice = (isMainNotUZS || looksLikeUSD) ? (item.dr_price * mainRate) : item.dr_price;
+            const finalDpPrice = (item.dp_currency && item.dp_currency !== 4) ? (item.dp_price * mainRate) : item.dp_price;
+            
+            // Calculate total expenses for profit calculation
+            // Note: dr_price is often a budget that is then itemized in chiqimliks. 
+            // We use itemized expenses to avoid double counting the budget.
+            const expensesPriceTotal = (item.expenses?.texnics?.reduce((s: number, e: any) => s + (e.price * (e.custom_rate_to_uzs ? parseFloat(e.custom_rate_to_uzs) : 1)), 0) || 0) +
+                                      (item.expenses?.balons?.reduce((s: number, e: any) => s + (e.price * (e.custom_rate_to_uzs ? parseFloat(e.custom_rate_to_uzs) : 1)), 0) || 0) +
+                                      (item.expenses?.balon_furgons?.reduce((s: number, e: any) => s + (e.price * (e.custom_rate_to_uzs ? parseFloat(e.custom_rate_to_uzs) : 1)), 0) || 0) +
+                                      (item.expenses?.optols?.reduce((s: number, e: any) => s + (e.price * (e.custom_rate_to_uzs ? parseFloat(e.custom_rate_to_uzs) : 1)), 0) || 0) +
+                                      (item.expenses?.chiqimliks?.reduce((s: number, e: any) => s + (e.price * (e.custom_rate_to_uzs ? parseFloat(e.custom_rate_to_uzs) : 1)), 0) || 0);
+
+            // New Profit Formula: Income - (Driver's payment + All truck-related expenses)
+            // We don't subtract dr_price separately if individual expenses are already being added.
+            const tripProfit = finalPrice - finalDpPrice - expensesPriceTotal;
+
+            return {
+              ...item,
+              // Prioritize snapshot objects over IDs or nulls
+              driver: (item.driver_data && typeof item.driver_data === 'object') ? item.driver_data : item.driver,
+              car: (item.car_data && typeof item.car_data === 'object') ? item.car_data : item.car,
+              fourgon: (item.fourgon_data && typeof item.fourgon_data === 'object') ? item.fourgon_data : item.fourgon,
+              client: ((item.client_data && Array.isArray(item.client_data) && item.client_data.length > 0) ? item.client_data : (item.client || [])).map((c: any) => ({
+                ...c,
+                first_name: c.first_name || c.name || '',
+                company: c.company || '',
+                number: c.number || c.phone || '',
+                products: (c.products || []).map((p: any) => {
+                  // Convert product price if needed
+                  const rate = p.custom_rate_to_uzs ? parseFloat(p.custom_rate_to_uzs) : 1;
+                  const isNotUZS = p.currency && p.currency !== 4;
+                  return {
+                    ...p,
+                    displayPrice: isNotUZS ? (p.price * rate) : p.price
+                  };
+                })
+              })),
+              displayPrice: finalPrice,
+              displayDrPrice: finalDrPrice,
+              displayDpPrice: finalDpPrice,
+              displayProfit: tripProfit,
+              hasJunkDistance: item.kilometer > 100000 
+            };
+          });
+        };
+
         // Handle pagination response format
         if (response.data.results && Array.isArray(response.data.results)) {
-        setTrips(response.data.results);
+          const mappedResults = mapHistoryData(response.data.results);
+          
+          // Local recalculation of stats for the visible items
+          const localTotalSum = mappedResults.reduce((s, t) => s + (t.displayPrice || 0), 0);
+          const localTotalProfit = mappedResults.reduce((s, t) => s + (t.displayProfit || 0), 0);
+          const localTotalKm = mappedResults.reduce((s, t) => s + (t.kilometer || 0), 0);
+
+          setTrips(mappedResults);
           setPagination({
             ...pagination,
             total: response.data.count || response.data.results.length
           });
-        console.log("Paginatsiya ma'lumotlari yuklandi:", response.data.results.length);
+          
+          // Override statsData with local page totals if backend stats look small or wrong
+          setStatsData(prev => ({
+            ...prev,
+            rays_count: response.data.count || mappedResults.length,
+            rays_kilometr: localTotalKm > prev.rays_kilometr ? localTotalKm : prev.rays_kilometr,
+            rays_price: localTotalSum > prev.rays_price ? localTotalSum : prev.rays_price,
+            rays_total_price: localTotalProfit < 0 && localTotalProfit > -1000000 ? localTotalProfit : (localTotalProfit || prev.rays_total_price)
+          }));
+          
+          console.log("Paginatsiya ma'lumotlari yuklandi va xaritlandi:", mappedResults.length);
         } 
         // Handle direct array response
         else if (Array.isArray(response.data)) {
-          setTrips(response.data);
+          const mappedResults = mapHistoryData(response.data);
+          
+          const localTotalSum = mappedResults.reduce((s, t) => s + (t.displayPrice || 0), 0);
+          const localTotalProfit = mappedResults.reduce((s, t) => s + (t.displayProfit || 0), 0);
+          const localTotalKm = mappedResults.reduce((s, t) => s + (t.kilometer || 0), 0);
+
+          setTrips(mappedResults);
           setPagination({
             ...pagination,
             total: response.data.length
           });
-          console.log("Ma'lumotlar yuklandi:", response.data.length);
-      }
-      else {
-        console.error('API xato javob qaytardi:', response.data);
-        setTrips([]);
-        setError('Server ma\'lumotlari noto\'g\'ri formatda');
+
+          setStatsData({
+            rays_count: mappedResults.length,
+            rays_kilometr: localTotalKm,
+            rays_price: localTotalSum,
+            rays_total_price: localTotalProfit
+          });
+
+          console.log("Ma'lumotlar yuklandi va xaritlandi:", mappedResults.length);
+        }
+        else {
+          console.error('API xato javob qaytardi:', response.data);
+          setTrips([]);
+          setError('Server ma\'lumotlari noto\'g\'ri formatda');
         }
       }
     } catch (err) {
@@ -398,9 +491,37 @@ const TripHistoryPage: React.FC = () => {
   };
 
   // Reys haqida batafsil ma'lumotlarni ko'rish
-  const viewTripDetails = (trip: Trip) => {
-    setSelectedTrip(trip);
-    setDetailsVisible(true);
+  const viewTripDetails = async (trip: Trip) => {
+    try {
+      setSelectedTrip(trip);
+      setDetailsVisible(true);
+      
+      // Fetch full details if they might be missing (like products)
+      const response = await axiosInstance.get(`/rayshistory/${trip.id}/`);
+      if (response.data) {
+        // Map the detailed data as well
+        const item = response.data;
+        const mappedTrip = {
+          ...item,
+          // Prioritize snapshot objects over IDs or nulls
+          driver: (item.driver_data && typeof item.driver_data === 'object') ? item.driver_data : item.driver,
+          car: (item.car_data && typeof item.car_data === 'object') ? item.car_data : item.car,
+          fourgon: (item.fourgon_data && typeof item.fourgon_data === 'object') ? item.fourgon_data : item.fourgon,
+          client: ((item.client_data && Array.isArray(item.client_data) && item.client_data.length > 0) ? item.client_data : (item.client || [])).map((c: any) => ({
+            ...c,
+            first_name: c.first_name || c.name || '',
+            company: c.company || '',
+            number: c.number || c.phone || '',
+            // Ensure products are preserved if they exist in the snapshot
+            products: c.products || []
+          }))
+        };
+        setSelectedTrip(mappedTrip);
+      }
+    } catch (err) {
+      console.error('Reys tafsilotlarini yuklashda xatolik:', err);
+      // We still have the basic trip data from the list, so we don't necessarily show an error
+    }
   };
 
   // Reysni qaytarish (aktivga qaytarish)
@@ -557,13 +678,19 @@ const TripHistoryPage: React.FC = () => {
       {
         title: 'Mijoz',
         key: 'client',
-        render: (_: unknown, record: Trip) => (
-          <Text strong>
-            {record.client && record.client.length > 0
-              ? record.client[0]?.company || record.client[0]?.first_name || 'Mijoz kiritilmagan'
-              : 'Mijoz kiritilmagan'}
-          </Text>
-        ),
+        render: (_: unknown, record: any) => {
+          // Robust checking for client name in mapped 'client' field or raw 'client_data'
+          const clientPrimary = (record.client && record.client.length > 0) ? record.client[0] : null;
+          const clientSecondary = (record.client_data && record.client_data.length > 0) ? record.client_data[0] : null;
+          const c = clientPrimary || clientSecondary;
+          
+          if (!c) return 'Mijoz kiritilmagan';
+          
+          // Try all possible name fields
+          const name = c.company || c.first_name || c.name || c.fullname || (c.last_name ? `${c.first_name} ${c.last_name}` : null);
+          
+          return <Text strong>{name || 'Mijoz kiritilmagan'}</Text>;
+        },
       },
       {
         title: 'Transport',
@@ -590,15 +717,20 @@ const TripHistoryPage: React.FC = () => {
       },
       {
         title: 'Masofa',
-        dataIndex: 'kilometer',
         key: 'kilometer',
-        render: (kilometer: number) => `${kilometer} km`,
+        render: (_: any, record: Trip) => (
+          <Space>
+            <Text>{record.kilometer?.toLocaleString() || 0} km</Text>
+            {record.hasJunkDistance && (
+              <Tag color="warning" icon={<InfoCircleOutlined />}>Xato?</Tag>
+            )}
+          </Space>
+        ),
       },
       {
         title: 'Narx',
-        dataIndex: 'price',
         key: 'price',
-        render: (price: number) => <Text strong style={{ color: '#52c41a' }}>{price?.toLocaleString() || 0} so'm</Text>,
+        render: (_: any, record: any) => <Text strong style={{ color: '#52c41a' }}>{(record.displayPrice || record.price || 0).toLocaleString()} so'm</Text>,
       },
       {
         title: 'Sana',
@@ -738,7 +870,7 @@ const TripHistoryPage: React.FC = () => {
                 <Col xs={24} sm={12}>
                   <Statistic 
                     title="Reys narxi" 
-                    value={selectedTrip.price || 0} 
+                    value={selectedTrip.displayPrice || selectedTrip.price || 0} 
                     suffix="so'm"
                     valueStyle={{ color: '#1890ff' }}
                     precision={0}
@@ -759,7 +891,7 @@ const TripHistoryPage: React.FC = () => {
 
               <Descriptions bordered column={1} style={{ marginTop: 24 }}>
                 <Descriptions.Item label="Haydovchiga to'lov">
-                  {selectedTrip.dp_price?.toLocaleString() || 0} so'm
+                  {(selectedTrip.displayDpPrice || selectedTrip.dp_price || 0).toLocaleString()} so'm
                 </Descriptions.Item>
               </Descriptions>
             </Card>
@@ -1040,11 +1172,10 @@ const TripHistoryPage: React.FC = () => {
                         },
                         {
                           title: 'Narx',
-                          dataIndex: 'price',
                           key: 'price',
-                          render: (price: number, record: any) => (
+                          render: (_: any, record: any) => (
                             <Text strong style={{ color: '#52c41a' }}>
-                              {price?.toLocaleString() || 0} so'm
+                              {(record.displayPrice || record.price || 0).toLocaleString()} so'm
                             </Text>
                           ),
                         },
@@ -1186,6 +1317,16 @@ const TripHistoryPage: React.FC = () => {
           </div>
         </div>
       </Card>
+
+      {trips.some(t => t.hasJunkDistance) && (
+        <Alert
+          message="Ma'lumotlarda xatolik bo'lishi mumkin"
+          description="Ayrim reyslarda masofa juda katta ko'rsatilgan (masalan, 43 million km). Bu 'Jami Foyda' hisob-kitobiga katta salbiy ta'sir qilmoqda. Iltimos, ushbu reyslarni tekshiring yoki o'chiring."
+          type="warning"
+          showIcon
+          style={{ marginBottom: 16 }}
+        />
+      )}
 
       <Row gutter={[16, 16]} style={styles.statsSection}>
         <Col xs={24} sm={12} md={6}>

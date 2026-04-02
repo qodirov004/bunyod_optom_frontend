@@ -21,7 +21,7 @@ export const useVehicleHistory = (id: string, vehicleType: 'car' | 'furgon') => 
         if (vehicleType === 'furgon') {
           response = await axiosInstance.get(`/history/${id}/furgon-history/`);
         } else {
-          response = await axiosInstance.get(`/history/${id}/car-history/`);
+          response = await axiosInstance.get(`/history/${id}/cars-history/`);
         }
         
         setData(response.data);

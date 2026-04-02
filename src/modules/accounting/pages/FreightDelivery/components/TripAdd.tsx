@@ -184,6 +184,7 @@ const TripAdd: React.FC<TripAddProps> = ({ onSuccess }) => {
   const [selectedRaysId, setSelectedRaysId] = useState<number | null>(null)
   const { countries: apiCountries, loading: countriesLoading } = useCountries();
   const [messageApi, contextHolder] = message.useMessage();
+  const [paymentClients, setPaymentClients] = useState<any[]>([]);
 
   // Helper function to check if two products are duplicates
   const isProductDuplicate = (product1: ClientProduct, product2: ClientProduct): boolean => {
@@ -405,14 +406,15 @@ const TripAdd: React.FC<TripAddProps> = ({ onSuccess }) => {
   };
 
   // Mijoz qo'shish
-  const handleAddClient = (clientId: number) => {
+  const handleAddClient = (clientId: any) => {
+    const id = Number(clientId);
     // Agar mijoz allaqachon tanlangan bo'lsa, qo'shmaslik
-    if (selectedClients.some(item => item.client.id === clientId)) {
+    if (selectedClients.some(item => item.client.id === id)) {
       messageApi.warning("Bu mijoz allaqachon tanlangan");
       return;
     }
 
-    const client = clients.find(c => c.id === clientId);
+    const client = clients.find(c => c.id === id);
     if (client) {
       const newClientData: SelectedClientData = {
         client: client,
@@ -424,7 +426,7 @@ const TripAdd: React.FC<TripAddProps> = ({ onSuccess }) => {
 
       // Yangi qo'shilgan mijozga o'tish
       setActiveTabKey((newSelectedClients.length - 1).toString());
-      setCurrentClientId(clientId);
+      setCurrentClientId(id);
     }
   };
 
@@ -649,6 +651,13 @@ const TripAdd: React.FC<TripAddProps> = ({ onSuccess }) => {
 
         messageApi.success('Trip created successfully');
 
+        // Capture clients for the payment modal BEFORE resetting state
+        const clientsForPayment = selectedClients.map(sc => ({
+            ...sc.client,
+            first_name: sc.client.company || sc.client.first_name || 'Mijoz'
+        }));
+        setPaymentClients(clientsForPayment);
+
         // Open payment modal for the newly created rays
         setSelectedRaysId(raysResponse.id);
         setShowPaymentModal(true);
@@ -744,13 +753,15 @@ const TripAdd: React.FC<TripAddProps> = ({ onSuccess }) => {
                 <Col span={12}>
                   <Form.Item
                     name="price"
-                    label="Narxi"
+                    label="Narxi (so'mda)"
                     rules={[{ required: true, message: 'Narxni kiriting!' }]}
                   >
                     <InputNumber
                       placeholder="Narx"
                       min={0}
                       style={{ width: '100%' }}
+                      formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                      parser={value => value!.replace(/\$\s?|(,*)/g, '')}
                     />
                   </Form.Item>
                 </Col>
@@ -808,7 +819,7 @@ const TripAdd: React.FC<TripAddProps> = ({ onSuccess }) => {
                 <Col span={24}>
                   <Form.Item
                     name="price"
-                    label="Narxi (so'm)"
+                    label="Narxi (so'mda)"
                     rules={[{ required: true, message: 'Narxni kiriting!' }]}
                   >
                     <InputNumber
@@ -816,6 +827,7 @@ const TripAdd: React.FC<TripAddProps> = ({ onSuccess }) => {
                       min={0}
                       style={{ width: '100%' }}
                       formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                      parser={value => value!.replace(/\$\s?|(,*)/g, '')}
                     />
                   </Form.Item>
                 </Col>
@@ -1006,13 +1018,14 @@ const TripAdd: React.FC<TripAddProps> = ({ onSuccess }) => {
                   <Col span={12}>
                     <Form.Item
                       name="dp_price"
-                      label="Haydovchiga to'lov"
+                      label="Haydovchiga to'lov (so'mda)"
                       rules={[{ required: true, message: "Haydovchiga to'lovni kiriting!" }]}
                     >
                       <InputNumber
                         min={0}
                         style={{ width: '100%' }}
                         formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                        parser={value => value!.replace(/\$\s?|(,*)/g, '')}
                       />
                     </Form.Item>
                   </Col>
@@ -1281,9 +1294,11 @@ const TripAdd: React.FC<TripAddProps> = ({ onSuccess }) => {
       <ClientPayment
         raysId={selectedRaysId!}
         open={showPaymentModal}
+        initialClients={paymentClients}
         onClose={() => {
           setShowPaymentModal(false);
           setSelectedRaysId(null);
+          setPaymentClients([]);
           if (onSuccess) onSuccess();
         }}
       />

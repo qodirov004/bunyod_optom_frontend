@@ -240,7 +240,7 @@ const CarHistoryPage = () => {
     const fetchData = async () => {
       try {
         // Fetch car history data from the correct endpoint
-        const response = await axiosInstance.get(`/history/${carId}/car-history/`);
+        const response = await axiosInstance.get(`/history/${carId}/cars-history/`);
         setData(response.data);
         console.log('Car history data:', response.data);
       } catch (error) {

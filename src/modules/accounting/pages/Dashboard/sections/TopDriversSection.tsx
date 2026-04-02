@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Card, Table, Avatar, Tag, Spin, Button, Empty, Modal, Descriptions, Space, Typography, Divider } from 'antd';
 import { UserOutlined, TrophyOutlined, EyeOutlined, PhoneOutlined, CarOutlined, DollarOutlined, HistoryOutlined } from '@ant-design/icons';
 import { useTopDrivers } from '../../../hooks/useTopDrivers';
+import { useTrips } from '../../../hooks/useTrips';
+import { useHistory } from '../../../hooks/useHistory';
 import { formatCurrency } from '@/utils/formatCurrency';
 import type { ColumnsType } from 'antd/es/table';
 
@@ -18,12 +20,41 @@ interface DriverData {
     rays_count: number;
     total_rays_usd: number;
     status: string;
+    has_active_trip?: boolean;
 }
 
 const TopDriversSection = () => {
-    const { data: drivers = [], isLoading, error } = useTopDrivers();
+    const { data: drivers = [], isLoading: isDriversLoading, error: driversError } = useTopDrivers();
+    const { data: trips = [], isLoading: isTripsLoading } = useTrips();
+    const { data: history = [], isLoading: isHistoryLoading } = useHistory();
     const [selectedDriver, setSelectedDriver] = useState<DriverData | null>(null);
     const [isModalVisible, setIsModalVisible] = useState(false);
+
+    // Consolidated driver statistics from active and historical trips
+    const processedDrivers = useMemo(() => {
+        return drivers.map(driver => {
+            // Find active trips for this driver
+            const activeTrips = trips.filter(trip => trip.driver?.id === driver.id);
+            const hasActiveTrip = activeTrips.some(trip => !trip.is_completed);
+            
+            // Find historical trips for this driver
+            const historicalTrips = history.filter(h => h.driver?.id === driver.id || (h as any).driver_id === driver.id);
+            
+            // Calculate real-time totals
+            const totalRaysCount = activeTrips.length + historicalTrips.length;
+            const totalRevenue = 
+                activeTrips.reduce((sum, trip) => sum + (Number(trip.price) || 0), 0) +
+                historicalTrips.reduce((sum, h) => sum + (Number(h.total_price) || 0), 0);
+
+            return {
+                ...driver,
+                is_busy: driver.is_busy || hasActiveTrip,
+                has_active_trip: hasActiveTrip,
+                rays_count: totalRaysCount,
+                total_rays_usd: totalRevenue
+            };
+        });
+    }, [drivers, trips, history]);
 
     const showDetails = (driver: DriverData) => {
         setSelectedDriver(driver);
@@ -91,21 +122,21 @@ const TopDriversSection = () => {
     ];
 
     const renderContent = () => {
-        if (isLoading) {
+        if (isDriversLoading || isTripsLoading || isHistoryLoading) {
             return <div className="section-loading" style={{ textAlign: 'center', padding: '40px' }}><Spin size="large" /></div>;
         }
 
-        if (error) {
+        if (driversError) {
             return <Empty description="Ma'lumotlarni yuklashda xatolik yuz berdi" />;
         }
 
-        if (!drivers.length) {
+        if (!processedDrivers.length) {
             return <Empty description="Haydovchilar mavjud emas" />;
         }
 
         return (
             <Table
-                dataSource={drivers.slice(0, 5) as DriverData[]} // Top 5 drivers only
+                dataSource={processedDrivers.slice(0, 5) as DriverData[]} // Top 5 drivers only
                 columns={columns}
                 pagination={false}
                 rowKey="id"

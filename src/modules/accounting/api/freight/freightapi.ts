@@ -198,16 +198,16 @@ export const completeRace = async (id: number): Promise<HistoryResponseData> => 
     console.log(`🚀 Creating history record for ray ${id}...`)
     const historyData = {
       driver_data: {
-        fullname: ray.client.length > 0 ? ray.client[0].name : "Unknown",
-        phone_number: ray.client.length > 0 ? ray.client[0].phone : "Unknown"
+        fullname: ray.driver ? ray.driver.fullname : "Unknown Driver",
+        phone_number: (ray.driver as any)?.phone || (ray.driver as any)?.phone_number || "Unknown Phone"
       },
       car_data: {
-        name: ray.car.model,
-        number: ray.car.number
+        name: ray.car ? (ray.car.name || ray.car.model || "Unknown Car") : "Unknown Car",
+        number: ray.car ? ray.car.number : "Unknown"
       },
       fourgon_data: {
-        name: ray.fourgon.type,
-        number: ray.fourgon.number
+        name: ray.fourgon ? (ray.fourgon.name || ray.fourgon.type || "Unknown Furgon") : "Unknown Furgon",
+        number: ray.fourgon ? ray.fourgon.number : "Unknown"
       },
       client_data: ray.client,
       price: ray.price,

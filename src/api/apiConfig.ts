@@ -25,7 +25,7 @@ export const API_URLS = {
         GET_RAY_DETAILS: "/rays/",
         UPDATE_RAY: "/rays/",
         DELETE_RAY: "/rays/",
-        COMPLETE_RACE: "/rays-complete/",
+        COMPLETE_RACE: "/complete_whole_race/",
         COMPLETE_CLIENT_RACE: "/rays-complete-client",
         COMPLETE_ALL_RAYS: "/rayshistory/",
         UPDATE_STATUS: "/rays-status",

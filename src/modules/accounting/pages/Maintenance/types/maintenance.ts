@@ -1,7 +1,7 @@
 export interface OptolType {
   id?: number
   price: number
-  kilometr: number | null
+  kilometer: number | null
   car: number | null
   type: string | null
   count: number | null
@@ -15,7 +15,7 @@ export interface BalonType {
   car_name?: string
   type: string | null
   price: number | null
-  kilometr: number | null
+  kilometer: number | null
   count: number | null
   car: number | null
   currency: number | null
@@ -28,7 +28,7 @@ export interface BalonFurgonType {
   id?: number
   type: string | null
   price: number | null
-  kilometr: number | null
+  kilometer: number | null
   count: number | null
   furgon: number | null
   currency: number | null
@@ -40,7 +40,7 @@ export interface BalonFurgonType {
 export interface FurgonType {
   type: string | null
   price: number
-  kilometr: number
+  kilometer: number
   count: number
   furgon: number
   currency: number | null

@@ -116,8 +116,9 @@ const BalonFurgonList: React.FC<BalonFurgonListProps> = ({
     },
     {
       title: 'Kilometr',
-      dataIndex: 'kilometr',
-      key: 'kilometr',
+      dataIndex: 'kilometer',
+      key: 'kilometer',
+      render: (km: number | string) => km ? `${Number(km).toLocaleString()} km` : '-',
     },
     {
       title: 'Soni',

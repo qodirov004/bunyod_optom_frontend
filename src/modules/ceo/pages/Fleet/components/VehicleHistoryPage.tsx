@@ -300,7 +300,7 @@ const VehicleHistoryPage = ({ id }: VehicleHistoryPageProps) => {
       if (vehicleType === 'furgon') {
         response = await axiosInstance.get(`/history/${vehicleId}/furgon-history/`);
       } else {
-        response = await axiosInstance.get(`/history/${vehicleId}/car-history/`);
+        response = await axiosInstance.get(`/history/${vehicleId}/cars-history/`);
       }
       
       setData(response.data);

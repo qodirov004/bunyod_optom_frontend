@@ -33,7 +33,7 @@ const styles = {
 interface OptolServiceType {
   id: number;
   price: number;
-  kilometr: number;
+  kilometer: number;
   created_at: string;
   car: number;
   currency: number | null;
@@ -124,9 +124,9 @@ const OptolList: React.FC<OptolListProps> = ({
     },
     {
       title: 'Kilometr',
-      dataIndex: 'kilometr',
-      key: 'kilometr',
-      render: (km: number) => `${km.toLocaleString()} km`,
+      dataIndex: 'kilometer',
+      key: 'kilometer',
+      render: (km: number | string) => km ? `${Number(km).toLocaleString()} km` : '-',
     },
     {
       title: 'Mashina',
@@ -217,7 +217,7 @@ const OptolList: React.FC<OptolListProps> = ({
 
           
           <Form.Item
-            name="kilometr"
+            name="kilometer"
             label="Kilometr"
             rules={[{ required: true, message: 'Kilometrni kiriting!' }]}
           >

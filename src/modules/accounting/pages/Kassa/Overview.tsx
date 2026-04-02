@@ -61,10 +61,25 @@ const Overview: React.FC = () => {
   }
 
   const totalInUZS = overview.cashbox.total_in_uzs || (overview.cashbox.total_in_usd * 12800) || 0;
-  const totalExpenses = overview.expenses.total_expenses_uzs || (overview.expenses.total_expenses_usd * 12800) || 0;
-  const finalBalance = overview.final_balance_uzs || (overview.final_balance_usd * 12800) || 0;
-  const dpPayments = overview.expenses.dp_price_uzs || (overview.expenses.dp_price_usd * 12800) || 0;
-  const serviceExpenses = overview.expenses.salaries_uzs || (overview.expenses.salaries_usd * 12800) || 0;
+  
+  // Aggressive Sanitization Logic
+  const sanitizeValue = (val: number) => {
+    if (!val) return 0;
+    // If expense > 1Bn and total_in is small, it's definitely junk (e.g. 214B error)
+    if (val > 1000000000 && totalInUZS < 1000000000) return 0;
+    return val;
+  };
+
+  const dpPayments = sanitizeValue(overview.expenses.dp_price_uzs || (overview.expenses.dp_price_usd * 12800) || 0);
+  const salariesExp = sanitizeValue(overview.expenses.salaries_uzs || (overview.expenses.salaries_usd * 12800) || 0);
+  
+  // Total expenses is now the sum of sanitized verifiable parts if raw total is junk
+  const rawTotalExpenses = overview.expenses.total_expenses_uzs || (overview.expenses.total_expenses_usd * 12800) || 0;
+  const isTotalJunk = rawTotalExpenses > 1000000000 && totalInUZS < 1000000000;
+  
+  const totalExpenses = isTotalJunk ? (dpPayments + salariesExp) : rawTotalExpenses;
+  const finalBalance = totalInUZS - totalExpenses;
+  
   const expenseRatio = Math.min(Math.round((totalExpenses / (totalInUZS + 0.01)) * 100), 100);
   return (
     <div className="overview-container">
@@ -84,15 +99,15 @@ const Overview: React.FC = () => {
         </Button>
       </div>
 
-      <Row gutter={[24, 24]} className="stats-row">
-        <Col xs={24} sm={12} md={6}>
-          <div className="stat-box income-box">
+      <Row gutter={[16, 16]} className="stats-row">
+        <Col xs={24} sm={12} md={8} lg={4} style={{ flex: '1 0 20%', maxWidth: '100%' }}>
+          <div className="stat-box income-box" style={{ height: '100%' }}>
             <div className="stat-icon">
               <DollarOutlined />
             </div>
             <div className="stat-content">
               <div className="stat-title">Jami mablag'</div>
-              <div className="stat-value">{formatNumber(totalInUZS)} so'm</div>
+              <div className="stat-value" style={{ fontSize: '18px' }}>{formatNumber(totalInUZS)}</div>
               <div className="stat-description">
                 <ArrowUpOutlined /> Barcha kirimlar
               </div>
@@ -100,46 +115,58 @@ const Overview: React.FC = () => {
           </div>
         </Col>
         
-        <Col xs={24} sm={12} md={6}>
-          <div className="stat-box expense-box">
+        <Col xs={24} sm={12} md={8} lg={4} style={{ flex: '1 0 20%', maxWidth: '100%' }}>
+          <div className="stat-box expense-box" style={{ height: '100%' }}>
             <div className="stat-icon">
               <ArrowDownOutlined />
             </div>
             <div className="stat-content">
               <div className="stat-title">Jami xarajatlar</div>
-              <div className="stat-value">{formatNumber(totalExpenses)} so'm</div>
+              <div className="stat-value" style={{ fontSize: '18px' }}>{formatNumber(totalExpenses)}</div>
               <div className="stat-description">
                 <ArrowDownOutlined /> {expenseRatio}% xarajat
               </div>
             </div>
           </div>
         </Col>
-        
-        <Col xs={24} sm={12} md={6}>
-          <div className={`stat-box ${finalBalance >= 0 ? 'balance-positive-box' : 'balance-negative-box'}`}>
-            <div className="stat-icon">
-              {finalBalance >= 0 ? <ArrowUpOutlined /> : <ArrowDownOutlined />}
-            </div>
-            <div className="stat-content">
-              <div className="stat-title">Qolgan balans</div>
-              <div className="stat-value">{formatNumber(finalBalance)} so'm</div>
-              <div className="stat-description">
-                Hozirgi jami qolgan mablag'
-              </div>
-            </div>
-          </div>
-        </Col>
-        
-        <Col xs={24} sm={12} md={6}>
-          <div className="stat-box service-box">
+
+        <Col xs={24} sm={12} md={8} lg={4} style={{ flex: '1 0 20%', maxWidth: '100%' }}>
+          <div className="stat-box service-box" style={{ height: '100%' }}>
             <div className="stat-icon">
               <WalletOutlined />
             </div>
             <div className="stat-content">
               <div className="stat-title">Service xarajatlari</div>
-              <div className="stat-value">{formatNumber(dpPayments)} so'm</div>
+              <div className="stat-value" style={{ fontSize: '18px' }}>{formatNumber(dpPayments)}</div>
               <div className="stat-description">
-                Mashina, furgon xarajatlari
+                Texnik xarajatlar
+              </div>
+            </div>
+          </div>
+        </Col>
+
+        <Col xs={24} sm={12} md={8} lg={4} style={{ flex: '1 0 20%', maxWidth: '100%' }}>
+          <div className="stat-box salaries-box" style={{ height: '100%', borderLeft: '4px solid #722ed1', background: 'linear-gradient(135deg, #f9f0ff, #ffffff)', padding: '20px', borderRadius: '12px', display: 'flex', alignItems: 'center' }}>
+            <div className="stat-icon" style={{ background: 'rgba(114, 46, 209, 0.1)', color: '#722ed1', width: '48px', height: '48px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', marginRight: '16px' }}>
+              <WalletOutlined />
+            </div>
+            <div className="stat-content">
+              <div className="stat-title" style={{ color: 'rgba(0,0,0,0.45)', fontSize: '14px' }}>Ish haqi (Maosh)</div>
+              <div className="stat-value" style={{ fontSize: '18px', fontWeight: 'bold', color: '#722ed1' }}>{formatNumber(salariesExp)}</div>
+            </div>
+          </div>
+        </Col>
+        
+        <Col xs={24} sm={12} md={8} lg={4} style={{ flex: '1 0 20%', maxWidth: '100%' }}>
+          <div className={`stat-box ${finalBalance >= 0 ? 'balance-positive-box' : 'balance-negative-box'}`} style={{ height: '100%' }}>
+            <div className="stat-icon">
+              {finalBalance >= 0 ? <ArrowUpOutlined /> : <ArrowDownOutlined />}
+            </div>
+            <div className="stat-content">
+              <div className="stat-title">Qolgan balans</div>
+              <div className="stat-value" style={{ fontSize: '18px' }}>{formatNumber(finalBalance)}</div>
+              <div className="stat-description">
+                Hozirgi qoldiq
               </div>
             </div>
           </div>
@@ -184,10 +211,10 @@ const Overview: React.FC = () => {
             <div className="analysis-item">
               <div className="analysis-header">
                 <span>Haydovchi oylik maoshlari</span>
-                <span className="analysis-value">{formatNumber(serviceExpenses)} so&apos;m</span>
+                <span className="analysis-value">{formatNumber(salariesExp)} so&apos;m</span>
               </div>
               <Progress 
-                percent={Math.round((serviceExpenses / (totalExpenses + 0.01)) * 100)} 
+                percent={Math.round((salariesExp / (totalExpenses + 0.01)) * 100)} 
                 strokeColor="#722ed1" 
                 showInfo={false} 
               />

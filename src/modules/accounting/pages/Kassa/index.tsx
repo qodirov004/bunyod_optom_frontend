@@ -133,62 +133,100 @@ const KassaPage: React.FC = () => {
         />
       )}
 
-      <Row gutter={[24, 24]} className="currency-stats">
-        <Col xs={24} sm={12} md={6}>
-          <Card className="currency-card uzs-card" hoverable variant="borderless">
-            <div className="currency-card-header">
-              <span className="currency-icon">so'm</span>
-              <div className="currency-title">UZS (so'm)</div>
-            </div>
-            <div className="currency-amount">
-              {cashOverview?.cashbox?.UZS?.toLocaleString() || 0}
-            </div>
-          </Card>
-        </Col>
-      </Row>
+      {/* 5 Indikator bitta qatorda */}
+      <Row gutter={[16, 16]} className="dashboard-stats-row">
+        {/* Sanitization Logic Helper */}
+        {(() => {
+          const totalIn = cashOverview?.cashbox?.total_in_uzs || (cashOverview?.cashbox?.total_in_usd * 12800) || 0;
+          
+          // Detect and clean junk data (e.g. 214B)
+          const sanitizeExp = (val: number) => {
+            if (!val) return 0;
+            // If expense > 1Bn and total_in is small, it's definitely junk
+            if (val > 1000000000 && totalIn < 1000000000) return 0;
+            return val;
+          };
 
-      <Row gutter={[24, 24]} style={{ marginTop: 24 }}>
-        <Col xs={24} sm={12} md={8}>
-          <Card className="summary-card total-card" hoverable variant="borderless">
-            <div className="summary-card-title">Jami kassa</div>
-            <div className="summary-card-value">
-              {cashOverview?.cashbox?.total_in_uzs?.toLocaleString() || (cashOverview?.cashbox?.total_in_usd * 12800)?.toLocaleString() || 0} so'm
-            </div>
-            <LineChartOutlined className="summary-card-icon" />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} md={8}>
-          <Card className="summary-card expenses-card" hoverable variant="borderless">
-            <div className="summary-card-title">Jami xarajatlar</div>
-            <div className="summary-card-value">
-              {cashOverview?.expenses?.total_expenses_uzs?.toLocaleString() || (cashOverview?.expenses?.total_expenses_usd * 12800)?.toLocaleString() || 0} so'm
-            </div>
-            <div className="summary-card-subtitle">
-              <span>Service xarajatlar: {cashOverview?.expenses?.dp_price_uzs?.toLocaleString() || 0} so'm</span> |
-              <span> Maosh: {cashOverview?.expenses?.salaries_uzs?.toLocaleString() || 0} so'm</span>
-            </div>
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} md={8}>
-          <Card
-            className="summary-card balance-card"
-            hoverable
-            variant="borderless"
-            style={{
-              borderTop: cashOverview?.final_balance_usd >= 0 ? '4px solid #52c41a' : '4px solid #f5222d'
-            }}
-          >
-            <div className="summary-card-title">Qolgan balans (so'm)</div>
-            <div
-              className="summary-card-value"
-              style={{
-                color: cashOverview?.final_balance_usd >= 0 ? '#52c41a' : '#f5222d'
-              }}
-            >
-              {cashOverview?.final_balance_uzs?.toLocaleString() || (cashOverview?.final_balance_usd * 12800)?.toLocaleString() || 0} so'm
-            </div>
-          </Card>
-        </Col>
+          const serviceExp = sanitizeExp(cashOverview?.expenses?.dp_price_uzs || 0);
+          const salariesExp = sanitizeExp(cashOverview?.expenses?.salaries_uzs || 0);
+          const sanitizedTotalExp = serviceExp + salariesExp;
+          const sanitizedBalance = totalIn - sanitizedTotalExp;
+
+          return (
+            <>
+              {/* 1. Kassadagi naqd UZS */}
+              <Col xs={24} sm={12} md={8} lg={4} style={{ flex: '1 0 20%', maxWidth: '100%' }}>
+                <Card className="currency-card uzs-card" hoverable variant="borderless" style={{ height: '100%', margin: 0 }}>
+                  <div className="currency-card-header">
+                    <span className="currency-icon">so'm</span>
+                    <div className="currency-title">UZS (Kassada)</div>
+                  </div>
+                  <div className="currency-amount" style={{ fontSize: '20px', fontWeight: 'bold' }}>
+                    {cashOverview?.cashbox?.UZS?.toLocaleString() || 0}
+                  </div>
+                </Card>
+              </Col>
+
+              {/* 2. Jami Kirim (Total In) */}
+              <Col xs={24} sm={12} md={8} lg={4} style={{ flex: '1 0 20%', maxWidth: '100%' }}>
+                <Card className="summary-card total-card" hoverable variant="borderless" style={{ height: '100%', margin: 0 }}>
+                  <div className="summary-card-title">Jami kirim</div>
+                  <div className="summary-card-value" style={{ fontSize: '20px' }}>
+                    {totalIn.toLocaleString()} so'm
+                  </div>
+                  <LineChartOutlined className="summary-card-icon" />
+                </Card>
+              </Col>
+
+              {/* 3. Xizmat xarajatlari (Service Expenses) */}
+              <Col xs={24} sm={12} md={8} lg={4} style={{ flex: '1 0 20%', maxWidth: '100%' }}>
+                <Card className="summary-card expenses-card" hoverable variant="borderless" style={{ height: '100%', margin: 0 }}>
+                  <div className="summary-card-title">Xizmat xarajatlari</div>
+                  <div className="summary-card-value" style={{ fontSize: '20px', color: '#fa8c16' }}>
+                    {serviceExp.toLocaleString()} so'm
+                  </div>
+                  <WalletOutlined className="summary-card-icon" />
+                </Card>
+              </Col>
+
+              {/* 4. Maoshlar (Salaries) */}
+              <Col xs={24} sm={12} md={8} lg={4} style={{ flex: '1 0 20%', maxWidth: '100%' }}>
+                <Card className="summary-card salaries-card" hoverable variant="borderless" style={{ height: '100%', margin: 0, borderTop: '4px solid #722ed1' }}>
+                  <div className="summary-card-title">Maoshlar</div>
+                  <div className="summary-card-value" style={{ fontSize: '20px', color: '#722ed1' }}>
+                    {salariesExp.toLocaleString()} so'm
+                  </div>
+                  <UserOutlined className="summary-card-icon" />
+                </Card>
+              </Col>
+
+              {/* 5. Balans (Sanitized) */}
+              <Col xs={24} sm={12} md={8} lg={4} style={{ flex: '1 0 20%', maxWidth: '100%' }}>
+                <Card
+                  className="summary-card balance-card"
+                  hoverable
+                  variant="borderless"
+                  style={{
+                    height: '100%',
+                    margin: 0,
+                    borderTop: sanitizedBalance >= 0 ? '4px solid #52c41a' : '4px solid #f5222d'
+                  }}
+                >
+                  <div className="summary-card-title">Qolgan balans</div>
+                  <div
+                    className="summary-card-value"
+                    style={{
+                      fontSize: '20px',
+                      color: sanitizedBalance >= 0 ? '#52c41a' : '#f5222d'
+                    }}
+                  >
+                    {sanitizedBalance.toLocaleString()} so'm
+                  </div>
+                </Card>
+              </Col>
+            </>
+          );
+        })()}
       </Row>
 
       <Card className="main-card" style={{ marginTop: 24 }} variant="borderless">

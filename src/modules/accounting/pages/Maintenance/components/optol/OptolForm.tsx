@@ -49,7 +49,7 @@ const OptolForm: React.FC<OptolFormProps> = ({
           price: 0,
           car: null,
           type: null,
-          kilometr: null,
+          kilometer: null,
           count: 1,
           currency: 4,
           custom_rate_to_uzs: 1,
@@ -99,7 +99,7 @@ const OptolForm: React.FC<OptolFormProps> = ({
 
 
       <Form.Item
-        name="kilometr"
+        name="kilometer"
         label="Kilometr"
       >
         <InputNumber 

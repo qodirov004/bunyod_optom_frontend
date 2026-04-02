@@ -1,6 +1,6 @@
 export interface oilService {
   id?: number
-  kilometr: string
+  kilometer: string
   car: number | null
   service: number | null
 }
@@ -14,7 +14,7 @@ export interface ServiceType {
   price?: number
   date?: string
   completed?: boolean
-  mileage?: number
+  kilometer?: number
   carId?: number
 }
 
@@ -30,7 +30,38 @@ export interface TehnicalService {
   updated_at?: string;
 }
 
+export interface BalonType {
+  id?: number;
+  price: number | null;
+  kilometer: number | null;
+  car: number | null;
+  type: string | null;
+  count: number | null;
+  currency: number | null;
+  custom_rate_to_uzs?: string | null;
+  created_at?: string;
+}
+
 export interface BalonFurgonType {
-  // ... your other fields ...
-  custom_rate_to_uzs?: number | null;
+  id?: number;
+  price: number | null;
+  kilometer: number | null;
+  furgon: number | null;
+  type: string | null;
+  count: number | null;
+  currency: number | null;
+  custom_rate_to_uzs?: string | null;
+  created_at?: string;
+}
+
+export interface OptolType {
+  id?: number;
+  price: number | null;
+  kilometer: number | null;
+  car: number | null;
+  type: string | null;
+  count: number | null;
+  currency: number | null;
+  custom_rate_to_uzs?: string | null;
+  created_at?: string;
 }

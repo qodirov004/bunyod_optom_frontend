@@ -129,9 +129,11 @@ const ServiceTypesList: React.FC = () => {
     },
     {
       title: 'Kilometr',
-      dataIndex: 'kilometer',
       key: 'kilometer',
-      render: (km: number) => km ? `${km.toLocaleString()} km` : '-'
+      render: (_: any, record: any) => {
+        const km = record.kilometer || record.kilometr;
+        return km ? `${Number(km).toLocaleString()} km` : '-';
+      }
     },
     {
       title: 'Narxi',
