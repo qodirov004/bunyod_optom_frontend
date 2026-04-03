@@ -15,7 +15,8 @@ const DriverSalaryList: React.FC = () => {
   const [dateRange, setDateRange] = useState<[dayjs.Dayjs | null, dayjs.Dayjs | null]>([null, null]);
 
   const filteredData = driverSalaries.filter((item) => {
-    const matchesSearch = item.driver_name.toLowerCase().includes(searchText.toLowerCase());
+    const driverName = item.driver_name || '';
+    const matchesSearch = driverName.toLowerCase().includes(searchText.toLowerCase());
     const matchesDate = !dateRange[0] || !dateRange[1] || (
       dayjs(item.paid_at).isAfter(dateRange[0]) &&
       dayjs(item.paid_at).isBefore(dateRange[1])
@@ -58,8 +59,8 @@ const DriverSalaryList: React.FC = () => {
       dataIndex: 'currency_name',
       key: 'currency_name',
       render: (currency: string) => (
-        <Tag color={currency === 'USD' ? 'blue' : currency === 'UZS' ? 'green' : 'orange'} style={{ fontSize: 16 }}>
-          {currency}
+        <Tag color="green" style={{ fontSize: 16 }}>
+          {currency || "UZS (so'm)"}
         </Tag>
       )
     },

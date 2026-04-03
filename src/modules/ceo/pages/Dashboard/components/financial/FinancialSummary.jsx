@@ -5,7 +5,6 @@ import {
   FallOutlined,
   DollarCircleOutlined,
   LineChartOutlined,
-  PieChartOutlined
 } from '@ant-design/icons';
 import { formatCurrency } from '../../utils/formatters';
 
@@ -30,7 +29,7 @@ const FinancialSummary = ({
           <Card className="dashboard-card financial-summary-card" loading={isLoading} variant="borderless">
             <Statistic
               title="Jami daromad (so'm)"
-              value={formatCurrency(totalRevenue * 12800)}
+              value={formatCurrency(totalRevenue)}
               valueStyle={{ color: '#3f8600', fontSize: '28px' }}
               prefix={<RiseOutlined />}
             />
@@ -41,7 +40,7 @@ const FinancialSummary = ({
           <Card className="dashboard-card financial-summary-card" loading={isLoading} variant="borderless">
             <Statistic
               title="Jami xarajat (so'm)"
-              value={formatCurrency(totalExpenses * 12800)}
+              value={formatCurrency(totalExpenses)}
               valueStyle={{ color: '#cf1322', fontSize: '28px' }}
               prefix={<FallOutlined />}
             />
@@ -52,7 +51,7 @@ const FinancialSummary = ({
           <Card className="dashboard-card financial-summary-card" loading={isLoading} variant="borderless">
             <Statistic
               title="Sof foyda (so'm)"
-              value={formatCurrency(netProfit * 12800)}
+              value={formatCurrency(netProfit)}
               valueStyle={{ 
                 color: netProfit >= 0 ? '#3f8600' : '#cf1322', 
                 fontSize: '28px' 
@@ -60,18 +59,6 @@ const FinancialSummary = ({
               prefix={netProfit >= 0 ? <RiseOutlined /> : <FallOutlined />}
             />
             <div className="financial-metrics">
-              {/* <div className="financial-metric">
-                <div className="metric-title">
-                  <PieChartOutlined style={{ color: '#722ed1', marginRight: '8px' }} />
-                  Foydalilik darajasi
-                </div>
-                <div className="metric-value">
-                  {totalRevenue > 0 ? 
-                    `${Math.round((netProfit / totalRevenue) * 100)}%` : 
-                    '0%'
-                  }
-                </div>
-              </div> */}
               <Divider style={{ margin: '12px 0' }} />
               <div className="financial-metric">
                 <div className="metric-title">
@@ -79,7 +66,7 @@ const FinancialSummary = ({
                   O'rtacha oylik daromad
                 </div>
                 <div className="metric-value">
-                  {formatCurrency((totalRevenue * 12800) / (monthlyIncome.length || 1))}
+                  {formatCurrency(totalRevenue / (monthlyIncome.length || 1))}
                 </div>
               </div>
               <Divider style={{ margin: '12px 0' }} />
@@ -97,4 +84,4 @@ const FinancialSummary = ({
   );
 };
 
-export default FinancialSummary; 
+export default FinancialSummary;

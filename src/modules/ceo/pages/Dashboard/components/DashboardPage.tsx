@@ -1,6 +1,6 @@
 "use client";
 import React from 'react';
-import { Row, Col, Card, Statistic, Typography, Progress, Table, Spin } from 'antd';
+import { Row, Col, Card, Statistic, Typography, Progress, Spin } from 'antd';
 import { 
   UserOutlined, 
   CarOutlined, 
@@ -14,14 +14,24 @@ import {
 import { useDashboardData } from '../../../hooks/useDashboardData';
 import { Line } from '@ant-design/charts';
 import '../styles/Dashboard.css';
-import { cashApi } from '@/modules/accounting/api/cash/cashApi';
-import { useQuery } from '@tanstack/react-query';
 
 const { Title, Text } = Typography;
 
-const DashboardPage: React.FC = () => {
+const formatSom = (value) => {
+  if (!value && value !== 0) return '0';
+  if (value >= 1000000000) {
+    return (value / 1000000000).toFixed(1) + ' mlrd';
+  } else if (value >= 1000000) {
+    return (value / 1000000).toFixed(1) + ' mln';
+  } else if (value >= 1000) {
+    return (value / 1000).toFixed(1) + ' ming';
+  }
+  return value.toLocaleString('uz-UZ');
+};
+
+const DashboardPage = () => {
   const { summaryMetrics, tripCompletionRate, chartData, loading } = useDashboardData();
-  const { data: cashOverview, isLoading } = useQuery(['cashOverview'], cashApi.getCashOverview);
+  
   const lineConfig = {
     data: chartData.revenueData,
     xField: 'month',
@@ -29,7 +39,7 @@ const DashboardPage: React.FC = () => {
     seriesField: 'type',
     yAxis: {
       label: {
-        formatter: (v: string) => `${Number(v) / 1000000}M`,
+        formatter: (v) => formatSom(Number(v)),
       },
     },
     legend: { position: 'top' },
@@ -113,14 +123,14 @@ const DashboardPage: React.FC = () => {
           <Card>
             <Statistic
               title="Jami daromad"
-              value={summaryMetrics.totalRevenue}
+              value={formatSom(summaryMetrics.totalRevenue)}
               precision={0}
               valueStyle={{ color: '#3f8600' }}
               prefix={<ArrowUpOutlined />}
-              suffix="$"
+              suffix="so'm"
             />
             <div style={{ marginTop: 8 }}>
-              <Text type="secondary">So`nggi 30 kun: {summaryMetrics.revenue30Days.toLocaleString()} $</Text>
+              <Text type="secondary">So`nggi 30 kun: {formatSom(summaryMetrics.revenue30Days)} so'm</Text>
             </div>
           </Card>
         </Col>
@@ -128,14 +138,14 @@ const DashboardPage: React.FC = () => {
           <Card>
             <Statistic
               title="Jami xarajatlar"
-              value={summaryMetrics.totalExpenses}
+              value={formatSom(summaryMetrics.totalExpenses)}
               precision={0}
               valueStyle={{ color: '#cf1322' }}
               prefix={<ArrowDownOutlined />}
-              suffix="$"
+              suffix="so'm"
             />
             <div style={{ marginTop: 8 }}>
-              <Text type="secondary">So`nggi 30 kun: {summaryMetrics.expenses30Days.toLocaleString()} $</Text>
+              <Text type="secondary">So`nggi 30 kun: {formatSom(summaryMetrics.expenses30Days)} so'm</Text>
             </div>
           </Card>
         </Col>
@@ -143,14 +153,14 @@ const DashboardPage: React.FC = () => {
           <Card>
             <Statistic
               title="Sof foyda"
-              value={summaryMetrics.profit}
+              value={formatSom(summaryMetrics.profit)}
               precision={0}
               valueStyle={{ color: summaryMetrics.profit >= 0 ? '#3f8600' : '#cf1322' }}
               prefix={summaryMetrics.profit >= 0 ? <ArrowUpOutlined /> : <ArrowDownOutlined />}
-              suffix="$"
+              suffix="so'm"
             />
             <div style={{ marginTop: 8 }}>
-              <Text type="secondary">So`nggi 30 kun: {summaryMetrics.profit30Days.toLocaleString()} $</Text>
+              <Text type="secondary">So`nggi 30 kun: {formatSom(summaryMetrics.profit30Days)} so'm</Text>
             </div>
           </Card>
         </Col>
@@ -185,17 +195,16 @@ const DashboardPage: React.FC = () => {
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 120 }}>
               <Statistic
                 title="Oy uchun foyda"
-                value={summaryMetrics.profit30Days}
+                value={formatSom(summaryMetrics.profit30Days)}
                 precision={0}
                 valueStyle={{ color: summaryMetrics.profit30Days >= 0 ? '#3f8600' : '#cf1322', fontSize: 24 }}
-                prefix={<DollarOutlined />}
-                suffix="$"
+                suffix="so'm"
               />
             </div>
             <div style={{ textAlign: 'center', marginTop: 16 }}>
               <Text>
-                Daromad: {summaryMetrics.revenue30Days.toLocaleString()} | 
-                Xarajat: {summaryMetrics.expenses30Days.toLocaleString()} $
+                Daromad: {formatSom(summaryMetrics.revenue30Days)} | 
+                Xarajat: {formatSom(summaryMetrics.expenses30Days)} so'm
               </Text>
             </div>
           </Card>

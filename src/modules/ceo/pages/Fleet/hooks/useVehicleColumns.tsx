@@ -86,9 +86,9 @@ export const useVehicleColumns = (
     },
     {
       title: 'Yurgan masofasi',
-      dataIndex: 'mileage',
-      key: 'mileage',
-      render: (mileage?: number) => mileage ? `${mileage.toLocaleString()} km` : '-',
+      dataIndex: 'kilometer',
+      key: 'kilometer',
+      render: (kilometer?: number) => kilometer ? `${kilometer.toLocaleString()} km` : '0 km',
     },
     {
       title: 'Ishlab chiqarilgan yil',

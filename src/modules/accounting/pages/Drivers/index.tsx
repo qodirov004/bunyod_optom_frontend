@@ -13,14 +13,17 @@ import {
 import { useSelector } from 'react-redux';
 import { RootState } from '@/store/store'; // Path to RootState from store.ts
 import { useDrivers } from '../../hooks/useDrivers';
+import { useTopDrivers } from '../../hooks/useTopDrivers';
 import { DriverType } from '../../types/driver';
 import DriverHeader from './components/DriverHeader';
 import DriversList from './components/DriversList';
 import DriverModal from './components/DriverModal';
+import DriverInfoModal from './components/DriverInfoModal';
 import TopDriversTable from './components/TopDriversTable';
 import DriversOnRoad from './components/DriversOnRoad';
 import axiosInstance from '@/api/axiosInstance';
 import './styles/Drivers.css';
+import { getAllDrivers, deleteDriver, getDriver } from '../../api/drivers/driverApi';
 import Link from 'next/link';
 
 const { Title, Text } = Typography;
@@ -31,16 +34,19 @@ const { Content } = Layout;
  */
 export const DriversPage: React.FC = () => {
     // State management
-    const [isModalVisible, setIsModalVisible] = useState(false);
     const [selectedDriver, setSelectedDriver] = useState<DriverType | null>(null);
+    const [selectedInfoDriver, setSelectedInfoDriver] = useState<DriverType | null>(null);
+    const [isModalVisible, setIsModalVisible] = useState(false);
+    const [isInfoVisible, setIsInfoVisible] = useState(false);
     const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
     const [activeTab, setActiveTab] = useState('dashboard');
     const [activeCars, setActiveCars] = useState([]);
     const [loadingActiveCars, setLoadingActiveCars] = useState(false);
+    const [isDetailLoading, setIsDetailLoading] = useState(false);
     
     // Get user role from Redux
     const user = useSelector((state: RootState) => state.auth.user);
-    const isAccountant = user?.status === 'Bugalter';
+    const isAccountant = user?.status?.toLowerCase() === 'bugalter';
     const canAddDriver = !isAccountant;
     const {
         drivers,
@@ -74,12 +80,17 @@ export const DriversPage: React.FC = () => {
     const activeDrivers = drivers.filter(d => d.status === 'active' || d.status === 'driver').length;
     const onRouteDrivers = activeCars.length; // Using the count from car-active API
     
-    // Top 5 drivers by trips (use rays_count instead of trips)
+    // Fetch top drivers from the specialized API
+    const { data: topDriversData, isLoading: isTopLoading } = useTopDrivers();
+    
+    // Fallback to local sorting only if API fails or returns nothing
     const topDrivers = useMemo(() => {
+        if (topDriversData && topDriversData.length > 0) return topDriversData;
+        
         return [...drivers]
             .sort((a, b) => (b.rays_count || 0) - (a.rays_count || 0))
             .slice(0, 5);
-    }, [drivers]);
+    }, [drivers, topDriversData]);
     
     /**
      * Handles search input from the header
@@ -104,6 +115,25 @@ export const DriversPage: React.FC = () => {
         setModalMode('edit');
         setSelectedDriver(driver);
         setIsModalVisible(true);
+    };
+
+    /**
+     * Opens the driver info modal with full details from the API
+     */
+    const handleViewDriver = async (driver: DriverType) => {
+        setIsInfoVisible(true);
+        setIsDetailLoading(true);
+        try {
+            // Fetch detailed driver data to ensure all fields are populated
+            const fullDriver = await getDriver(driver.id);
+            setSelectedInfoDriver(fullDriver);
+        } catch (error) {
+            console.error('Error fetching full driver details:', error);
+            // Fallback to the current driver object if the detailed fetch fails
+            setSelectedInfoDriver(driver);
+        } finally {
+            setIsDetailLoading(false);
+        }
     };
 
     /**
@@ -278,14 +308,14 @@ export const DriversPage: React.FC = () => {
                         title={<><StarOutlined /> Eng faol haydovchilar</>}
                         style={{ borderRadius: '12px' }}
                         extra={
-                            <Link href="/drivers/salary">
+                            <Link href="/modules/accounting/driversalary">
                                 <Button type="primary" icon={<WalletOutlined />}>
                                     Maoshlar boshqaruvi
                                 </Button>
                             </Link>
                         }
                     >
-                        <TopDriversTable drivers={topDrivers} loading={loading} />
+                        <TopDriversTable drivers={topDrivers} loading={isTopLoading} />
                     </Card>
                 </Col>
             </Row>
@@ -306,6 +336,7 @@ export const DriversPage: React.FC = () => {
                 total={total}
                 onEdit={handleEditDriver}
                 onDelete={handleDeleteDriver}
+                onView={handleViewDriver}
                 filters={filters}
                 onFiltersChange={setFilters}
             />
@@ -355,6 +386,13 @@ export const DriversPage: React.FC = () => {
                         driver={selectedDriver}
                         onClose={() => setIsModalVisible(false)}
                         onSubmit={handleModalSubmit}
+                    />
+
+                    <DriverInfoModal 
+                        visible={isInfoVisible}
+                        driver={selectedInfoDriver}
+                        loading={isDetailLoading}
+                        onClose={() => setIsInfoVisible(false)}
                     />
                 </Card>
             </Content>

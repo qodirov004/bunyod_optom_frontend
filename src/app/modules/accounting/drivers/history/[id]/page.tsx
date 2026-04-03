@@ -119,13 +119,27 @@ const DriverHistoryPage = () => {
       setDriver(driverResponse.data);
       
       // Fetch driver history
-      const historyResponse = await axiosInstance.get(`/customusers/${driverId}/driver-history/`);
-      setDriverHistory(historyResponse.data.history || []);
+      try {
+        const historyResponse = await axiosInstance.get(`/customusers/${driverId}/driver-history/`);
+        setDriverHistory(historyResponse.data.history || []);
+      } catch (historyErr: any) {
+        if (historyErr.response?.status === 403) {
+          console.warn('Driver history access is restricted for this role.');
+          // Don't set the main error, just keep the history empty and inform the user
+          // or we could show a placeholder in the history table
+        } else {
+          throw historyErr;
+        }
+      }
       
       setError(null);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error fetching driver data:', err);
-      setError('Ma&apos;lumotlarni yuklashda xatolik yuz berdi');
+      if (err.response?.status === 403) {
+        setError('Ushbu ma\'lumotlarni ko\'rishga ruxsat yetarli emas');
+      } else {
+        setError('Ma\'lumotlarni yuklashda xatolik yuz berdi');
+      }
     } finally {
       setLoading(false);
     }

@@ -32,6 +32,7 @@ import {
 import dayjs from 'dayjs';
 import type { ColumnsType } from 'antd/es/table';
 import { Client } from '../../types';
+import { numberToWords } from '../../../utils/numberToWords';
 import PaymentDetailsModal from './PaymentDetailsModal';
 
 const { Text } = Typography;
@@ -188,7 +189,7 @@ const PaymentsList: React.FC<PaymentsListProps> = ({
       dataIndex: 'amount',
       key: 'amount',
       render: (amount: number) => (
-        <Text strong>{formatCurrency(amount)}</Text>
+        <Text strong>{formatCurrency(amount)} ({numberToWords(amount)} so'm)</Text>
       ),
       sorter: (a: Payment, b: Payment) => a.amount - b.amount,
     },

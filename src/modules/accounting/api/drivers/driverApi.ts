@@ -289,11 +289,47 @@ export const createDriverWithPhoto = async (formData: FormData): Promise<DriverT
             }
         }
 
-        const response = await axiosInstance.post(API_URLS.drivers, cleanFormData);
-        
-        console.log('Driver creation response:', response.data);
-        return response.data;
-    } catch (error) {
+        try {
+            const response = await axiosInstance.post(API_URLS.drivers, cleanFormData);
+            console.log('Driver creation response:', response.data);
+            return response.data;
+        } catch (error: any) {
+            // Check if error is related to status field permissions
+            const errorData = error.response?.data;
+            const status = error.response?.status;
+            
+            if (status === 400 || status === 403) {
+                const hasStatusError = errorData && (
+                    (typeof errorData === 'object' && errorData.status) || 
+                    (typeof errorData === 'string' && errorData.includes('status')) ||
+                    status === 403 // For some users, assigning a status triggers a 403
+                );
+
+                if (hasStatusError) {
+                    console.log('Status error or permission denied with status field, trying without status field');
+                    const dataWithoutStatus = new FormData();
+                    for (const [key, value] of cleanFormData.entries()) {
+                        if (key !== 'status') {
+                            if (value instanceof File) {
+                                dataWithoutStatus.append(key, value, value.name);
+                            } else {
+                                dataWithoutStatus.append(key, value);
+                            }
+                        }
+                    }
+                    try {
+                        const newResponse = await axiosInstance.post(API_URLS.drivers, dataWithoutStatus);
+                        console.log('Driver creation successful without status field');
+                        return newResponse.data;
+                    } catch (retryError) {
+                        console.error('Retry without status field also failed:', retryError);
+                        throw retryError;
+                    }
+                }
+            }
+            throw error;
+        }
+    } catch (error: any) {
         console.error('Error creating driver with photo:', error);
         if (error.response && error.response.data) {
             const errorData = error.response.data;

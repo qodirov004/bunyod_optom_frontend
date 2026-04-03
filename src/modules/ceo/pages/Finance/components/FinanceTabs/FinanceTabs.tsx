@@ -7,7 +7,6 @@ import {
   WalletOutlined, 
   HistoryOutlined, 
   ToolOutlined,
-  GlobalOutlined
 } from '@ant-design/icons';
 
 import { DashboardStats } from '../../hooks/useFinanceData';
@@ -31,18 +30,27 @@ interface FinanceTabsProps {
 const FinanceTabs: React.FC<FinanceTabsProps> = ({ 
   activeTab, 
   onTabChange, 
+  dashboardStats,
   cashboxTotal = 0 
 }) => {
   const tabItems = [
     {
       key: 'overview',
       label: (
-        <Badge count={Math.round(cashboxTotal * 12800) || 0} overflowCount={999999999}>
+        <Badge count={Math.round(cashboxTotal) || 0} overflowCount={999999999999}>
           <span>Umumiy ko&apos;rinish</span>
         </Badge>
       ),
       icon: <DollarCircleOutlined />,
-      children: <Overview />
+      children: (
+        <Overview 
+          fallbackData={{
+            totalInUZS: dashboardStats.totalInUZS,
+            totalExpenses: dashboardStats.yearlyExpenses,
+            finalBalance: dashboardStats.totalInUZS - dashboardStats.yearlyExpenses
+          }} 
+        />
+      )
     },
     {
       key: 'clients',
@@ -105,4 +113,4 @@ const FinanceTabs: React.FC<FinanceTabsProps> = ({
   );
 };
 
-export default FinanceTabs; 
+export default FinanceTabs;

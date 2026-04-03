@@ -232,7 +232,10 @@ const TripAdd: React.FC<TripAddProps> = ({ onSuccess }) => {
         setSelectedClients(processedClients);
         setCurrentClientId(processedClients[0].client.id);
         setActiveTabKey("0");
-        messageApi.info("Saqlangan ma'lumotlar yuklandi");
+        // Trigger message in a timeout or separate effect to avoid render cycle issues
+        setTimeout(() => {
+          messageApi.info("Saqlangan ma'lumotlar yuklandi");
+        }, 100);
       }
     }
   }, [messageApi]);
@@ -621,17 +624,40 @@ const TripAdd: React.FC<TripAddProps> = ({ onSuccess }) => {
 
       // Ensure dp_currency is a plain string, not a type
       // Create the payload with explicit types
+      // Calculate total price and extract locations from the first product
+      let totalPrice = 0;
+      let firstFromLocId = null;
+      let firstToLocId = null;
+
+      selectedClients.forEach(client => {
+        client.products.forEach(product => {
+          totalPrice += Number(product.price);
+          if (!firstFromLocId) firstFromLocId = Number(product.from_location);
+          if (!firstToLocId) firstToLocId = Number(product.to_location);
+        });
+      });
+
+      // Find location names
+      const fromLocName = fromLocations.find((l: any) => l.id === firstFromLocId)?.name || '';
+      const toLocName = toLocations.find((l: any) => l.id === firstToLocId)?.name || '';
+
+      // Find the selected driver object to check for additional ID fields
+      const selectedDriverObj = drivers.find(d => Number(d.id) === Number(values.driver));
+      // In some contexts, the backend expects the driver_id (profile ID) instead of the user ID
+      const driverId = (selectedDriverObj as any)?.driver_id || (selectedDriverObj as any)?.driver?.id || Number(values.driver);
+
       const payload = {
-        driver: Number(values.driver),
+        driver: driverId,
         car: Number(values.car),
         fourgon: Number(values.fourgon),
-        client: clientIds, // Array of client IDs
-        price: values.price ? Number(values.price) : 0,
+        client: clientIds, 
+        price: totalPrice,
         dr_price: values.dr_price ? Number(values.dr_price) : 0,
         dp_price: Number(values.dp_price),
         dp_currency: 4, // UZS
-        from1: values.from1 || '',
-        to_go: values.to_go || '',
+        currency: 4, // UZS
+        from1: fromLocName,
+        to_go: toLocName,
         kilometer: Number(values.kilometer),
         dp_information: values.dp_information || '',
         count: values.count || 0,
@@ -761,7 +787,7 @@ const TripAdd: React.FC<TripAddProps> = ({ onSuccess }) => {
                       min={0}
                       style={{ width: '100%' }}
                       formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                      parser={value => value!.replace(/\$\s?|(,*)/g, '')}
+                      parser={value => (value ? value.replace(/\$\s?|(,*)/g, '') : '') as any}
                     />
                   </Form.Item>
                 </Col>
@@ -815,23 +841,7 @@ const TripAdd: React.FC<TripAddProps> = ({ onSuccess }) => {
                 </Col>
               </Row>
 
-              <Row gutter={[16, 16]}>
-                <Col span={24}>
-                  <Form.Item
-                    name="price"
-                    label="Narxi (so'mda)"
-                    rules={[{ required: true, message: 'Narxni kiriting!' }]}
-                  >
-                    <InputNumber
-                      placeholder="Narx"
-                      min={0}
-                      style={{ width: '100%' }}
-                      formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                      parser={value => value!.replace(/\$\s?|(,*)/g, '')}
-                    />
-                  </Form.Item>
-                </Col>
-              </Row>
+
 
               <Row gutter={[16, 16]}>
                 <Col span={12}>
@@ -1025,7 +1035,7 @@ const TripAdd: React.FC<TripAddProps> = ({ onSuccess }) => {
                         min={0}
                         style={{ width: '100%' }}
                         formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                        parser={value => value!.replace(/\$\s?|(,*)/g, '')}
+                        parser={value => (value ? value.replace(/\$\s?|(,*)/g, '') : '') as any}
                       />
                     </Form.Item>
                   </Col>

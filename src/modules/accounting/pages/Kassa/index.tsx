@@ -137,20 +137,12 @@ const KassaPage: React.FC = () => {
       <Row gutter={[16, 16]} className="dashboard-stats-row">
         {/* Sanitization Logic Helper */}
         {(() => {
-          const totalIn = cashOverview?.cashbox?.total_in_uzs || (cashOverview?.cashbox?.total_in_usd * 12800) || 0;
+          const totalIn = cashOverview?.cashbox?.total_in_uzs || cashOverview?.cashbox?.UZS || (cashOverview?.cashbox?.total_in_usd || 0) * 12800;
           
-          // Detect and clean junk data (e.g. 214B)
-          const sanitizeExp = (val: number) => {
-            if (!val) return 0;
-            // If expense > 1Bn and total_in is small, it's definitely junk
-            if (val > 1000000000 && totalIn < 1000000000) return 0;
-            return val;
-          };
-
-          const serviceExp = sanitizeExp(cashOverview?.expenses?.dp_price_uzs || 0);
-          const salariesExp = sanitizeExp(cashOverview?.expenses?.salaries_uzs || 0);
-          const sanitizedTotalExp = serviceExp + salariesExp;
-          const sanitizedBalance = totalIn - sanitizedTotalExp;
+          const serviceExp = cashOverview?.expenses?.dp_price_uzs || (cashOverview?.expenses?.dp_price_usd || 0) * 12800;
+          const salariesExp = cashOverview?.expenses?.salaries_uzs || (cashOverview?.expenses?.salaries_usd || 0) * 12800;
+          const sanitizedTotalExp = cashOverview?.expenses?.total_expenses_uzs || (cashOverview?.expenses?.total_expenses_usd || 0) * 12800 || (serviceExp + salariesExp) || 0;
+          const sanitizedBalance = cashOverview?.final_balance_uzs || (cashOverview?.final_balance_usd || 0) * 12800;
 
           return (
             <>

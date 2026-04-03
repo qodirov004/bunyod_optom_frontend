@@ -12,10 +12,18 @@ interface TopDriversTableProps {
 const TopDriversTable: React.FC<TopDriversTableProps> = ({ drivers, loading }) => {
     const columns = [
         {
+            title: "№",
+            key: 'rank',
+            width: 40,
+            render: (_: any, __: any, index: number) => (
+                <span style={{ paddingLeft: '8px', fontWeight: 'bold' }}>{index + 1}</span>
+            )
+        },
+        {
             title: 'Haydovchi',
             dataIndex: 'fullname',
             key: 'fullname',
-            render: (_: any, record: DriverType) => (
+            render: (_: any, record: any) => (
                 <Space>
                     {(() => {
                         const photoUrl = getDriverPhotoUrl(record.photo);
@@ -47,10 +55,9 @@ const TopDriversTable: React.FC<TopDriversTableProps> = ({ drivers, loading }) =
             dataIndex: 'rays_count',
             key: 'rays_count',
             render: (rays_count: number | undefined) => (
-                <Tag color="blue" icon={<CarOutlined />}>{rays_count || 0} reys</Tag>
+                <Tag color="blue" icon={<CarOutlined />} style={{ fontWeight: 'bold' }}>{rays_count || 0} reys</Tag>
             ),
-            sorter: (a: DriverType, b: DriverType) => (a.rays_count || 0) - (b.rays_count || 0),
-            defaultSortOrder: 'descend',
+            sorter: (a: any, b: any) => (a.rays_count || 0) - (b.rays_count || 0),
         },
         {
             title: 'Status',

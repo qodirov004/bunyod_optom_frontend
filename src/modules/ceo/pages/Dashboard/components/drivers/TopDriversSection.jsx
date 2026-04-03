@@ -57,7 +57,7 @@ const TopDriversSection = ({ topDriversData, isLoading, viewAll }) => {
                             </div>
                             <div className="stat-item">
                               <div className="stat-label">Jami daromad</div>
-                              <div className="stat-value">${formatCurrency(driver.total_rays_usd || 0)}</div>
+                              <div className="stat-value">{formatCurrency(driver.total_rays_usd || 0)} so'm</div>
                             </div>
                           </div>
                         </div>

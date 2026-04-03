@@ -47,6 +47,7 @@ import TripAdd from './components/TripAdd'
 import LocationManagement from './components/LocationManagement'
 import CountryManagement from './components/CountryManagement'
 import { useTrips } from '@/modules/accounting/hooks/useTrips'
+import { useTripsHistory } from '@/modules/accounting/hooks/useTripsHistory'
 import { motion } from 'framer-motion'
 import './style/style.css'
 import axiosInstance from '@/api/axiosInstance'
@@ -71,7 +72,16 @@ const cardVariants: any = {
 }
 
 const FreightDeliveryPage: React.FC = () => {
-  const { data: trips = [], isLoading, error, refetch } = useTrips()
+  const { data: activeTrips = [], isLoading: isLoadingActive, error: errorActive, refetch: refetchActive } = useTrips()
+  const { data: historyTrips = [], isLoading: isLoadingHistory, error: errorHistory, refetch: refetchHistory } = useTripsHistory()
+  
+  const isLoading = isLoadingActive || isLoadingHistory
+  const error = errorActive || errorHistory
+  const refetch = () => {
+    refetchActive()
+    refetchHistory()
+  }
+
   const [viewMode, setViewMode] = useState<'table' | 'card'>('card')
   const [timeFilter, setTimeFilter] = useState<string>('all')
   const [dateRange, setDateRange] = useState<[any, any] | null>(null)
@@ -116,41 +126,66 @@ const FreightDeliveryPage: React.FC = () => {
     }
   };
   
+  // Combine active and historical trips for statistics
+  const allTrips = [
+    ...activeTrips.map(t => ({ ...t, is_history: false })),
+    ...historyTrips.map(t => ({ 
+      ...t, 
+      id: Number(t.id), // Ensure numeric ID
+      is_history: true,
+      // Normalize historical fields to match active ones
+      is_completed: true,
+      driver: t.driver ? {
+        ...t.driver,
+        fullname: t.driver.name // Map 'name' to 'fullname' for consistency
+      } : undefined
+    }))
+  ]
+
   // Filter trips based on time frame
   const getFilteredTrips = () => {
-    if (!trips.length) return []
+    if (!allTrips.length) return []
+    
+    // Default to including everything, then filter down
+    let result = allTrips
     
     if (dateRange && dateRange[0] && dateRange[1]) {
-      return trips.filter(trip => {
+      result = result.filter(trip => {
         const tripDate = new Date(trip.created_at)
         return tripDate >= dateRange[0] && tripDate <= dateRange[1]
       })
+    } else {
+      const now = new Date()
+      const oneDay = 24 * 60 * 60 * 1000
+      const oneWeek = 7 * oneDay
+      const oneMonth = 30 * oneDay
+      
+      switch (timeFilter) {
+        case 'today':
+          result = result.filter(trip => {
+            const tripDate = new Date(trip.created_at)
+            return (now.getTime() - tripDate.getTime()) < oneDay
+          })
+          break
+        case 'week':
+          result = result.filter(trip => {
+            const tripDate = new Date(trip.created_at)
+            return (now.getTime() - tripDate.getTime()) < oneWeek
+          })
+          break
+        case 'month':
+          result = result.filter(trip => {
+            const tripDate = new Date(trip.created_at)
+            return (now.getTime() - tripDate.getTime()) < oneMonth
+          })
+          break
+        default:
+          // 'all' - no filter needed
+          break
+      }
     }
     
-    const now = new Date()
-    const oneDay = 24 * 60 * 60 * 1000
-    const oneWeek = 7 * oneDay
-    const oneMonth = 30 * oneDay
-    
-    switch (timeFilter) {
-      case 'today':
-        return trips.filter(trip => {
-          const tripDate = new Date(trip.created_at)
-          return (now.getTime() - tripDate.getTime()) < oneDay
-        })
-      case 'week':
-        return trips.filter(trip => {
-          const tripDate = new Date(trip.created_at)
-          return (now.getTime() - tripDate.getTime()) < oneWeek
-        })
-      case 'month':
-        return trips.filter(trip => {
-          const tripDate = new Date(trip.created_at)
-          return (now.getTime() - tripDate.getTime()) < oneMonth
-        })
-      default:
-        return trips
-    }
+    return result
   }
   
   const filteredTrips = getFilteredTrips()
@@ -162,7 +197,7 @@ const FreightDeliveryPage: React.FC = () => {
     
     // Fetch trip details and populate form
     if (tripId) {
-      const trip = trips.find(t => t.id === tripId);
+      const trip = activeTrips.find(t => t.id === tripId);
       if (trip) {
         paymentForm.setFieldsValue({
           amount: trip.dp_price,
@@ -180,7 +215,7 @@ const FreightDeliveryPage: React.FC = () => {
       return;
     }
     
-    const trip = trips.find(t => t.id === selectedTripId);
+    const trip = activeTrips.find(t => t.id === selectedTripId);
     if (!trip || !trip.driver) {
       messageApi.error('Haydovchi ma\'lumotlari mavjud emas');
       return;
@@ -206,11 +241,13 @@ const FreightDeliveryPage: React.FC = () => {
         return;
       }
       
-      // Create payload with ONLY the exact fields the API requires
+      // Create payload with exact fields including the rays ID for linkage
       const paymentData = {
         driver: driverId,
+        rays: selectedTripId,
         amount: values.amount.toString(),
-        currency: 4
+        currency: 4,
+        comment: values.comments || ''
       };
       
       console.log('Payment data being sent:', paymentData);
@@ -498,7 +535,7 @@ const FreightDeliveryPage: React.FC = () => {
   }
   
   const InProgressTrips = () => {
-    const inProgressTrips = filteredTrips.filter(trip => !trip.is_completed)
+    const inProgressTrips = activeTrips.filter(trip => !trip.is_completed)
     
     return (
       <div className="in-progress-trips">
@@ -625,7 +662,7 @@ const FreightDeliveryPage: React.FC = () => {
         {selectedTripId && (
           <>
             {(() => {
-              const trip = trips.find(t => t.id === selectedTripId);
+              const trip = activeTrips.find(t => t.id === selectedTripId);
               return trip ? (
                 <div style={{ marginBottom: 20 }}>
                   <Text strong>Haydovchi: </Text>

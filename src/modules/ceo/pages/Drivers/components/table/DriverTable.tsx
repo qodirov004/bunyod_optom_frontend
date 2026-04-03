@@ -18,6 +18,7 @@ import {
 } from '@ant-design/icons';
 import { DriverType } from '../../../../../accounting/types/driver';
 import { useRouter } from 'next/navigation';
+import { formatPrice } from '../../../../../../utils/formatCurrency';
 
 const { Text } = Typography;
 const { confirm } = Modal;
@@ -107,7 +108,7 @@ const DriverTable: React.FC<DriverTableProps> = ({
             <div class="section">
               <h3>Statistika</h3>
               <p>Reyslar soni: ${driver.rays_count || 0}</p>
-              <p>To'langan oyliklar: ${driver.total_rays_usd || 0}$</p>
+              <p>To'langan oyliklar: ${formatPrice(driver.total_rays_usd || 0)}</p>
             </div>
           </body>
         </html>
@@ -241,11 +242,32 @@ const DriverTable: React.FC<DriverTableProps> = ({
       sorter: (a: DriverType, b: DriverType) => (a.rays_count || 0) - (b.rays_count || 0),
     },
     {
-      title: "To`langan oyliklar",
-      key: "total_rays_usd",
-      width: 100,
+      title: 'Yurgan masofasi',
+      key: 'total_km',
+      width: 140,
+      render: (_: any, record: DriverType) => {
+        const km = record.total_km || record.total_distance || 0;
+        return <Text>{km.toLocaleString('uz-UZ')} km</Text>;
+      },
+      sorter: (a: DriverType, b: DriverType) => 
+        (a.total_km || a.total_distance || 0) - (b.total_km || b.total_distance || 0),
+    },
+    {
+      title: "Jami daromad",
+      key: "total_income",
+      width: 150,
       render: (_: any, record: DriverType) => (
-        <Text>{record.total_rays_usd || 0}$</Text>
+        <Text style={{ color: '#3f8600', fontWeight: 500 }}>{formatPrice(record.total_rays_usd || record.total_income || 0)}</Text>
+      ),
+      sorter: (a: DriverType, b: DriverType) => 
+        (a.total_rays_usd || a.total_income || 0) - (b.total_rays_usd || b.total_income || 0),
+    },
+    {
+      title: "To'langan oyliklar",
+      key: "total_rays_usd",
+      width: 140,
+      render: (_: any, record: DriverType) => (
+        <Text>{formatPrice(record.total_rays_usd || 0)}</Text>
       ),
       sorter: (a: DriverType, b: DriverType) => (a.total_rays_usd || 0) - (b.total_rays_usd || 0),
     },
@@ -347,7 +369,7 @@ const DriverTable: React.FC<DriverTableProps> = ({
               <Space direction="vertical">
                 <Space>
                   <DollarOutlined />
-                  <Text>To'langan pul: {record.total_rays_usd || 0}$</Text>
+                  <Text>To'langan pul: {formatPrice(record.total_rays_usd || 0)}</Text>
                 </Space>
                 <Space>
                   <UserOutlined />

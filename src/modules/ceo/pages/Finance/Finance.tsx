@@ -61,6 +61,7 @@ const Finance: React.FC = () => {
           <>
             <SummaryCards
               cashOverview={cashOverview}
+              dashboardStats={dashboardStats}
             />
 
             {/* Main Tabs Section */}
@@ -68,7 +69,7 @@ const Finance: React.FC = () => {
               activeTab={activeTab}
               onTabChange={handleTabChange}
               dashboardStats={dashboardStats}
-              cashboxTotal={cashOverview?.cashbox?.total_in_usd}
+              cashboxTotal={cashOverview?.cashbox?.total_in_uzs || cashOverview?.cashbox?.UZS || (cashOverview?.cashbox?.total_in_usd || 0) * 12800}
             />
           </>
         )}

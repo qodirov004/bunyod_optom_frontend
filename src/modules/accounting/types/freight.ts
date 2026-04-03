@@ -152,6 +152,14 @@ export interface TripFormValues {
   updated_at: string;
   is_completed: boolean;
   total_price: number;
+  price: number;
+  dr_price: number;
+  dp_price: number;
+  kilometer: number;
+  from1: string;
+  to_go: string;
+  count: number;
+  country?: number;
   completion_date?: string;
 }
 

@@ -22,6 +22,7 @@ interface DriversListProps {
   onFiltersChange: (filters: DriverFilter) => void;
   onEdit: (driver: DriverType) => void;
   onDelete: (driver: DriverType) => void;
+  onView: (driver: DriverType) => void;
 }
 
 const DriversList: React.FC<DriversListProps> = ({
@@ -32,6 +33,7 @@ const DriversList: React.FC<DriversListProps> = ({
   onFiltersChange,
   onEdit,
   onDelete,
+  onView,
 }) => {
   const router = useRouter();
   const pathname = usePathname();
@@ -112,28 +114,36 @@ const DriversList: React.FC<DriversListProps> = ({
       width: 130,
       render: (rays_count: number | undefined) => (
         <Tag color="blue" icon={<CarOutlined />}>
-          {rays_count || 0} reys
+          {Number(rays_count || 0)} reys
         </Tag>
       ),
+      sorter: (a: DriverType, b: DriverType) => (a.rays_count || 0) - (b.rays_count || 0),
     },
     {
       title: 'Umumiy summa (so\'m)',
       dataIndex: 'total_rays_usd',
       key: 'total_rays_usd',
-      width: 160,
-      render: (total: number | undefined) => (
-        <Tag color="green">
-          {(total || 0).toLocaleString()} so'm
-        </Tag>
-      ),
+      width: 180,
+      render: (total_usd: number | undefined) => {
+        const totalUZS = (Number(total_usd) || 0) * 12800;
+        return (
+          <Tag color="green" style={{ fontWeight: 500 }}>
+            {totalUZS.toLocaleString()} so'm
+          </Tag>
+        );
+      },
+      sorter: (a: DriverType, b: DriverType) => (a.total_rays_usd || 0) - (b.total_rays_usd || 0),
     },
     {
       title: 'Qo\'shilgan sana',
-      dataIndex: 'date',
-      key: 'date',
+      key: 'date_joined',
       width: 150,
-      render: (date: string) => formatDate(date),
-      sorter: (a: DriverType, b: DriverType) => new Date(a.date).getTime() - new Date(b.date).getTime(),
+      render: (_: any, record: DriverType) => formatDate(record.date_joined || record.date),
+      sorter: (a: DriverType, b: DriverType) => {
+        const dateA = new Date(a.date_joined || a.date || 0).getTime();
+        const dateB = new Date(b.date_joined || b.date || 0).getTime();
+        return dateA - dateB;
+      },
     },
     {
       title: 'Amallar',
@@ -141,16 +151,6 @@ const DriversList: React.FC<DriversListProps> = ({
       width: 120,
       render: (_: any, record: DriverType) => (
         <Space size="small">
-          <Tooltip title="Tarix">
-            <Button
-              type="text"
-              icon={<EyeOutlined />}
-              onClick={(e) => {
-                e.stopPropagation(); // Qator clickini to'xtatadi
-                viewDriverHistory(record);
-              }}
-            />
-          </Tooltip>
           <Tooltip title="Tahrirlash">
             <Button
               type="text"

@@ -398,9 +398,9 @@ const DriverHistoryPage: React.FC<DriverHistoryPageProps> = ({ id }) => {
 
   const formatCurrency = (amount: number | undefined): string => {
     if (amount === undefined || amount === null) {
-      return '$0';
+      return '0 so\'m';
     }
-    return `$${amount.toLocaleString('en-US')}`;
+    return `${amount.toLocaleString('uz-UZ')} so'm`;
   };
 
   const formatNumber = (num: number | undefined): string => {

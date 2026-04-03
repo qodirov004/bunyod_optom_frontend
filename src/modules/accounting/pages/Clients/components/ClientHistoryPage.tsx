@@ -45,11 +45,39 @@ const ClientHistoryPage = () => {
           return;
         }
         
-        console.log('Fetching client history for ID:', clientId);
-        // Ma'lumotlarni olish
-        const response = await axiosInstance.get(`/history/${clientId}/client-history/`);
-        console.log('API response:', response.data);
-        setData(response.data);
+        // Mijoz haqidagi ma'lumotlarni alohida API'lardan yig'amiz
+        const [clientRes, raysRes] = await Promise.all([
+          axiosInstance.get(`/clients/${clientId}/`),
+          axiosInstance.get(`/rays/?client=${clientId}`)
+        ]);
+
+        const clientData = clientRes.data;
+        // rays endpoint API qanaqa data qaytarishini hisobga olamiz (pagination yoki doimiy massiv)
+        const trips = Array.isArray(raysRes.data) ? raysRes.data : (raysRes.data?.results || []);
+
+        // Pul hisob-kitobi stats
+        let totalUSD = 0;
+        let totalUZS = 0;
+        let totalRUB = 0;
+
+        trips.forEach((trip: any) => {
+          // Bu yerda agar trip narxlari bo'lsa ularni qo'shish mumkin
+          // trip.price, trip.currency kabi
+          if (trip.payment_currency === 'USD') totalUSD += Number(trip.price || 0);
+          else if (trip.payment_currency === 'UZS') totalUZS += Number(trip.price || 0);
+          else if (trip.payment_currency === 'RUB') totalRUB += Number(trip.price || 0);
+        });
+
+        const formattedData = {
+          client: clientData,
+          rays_history: trips,
+          rays_count: trips.length,
+          total_paid: { USD: totalUSD, UZS: totalUZS, RUB: totalRUB },
+          total_paid_uzs: totalUZS || 0
+        };
+
+        console.log('Constructed API response:', formattedData);
+        setData(formattedData);
       } catch (error) {
         console.error("Xatolik:", error);
       } finally {

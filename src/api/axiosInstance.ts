@@ -8,19 +8,29 @@ export const baseURL = 'https://logistika.api.ardentsoft.uz/';
 export const apiRootURL = 'https://logistika.api.ardentsoft.uz/';
 
 export const formatImageUrl = (url: string | null | undefined) => {
-    if (!url) return null;
+    if (!url || typeof url !== 'string' || url.trim() === '') return null;
+    
     if (url.startsWith('http')) {
         if (url.includes('127.0.0.1') || url.includes('localhost')) {
             const parts = url.split(':8000/');
             const path = parts.length > 1 ? parts[1] : (url.split(':8000')[1] || '');
             if (path) {
                 const cleanUrl = path.startsWith('/') ? path.substring(1) : path;
-                return `${apiRootURL}${cleanUrl}`;
+                const mediaPrefix = cleanUrl.startsWith('media/') ? '' : 'media/';
+                return `${apiRootURL}${mediaPrefix}${cleanUrl}`;
             }
         }
         return url;
     }
-    const cleanUrl = url.startsWith('/') ? url.substring(1) : url;
+    
+    // Normalize relative paths
+    let cleanUrl = url.startsWith('/') ? url.substring(1) : url;
+    
+    // Check for media prefix
+    if (!cleanUrl.startsWith('media/')) {
+        cleanUrl = `media/${cleanUrl}`;
+    }
+    
     return `${apiRootURL}${cleanUrl}`;
 };
 
@@ -85,9 +95,14 @@ axiosInstance.interceptors.response.use(
     (error) => {
         if (process.env.NODE_ENV === 'development') {
             const isDriverSalary403 = error.response?.status === 403 && error.config?.url?.includes('driversalary');
+            const isDriverHistory403 = error.response?.status === 403 && error.config?.url?.includes('driver-history');
+            const isUtility404 = error.response?.status === 404 && (
+                error.config?.url?.includes('currency') || 
+                error.config?.url?.includes('chiqim-turi')
+            );
 
-            // Don't log 401s or driver-salary-403s as loud errors
-            if (error.response?.status !== 401 && !isDriverSalary403) {
+            // Don't log 401s, 403s (for specific endpoints), or utility-404s as loud errors
+            if (error.response?.status !== 401 && !isDriverSalary403 && !isDriverHistory403 && !isUtility404) {
                 console.error('Response Error:', error.response?.status, error.response?.data);
             } else if (error.response?.status === 401) {
                 console.warn('Auth Error (401): Session expired or invalid');

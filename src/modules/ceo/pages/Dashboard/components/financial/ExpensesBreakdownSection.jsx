@@ -47,7 +47,7 @@ const ExpensesBreakdownSection = ({
                 <Col span={12}>
                   <Statistic
                     title="Jami xarajatlar (so'm)"
-                    value={formatCurrency(calculatedTotalExpenses * 12800)}
+                    value={formatCurrency(calculatedTotalExpenses)}
                     valueStyle={{ color: '#cf1322', fontSize: '24px' }}
                   />
                 </Col>
@@ -57,7 +57,7 @@ const ExpensesBreakdownSection = ({
                       title="Eng katta xarajat"
                       value={largestExpense.name}
                       valueStyle={{ color: '#2fc25b', fontSize: '18px' }}
-                      suffix={` (${formatCurrency(largestExpense.value * 12800)})`}
+                      suffix={` (${formatCurrency(largestExpense.value)} so'm)`}
                     />
                   </Col>
                 )}
@@ -94,7 +94,7 @@ const ExpensesBreakdownSection = ({
                     Oylik xarajatlar
                   </div>
                   <div className="metric-value">
-                    {formatCurrency(calculatedTotalExpenses * 12800)}
+                    {formatCurrency(calculatedTotalExpenses)} so'm
                   </div>
                 </div>
                 
@@ -109,7 +109,7 @@ const ExpensesBreakdownSection = ({
                             <span className="breakdown-indicator" style={{ backgroundColor: item.color }}></span>
                             {item.name}
                           </div>
-                          <div className="breakdown-value">{formatCurrency(item.value * 12800)}</div>
+                          <div className="breakdown-value">{formatCurrency(item.value)} so'm</div>
                         </div>
                         <div className="breakdown-bar-container">
                           <div 

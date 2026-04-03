@@ -14,7 +14,7 @@ const CashboxSummary = ({ cashbox, isLoading }) => {
         <Col span={24}>
           <Statistic
             title="Mavjud mablag' (UZS)"
-            value={formatCurrency(cashbox?.UZS || (cashbox?.total_in_usd * 12800) || 0)}
+            value={formatCurrency(cashbox?.UZS || cashbox?.total_in_uzs || 0)}
             loading={isLoading}
           />
         </Col>

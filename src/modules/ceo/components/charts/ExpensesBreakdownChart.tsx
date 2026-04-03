@@ -101,7 +101,7 @@ export const ExpensesBreakdownChart: React.FC<ExpensesBreakdownChartProps> = ({
               label: function(context) {
                 const value = context.raw as number;
                 const percentage = totalExpenses ? ((value / totalExpenses) * 100).toFixed(1) : '0';
-                return `${context.label}: $${value.toLocaleString(undefined, {maximumFractionDigits: 2})} (${percentage}%)`;
+                return `${context.label}: ${value.toLocaleString('uz-UZ', {maximumFractionDigits: 0})} so'm (${percentage}%)`;
               }
             }
           }
@@ -140,9 +140,9 @@ export const ExpensesBreakdownChart: React.FC<ExpensesBreakdownChartProps> = ({
       className="expenses-chart-container"
     >
       <div className="expenses-summary">
-        <div className="total-value">
-          <Text type="secondary">Jami xarajatlar:</Text>
-          <Text strong>${totalExpenses ? totalExpenses.toLocaleString(undefined, {maximumFractionDigits: 2}) : '0'}</Text>
+        <div className="total-value" style={{ textAlign: 'center' }}>
+          <Text type="secondary" style={{ display: 'block' }}>Jami xarajatlar:</Text>
+          <Text strong style={{ fontSize: '16px' }}>{totalExpenses ? totalExpenses.toLocaleString('uz-UZ', {maximumFractionDigits: 0}) : '0'} so'm</Text>
         </div>
       </div>
       

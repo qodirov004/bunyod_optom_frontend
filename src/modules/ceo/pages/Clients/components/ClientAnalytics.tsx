@@ -60,16 +60,39 @@ const ClientAnalytics: React.FC<ClientAnalyticsProps> = ({ clientId }) => {
         setLoading(true);
         setError(null);
 
-        // Fetch client history
-        const historyResponse = await axiosInstance.get(`/history/${clientId}/client-history/`);
+        // Fetch client data and trips individually since /history/.../client-history/ is returning 404
+        const [clientRes, raysRes, debtsResponse] = await Promise.all([
+          axiosInstance.get(`/clients/${clientId}/`),
+          axiosInstance.get(`/rays/?client=${clientId}`),
+          axiosInstance.get(`/casa/all-debts/`)
+        ]);
 
-        // Fetch client debt data
-        const debtsResponse = await axiosInstance.get(`/casa/all-debts/`);
+        const clientData = clientRes.data;
+        const trips = Array.isArray(raysRes.data) ? raysRes.data : (raysRes.data?.results || []);
+
+        let totalUSD = 0;
+        let totalUZS = 0;
+        let totalRUB = 0;
+
+        trips.forEach((trip: any) => {
+          if (trip.payment_currency === 'USD') totalUSD += Number(trip.price || 0);
+          else if (trip.payment_currency === 'UZS') totalUZS += Number(trip.price || 0);
+          else if (trip.payment_currency === 'RUB') totalRUB += Number(trip.price || 0);
+        });
+
+        const constructedHistoryData = {
+          client: clientData,
+          rays_history: trips,
+          rays_count: trips.length,
+          total_paid: { USD: totalUSD, UZS: totalUZS, RUB: totalRUB },
+          total_paid_usd: totalUSD
+        };
+
         const clientDebt = debtsResponse.data.find((item: ClientDebt) =>
           item.client_id === clientId
         ) || null;
 
-        setHistoryData(historyResponse.data);
+        setHistoryData(constructedHistoryData);
         setDebtData(clientDebt);
       } catch (err) {
         console.error('Error fetching client data:', err);

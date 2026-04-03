@@ -14,6 +14,7 @@ export interface DriverType {
     phone_number: string;
     status: DriverStatus;
     date: string;
+    date_joined?: string;
     passport?: string;
     passport_series: string | null;
     passport_number: string | null;
@@ -32,6 +33,9 @@ export interface DriverType {
     groups: any[];
     user_permissions: any[];
     rays_count?: number;
+    total_km?: number;
+    total_distance?: number;
+    total_income?: number;
     balance?: number;
     emergencyContact?: {
         name: string;

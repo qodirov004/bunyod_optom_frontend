@@ -70,12 +70,12 @@ const DriverPayments: React.FC = () => {
               key: 'amount_in_usd',
               render: (amount: number) => (
                 <Text strong style={{ color: '#1890ff' }}>
-                  {formatMoney(amount * 12800)}
+                  {formatMoney(amount)}
                 </Text>
               )
             }
           ]}
-          dataSource={record.clients}
+          dataSource={record.clients || []}
           pagination={false}
           rowKey={(clientRecord, index) => `client-${record.rays_id}-${index}`}
         />
@@ -113,15 +113,15 @@ const DriverPayments: React.FC = () => {
       title: 'Mijozlar soni',
       key: 'client_count',
       render: (_, record: DriverPaymentData) => (
-        <Tag color="green">{record.clients.length} ta</Tag>
+        <Tag color="green">{record.clients?.length || 0} ta</Tag>
       )
     },
     {
       title: 'Jami summa (so\'m)',
       key: 'total_amount',
       render: (_, record: DriverPaymentData) => {
-        const total = record.clients.reduce(
-          (sum, client) => sum + (client.amount_in_usd * 12800), 0
+        const total = (record.clients || []).reduce(
+          (sum, client) => sum + (client.amount_in_usd || 0), 0
         );
         return (
           <Text strong style={{ color: '#1890ff' }}>

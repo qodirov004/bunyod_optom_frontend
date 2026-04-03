@@ -9,7 +9,6 @@ export interface Currency {
 export const getAllCurrencies = async (): Promise<Currency[]> => {
   try {
     const response = await axiosInstance.get('/currency/');
-    console.log('Currency API response:', response.data);
     
     // Handle both paginated ({results: []}) and non-paginated ([]) responses
     if (response.data && response.data.results && Array.isArray(response.data.results)) {
@@ -22,15 +21,11 @@ export const getAllCurrencies = async (): Promise<Currency[]> => {
 
     return [];
   } catch (error: any) {
-    if (error?.response?.status !== 401) {
-      console.error('Error fetching currencies:', error);
-    } else {
-      console.warn('Silent 401 in getAllCurrencies');
-    }
-    // Fallback static data if API fails (e.g. 403 or network error)
+    // Fallback static data if API fails (404 or network error)
     return [
-      { id: 1, currency: 'USD', rate_to_uzs: '12917.36', updated_at: new Date().toISOString() },
+      { id: 1, currency: 'USD', rate_to_uzs: '12800', updated_at: new Date().toISOString() },
       { id: 2, currency: 'UZS', rate_to_uzs: '1', updated_at: new Date().toISOString() },
+      { id: 3, currency: 'RUB', rate_to_uzs: '140', updated_at: new Date().toISOString() },
     ];
   }
 };

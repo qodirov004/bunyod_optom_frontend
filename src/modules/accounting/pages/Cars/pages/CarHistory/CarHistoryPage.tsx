@@ -239,10 +239,44 @@ const CarHistoryPage = () => {
 
     const fetchData = async () => {
       try {
-        // Fetch car history data from the correct endpoint
-        const response = await axiosInstance.get(`/history/${carId}/cars-history/`);
-        setData(response.data);
-        console.log('Car history data:', response.data);
+        // As /history/${carId}/cars-history/ returns 404, fetch individual metrics and aggregate
+        const [carRes, raysRes, optolRes, balonRes, texnicRes] = await Promise.all([
+          axiosInstance.get(`/cars/${carId}/`),
+          axiosInstance.get(`/rays/?car=${carId}`),
+          axiosInstance.get(`/optol/?car=${carId}`),
+          axiosInstance.get(`/balon/?car=${carId}`),
+          axiosInstance.get(`/texnic/?car=${carId}`)
+        ]);
+
+        const carData = carRes.data;
+        const raysData = Array.isArray(raysRes.data) ? raysRes.data : (raysRes.data?.results || []);
+        const optolData = Array.isArray(optolRes.data) ? optolRes.data : (optolRes.data?.results || []);
+        const balonData = Array.isArray(balonRes.data) ? balonRes.data : (balonRes.data?.results || []);
+        const texnicData = Array.isArray(texnicRes.data) ? texnicRes.data : (texnicRes.data?.results || []);
+
+        let optolTotal = 0;
+        let bolonTotal = 0;
+        let texnicTotal = 0;
+
+        optolData.forEach((item: any) => optolTotal += Number(item.price || 0));
+        balonData.forEach((item: any) => bolonTotal += Number(item.price || 0));
+        texnicData.forEach((item: any) => texnicTotal += Number(item.price || 0));
+
+        const totalUsd = optolTotal + bolonTotal + texnicTotal;
+
+        const constructedData = {
+          car: carData,
+          optol: optolData,
+          bolon: balonData,
+          texnic: texnicData,
+          total_usd: totalUsd,
+          details_expense_usd: { optol: optolTotal, bolon: bolonTotal, texnic: texnicTotal },
+          rays_history: raysData,
+          rays_count: raysData.length
+        };
+
+        setData(constructedData);
+        console.log('Car history constructed data:', constructedData);
       } catch (error) {
         console.error("Xatolik:", error);
       } finally {
@@ -451,7 +485,7 @@ const CarHistoryPage = () => {
 
                 <div className={styles.carDetailItem}>
                   <Text type="secondary"><DashboardOutlined /> Kilometr:</Text>
-                  <Text strong>{formatNumber(car.mileage)} km</Text>
+                  <Text strong>{formatNumber(car.mileage || car.kilometer || car.kilometr || 0)} km</Text>
                 </div>
               </Col>
 

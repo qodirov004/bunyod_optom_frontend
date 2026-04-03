@@ -2,7 +2,7 @@ import React from 'react';
 import { Row, Col, Card, Statistic } from 'antd';
 import { RiseOutlined, FallOutlined, ArrowUpOutlined } from '@ant-design/icons';
 import { DashboardStats } from '../../hooks/useFinanceData';
-import styles from '../../finance.module.css';
+import { formatCurrency } from '@/utils/formatCurrency';
 
 interface FinanceDashboardProps {
   dashboardStats: DashboardStats;
@@ -17,10 +17,9 @@ const FinanceDashboard: React.FC<FinanceDashboardProps> = ({ dashboardStats }) =
             <Statistic
               title="Oylik daromad"
               value={dashboardStats.monthlyRevenue}
-              precision={0}
+              formatter={(value) => formatCurrency(Number(value))}
               valueStyle={{ color: '#3f8600' }}
               prefix={<RiseOutlined />}
-              suffix="USD"
             />
           </Card>
         </Col>
@@ -29,14 +28,10 @@ const FinanceDashboard: React.FC<FinanceDashboardProps> = ({ dashboardStats }) =
             <Statistic
               title="Oylik xarajatlar"
               value={dashboardStats.monthlyExpenses}
-              precision={0}
+              formatter={(value) => formatCurrency(Number(value))}
               valueStyle={{ color: '#cf1322' }}
               prefix={<FallOutlined />}
-              suffix="USD"
             />
-            <div className="stat-change negative">
-              <ArrowUpOutlined /> 2.8% oylik o&apos;sish
-            </div>
           </Card>
         </Col>
         <Col xs={24} md={12} lg={6}>
@@ -44,10 +39,9 @@ const FinanceDashboard: React.FC<FinanceDashboardProps> = ({ dashboardStats }) =
             <Statistic
               title="Yillik daromad"
               value={dashboardStats.yearlyRevenue}
-              precision={0}
+              formatter={(value) => formatCurrency(Number(value))}
               valueStyle={{ color: '#3f8600' }}
               prefix={<RiseOutlined />}
-              suffix="USD"
             />
           </Card>
         </Col>
@@ -56,10 +50,9 @@ const FinanceDashboard: React.FC<FinanceDashboardProps> = ({ dashboardStats }) =
             <Statistic
               title="Yillik xarajatlar"
               value={dashboardStats.yearlyExpenses}
-              precision={0}
+              formatter={(value) => formatCurrency(Number(value))}
               valueStyle={{ color: '#cf1322' }}
               prefix={<FallOutlined />}
-              suffix="USD"
             />
           </Card>
         </Col>
@@ -110,4 +103,4 @@ const FinanceDashboard: React.FC<FinanceDashboardProps> = ({ dashboardStats }) =
   );
 };
 
-export default FinanceDashboard; 
+export default FinanceDashboard;

@@ -31,10 +31,10 @@ const DriverModal: React.FC<DriverModalProps> = ({
     const [error, setError] = useState<string | null>(null);
     const [statusOptions, setStatusOptions] = useState([
         { label: 'Haydovchi', value: 'driver' },
-        { label: 'Egasi', value: 'owner' },
-        { label: 'CEO', value: 'ceo' },
-        { label: 'Bugalter', value: 'bugalter' },
-        { label: 'Zaphos', value: 'zaphos' },
+        { label: 'Egasi', value: 'Owner' },
+        { label: 'CEO', value: 'CEO' },
+        { label: 'Bugalter', value: 'Bugalter' },
+        { label: 'Zaphos', value: 'Zaphos' },
     ]);
     const [imageUrl, setImageUrl] = useState<string | null>(null);
     const [photoFile, setPhotoFile] = useState<File | null>(null);

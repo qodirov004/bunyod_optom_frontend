@@ -530,7 +530,7 @@ const VehicleHistoryPage = ({ id }: VehicleHistoryPageProps) => {
             
                 <div className="carDetailItem">
                   <Text type="secondary"><DashboardOutlined /> Kilometr:</Text>
-                  <Text strong>{formatNumber(vehicle?.kilometer || 0)} km</Text>
+                  <Text strong>{formatNumber(vehicle?.kilometer || vehicle?.mileage || vehicle?.kilometr || 0)} km</Text>
                 </div>
               </Col>
           

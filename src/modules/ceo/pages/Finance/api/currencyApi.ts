@@ -17,11 +17,12 @@ export const getCurrencies = async (): Promise<Currency[]> => {
 
     return [];
   } catch (error) {
-    console.error('Error fetching currencies in CEO module:', error);
-    // Fallback static data if API fails
+    console.error('Error fetching currencies in CEO module, using fallback:', error);
+    // Fallback static data if API fails (404 etc)
     return [
-      { id: 1, currency: 'USD', rate_to_uzs: '12917.36', updated_at: new Date().toISOString() },
+      { id: 1, currency: 'USD', rate_to_uzs: '12800', updated_at: new Date().toISOString() },
       { id: 2, currency: 'UZS', rate_to_uzs: '1', updated_at: new Date().toISOString() },
+      { id: 3, currency: 'RUB', rate_to_uzs: '140', updated_at: new Date().toISOString() },
     ];
   }
 };

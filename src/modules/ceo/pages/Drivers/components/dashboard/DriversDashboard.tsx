@@ -4,7 +4,7 @@ import {
   TeamOutlined,
   CarOutlined,
   ClockCircleOutlined,
-  DollarOutlined,
+  MoneyCollectOutlined,
   WarningOutlined,
   CheckCircleOutlined,
   TrophyOutlined,
@@ -18,6 +18,7 @@ import dayjs from 'dayjs';
 import dynamic from 'next/dynamic';
 
 import { formatImageUrl } from '../../../../../../api/axiosInstance';
+import { formatPrice } from '../../../../../../utils/formatCurrency';
 
 const { Text, Title } = Typography;
 
@@ -222,13 +223,11 @@ const DriversDashboard: React.FC<DriversDashboardProps> = ({
           <Card size="small">
             <Statistic
               title="O'rtacha ish haqi"
-              value={stats.avgSalary}
-              precision={2}
-              prefix={<DollarOutlined />}
-              suffix="$"
+              value={formatPrice(stats.avgSalary)}
+              prefix={<MoneyCollectOutlined />}
             />
             <div className="statistic-footer">
-              <Text type="secondary">Jami: ${Number(stats.totalSalary || 0).toFixed(2)}</Text>
+              <Text type="secondary">Jami: {formatPrice(stats.totalSalary)}</Text>
             </div>
           </Card>
         </Col>
@@ -250,7 +249,7 @@ const DriversDashboard: React.FC<DriversDashboardProps> = ({
                         />
                       }
                       title={driver.fullname}
-                      description={`${driver.rays_count || 0} reys, ${driver.total_rays_usd || 0}$`}
+                      description={`${driver.rays_count || 0} reys, ${formatPrice(driver.total_rays_usd || 0)}`}
                     />
                     <div>
                       <Badge count={driver.rays_count || 0} overflowCount={999} style={{ backgroundColor: '#52c41a' }} />
@@ -289,10 +288,8 @@ const DriversDashboard: React.FC<DriversDashboardProps> = ({
               <Col xs={24} sm={8}>
                 <Statistic
                   title="Eng yuqori to'lov"
-                  value={stats.topPerformers[0]?.total_rays_usd || 0}
-                  precision={2}
+                  value={formatPrice(stats.topPerformers[0]?.total_rays_usd || 0)}
                   prefix={<RiseOutlined />}
-                  suffix="$"
                 />
               </Col>
             </Row>

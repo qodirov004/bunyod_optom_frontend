@@ -5,6 +5,7 @@ import { RaysResponseType } from '@/modules/accounting/types/freight'
 import { useUpdateTripStatus } from '@/modules/accounting/hooks/useTrips'
 import { formatCurrency } from '@/utils/formatCurrency'
 import axiosInstance from '@/api/axiosInstance'
+import { API_URLS } from '@/api/apiConfig'
 import dayjs from 'dayjs'
 
 const { Text, Paragraph } = Typography;
@@ -12,9 +13,8 @@ const { Text, Paragraph } = Typography;
 
 const completeRaceWithAllClients = async (tripId: number) => {
   try {
-    // The previous endpoint '/complete-race/' returned 404. 
-    // Backend method was identified as 'complete_whole_race'.
-    await axiosInstance.post(`/rays/${tripId}/complete_whole_race/`);
+    // Exact endpoint matching the backend URL pattern discovered in 404 logs: ^rays/{id}/complete-race/$
+    await axiosInstance.post(`${API_URLS.rays}${tripId}/${API_URLS.RAYS.COMPLETE_RACE}`);
     return true;
   } catch (error: any) {
     console.error('Reysni yakunlashda xatolik:', error);
@@ -22,40 +22,39 @@ const completeRaceWithAllClients = async (tripId: number) => {
   }
 };
 const extractErrorMessage = (error: any): string => {
-  if (!error.response || !error.response.data) {
-    return 'Noma\'lum xatolik yuz berdi';
+  const errorData = error.response?.data;
+  if (!errorData) {
+    return 'Aloqa xatoligi: Backend bilan bog\'lanishda xatolik yuz berdi';
   }
 
-  // Get the error data
-  const errorData = error.response.data;
+  // Handle direct error string or object with 'error' or 'detail' key
+  const rawError = errorData.error || errorData.detail || (typeof errorData === 'string' ? errorData : null);
 
-  // Check if there's an error field
-  if (errorData.error) {
-    // Handle the specific format: "[ErrorDetail(string='Клиент Ali не оплатил или не оформил долг.', code='invalid')]"
-    const errorText = errorData.error;
+  if (rawError) {
+    const errorText = String(rawError);
+    
+    // Check for the specific structure: "ErrorDetail(string='...', code='...')"
     const matches = errorText.match(/string='(.+?)'/);
+    const cleanMessage = matches ? matches[1] : errorText;
 
-    if (matches && matches[1]) {
-      // Replace the Russian message with Uzbek equivalent
-      const russianMessage = matches[1];
-
-      // Common error patterns
-      if (russianMessage.includes('не оплатил или не оформил долг')) {
-        // Extract client name if possible
-        const clientMatches = russianMessage.match(/Клиент\s+(\w+)/i);
-        const clientName = clientMatches && clientMatches[1] ? clientMatches[1] : 'Mijoz';
-
-        return `"${clientName}" to'lov qilmagan yoki qarzni rasmiylashtirilmagan`;
-      }
-
-      // Return the original error if no pattern matched
-      return russianMessage;
+    // Translation logic for common Russian error messages from backend
+    if (cleanMessage.includes('не оплатил или не оформил долг')) {
+      const clientMatches = cleanMessage.match(/Клиент\s+(.+?)\s+не/i);
+      const clientName = clientMatches ? clientMatches[1] : 'Mijoz';
+      return `"${clientName}" to'lov qilmagan yoki qarzni rasmiylashtirmagan. Iltimos, avval to'lovni bog'lang yoki qarz yozing.`;
     }
 
-    return errorData.error;
+    return cleanMessage;
   }
 
-  return 'Reysni yakunlashda xatolik yuz berdi';
+  // Handle object-based validation errors (e.g., { "rays_id": ["This field is required."] })
+  if (typeof errorData === 'object') {
+    const firstError = Object.values(errorData)[0];
+    if (Array.isArray(firstError)) return firstError[0];
+    if (typeof firstError === 'string') return firstError;
+  }
+
+  return 'Reysni yakunlashda noma\'lum xatolik yuz berdi';
 };
 
 const TripTable = ({

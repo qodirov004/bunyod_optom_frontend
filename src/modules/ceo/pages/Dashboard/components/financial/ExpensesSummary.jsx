@@ -14,7 +14,7 @@ const ExpensesSummary = ({ expenses, isLoading }) => {
         <Col span={12}>
           <Statistic 
             title="Service Xarajatlar" 
-            value={formatCurrency(expenses?.dp_price_usd * 12800 || 0)} 
+            value={formatCurrency(expenses?.dp_price_uzs || 0)} 
             loading={isLoading}
             valueStyle={{ color: '#cf1322' }}
           />
@@ -22,7 +22,7 @@ const ExpensesSummary = ({ expenses, isLoading }) => {
         <Col span={12}>
           <Statistic 
             title="Oyliklar" 
-            value={formatCurrency(expenses?.salaries_usd * 12800 || 0)} 
+            value={formatCurrency(expenses?.salaries_uzs || 0)} 
             loading={isLoading}
             valueStyle={{ color: '#cf1322' }}
           />
@@ -32,4 +32,4 @@ const ExpensesSummary = ({ expenses, isLoading }) => {
   );
 };
 
-export default ExpensesSummary; 
+export default ExpensesSummary;

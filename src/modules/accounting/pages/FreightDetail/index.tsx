@@ -231,7 +231,7 @@ const TripOverview: React.FC = () => {
                   precision={2}
                   valueStyle={{ color: '#3f8600' }}
                   prefix={<RiseOutlined />}
-                  suffix="USD"
+                  suffix="UZS"
                 />
               </Col>
               <Col xs={12} sm={12}>
@@ -241,7 +241,7 @@ const TripOverview: React.FC = () => {
                   precision={2}
                   valueStyle={{ color: '#cf1322' }}
                   prefix={<FallOutlined />}
-                  suffix="USD"
+                  suffix="UZS"
                 />
               </Col>
               <Col xs={12} sm={12}>
@@ -261,7 +261,7 @@ const TripOverview: React.FC = () => {
                   precision={2}
                   valueStyle={{ color: '#cf1322' }}
                   prefix={<DollarOutlined />}
-                  suffix="USD"
+                  suffix="UZS"
                 />
               </Col>
               <Col xs={24}>
@@ -386,7 +386,7 @@ const ExpensesTab: React.FC = () => {
           precision={2}
           valueStyle={{ color: '#cf1322' }}
           prefix={<DollarOutlined />}
-          suffix="USD"
+          suffix="UZS"
         />
       </Card>
 
@@ -430,7 +430,7 @@ const ExpensesTab: React.FC = () => {
                       title={
                         <Space>
                           <Text strong>{formatCurrency(item.price, item.currency || 'UZS')}</Text>
-                          {item.usd_value && <Tag color="blue">{item.usd_value.toFixed(2)} USD</Tag>}
+                          {item.usd_value && <Tag color="blue">{item.usd_value.toFixed(2)} UZS</Tag>}
                         </Space>
                       }
                       description={
@@ -673,7 +673,7 @@ const FreightDetailPage = () => {
       key: 'expenses',
       label: (
         <span>
-          <DollarOutlined /> Xarajatlar {tripData?.expenses ? `(${tripData.expenses.total_usd?.toFixed(2) || 0} USD)` : ''}
+          <DollarOutlined /> Xarajatlar {tripData?.expenses ? `(${tripData.expenses.total_usd?.toFixed(2) || 0} UZS)` : ''}
         </span>
       ),
       children: <ExpensesTab />

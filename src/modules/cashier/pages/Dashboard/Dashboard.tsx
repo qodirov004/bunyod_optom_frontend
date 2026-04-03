@@ -64,7 +64,7 @@ const CashierDashboard = () => {
     { title: 'Mijoz', dataIndex: 'client_name', key: 'client_name', render: (_: any, r: any) => r.client?.first_name || 'N/A' },
     { title: 'Haydovchi', dataIndex: 'driver_name', key: 'driver_name', render: (_: any, r: any) => r.driver?.fullname || '—' },
     { title: 'Summa', dataIndex: 'amount', key: 'amount', render: (v: number) => v?.toLocaleString() },
-    { title: 'Valyuta', dataIndex: 'currency', key: 'currency', render: (_: any, r: any) => r.currency?.currency || 'USD' },
+    { title: 'Valyuta', dataIndex: 'currency', key: 'currency', render: (_: any, r: any) => r.currency?.currency || 'UZS' },
     { title: 'Holat', dataIndex: 'status', key: 'status', render: (s: string) => (
       <Tag color={s === 'pending' ? 'orange' : s === 'confirmed' ? 'green' : 'red'}>{s}</Tag>
     )},
@@ -73,7 +73,7 @@ const CashierDashboard = () => {
   const viaDriverColumns = [
     { title: 'Haydovchi', dataIndex: 'driver', key: 'driver' },
     { title: 'Mijoz', dataIndex: 'client', key: 'client' },
-    { title: 'Summa (USD)', dataIndex: 'amount_in_usd', key: 'amount_in_usd', render: (v: number) => `$${v?.toLocaleString()}` },
+    { title: 'Summa (so\'m)', dataIndex: 'amount_in_usd', key: 'amount_in_usd', render: (v: number) => `${v?.toLocaleString()} so'm` },
     { title: 'Asl summa', dataIndex: 'amount_original', key: 'amount_original', render: (v: number, r: any) => `${v?.toLocaleString()} ${r.currency}` },
   ];
 
@@ -88,10 +88,11 @@ const CashierDashboard = () => {
         <Col xs={24} sm={12} lg={6}>
           <Card variant="borderless" className="dashboard-stat-card">
             <Statistic
-              title="Kassa (USD)"
-              value={cashbox.total_in_usd || 0}
-              precision={2}
+              title="Kassa (so'm)"
+              value={cashbox.total_in_uzs || cashbox.UZS || (cashbox.total_in_usd || 0) * 12800}
+              precision={0}
               prefix={<WalletOutlined />}
+              suffix="so'm"
               valueStyle={{ color: '#3f8600' }}
             />
           </Card>
