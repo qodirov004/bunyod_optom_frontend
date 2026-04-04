@@ -83,7 +83,7 @@ const DriverDetailsModal: React.FC<DriverDetailsModalProps> = ({
 
   useEffect(() => {
     if (driver && allTrips) {
-      const filteredTrips = allTrips.filter(trip => trip.driver === driver.id);
+      const filteredTrips = allTrips.filter(trip => (trip.driver as any).id === driver.id || trip.driver === driver.id);
       setDriverTrips(filteredTrips);
     }
   }, [driver, allTrips]);
@@ -373,29 +373,6 @@ const DriverDetailsModal: React.FC<DriverDetailsModalProps> = ({
                 </Tag>
               </Descriptions.Item>
 
-              {driver.passport_series && (
-                <Descriptions.Item label="Passport seriyasi">
-                  {driver.passport_series} {driver.passport_number}
-                </Descriptions.Item>
-              )}
-
-              {driver.passport_issued_by && (
-                <Descriptions.Item label="Kim tomonidan berilgan">
-                  {driver.passport_issued_by}
-                </Descriptions.Item>
-              )}
-
-              {driver.passport_issued_date && (
-                <Descriptions.Item label="Berilgan sana">
-                  {formatDate(driver.passport_issued_date)}
-                </Descriptions.Item>
-              )}
-
-              {driver.passport_birth_date && (
-                <Descriptions.Item label="Tug'ilgan sana">
-                  {formatDate(driver.passport_birth_date)}
-                </Descriptions.Item>
-              )}
             </Descriptions>
           </TabPane>
 

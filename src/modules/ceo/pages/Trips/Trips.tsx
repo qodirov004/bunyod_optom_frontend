@@ -99,7 +99,7 @@ export const TripsPage = () => {
 
         <TripDetails
           trip={selectedTrip}
-          visible={detailVisible}
+          open={detailVisible}
           onClose={() => setDetailVisible(false)}
         />
       </div>

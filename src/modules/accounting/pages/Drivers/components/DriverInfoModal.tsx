@@ -3,14 +3,10 @@ import { Modal, Descriptions, Avatar, Tag, Divider, Row, Col, Typography, Card, 
 import { 
     UserOutlined, 
     PhoneOutlined, 
-    IdcardOutlined, 
     CalendarOutlined, 
-    EnvironmentOutlined,
     CarOutlined,
-    CheckCircleOutlined,
     ClockCircleOutlined,
-    DollarOutlined,
-    SafetyCertificateOutlined
+    DollarOutlined
 } from '@ant-design/icons';
 import { DriverType } from '../../../types/driver';
 import { formatImageUrl } from '../../../../../api/axiosInstance';
@@ -83,101 +79,26 @@ const DriverInfoModal: React.FC<DriverInfoModalProps> = ({ visible, driver, onCl
                 </Col>
 
                 {/* Main Info */}
-                <Col xs={24} lg={12}>
-                    <Card title={<Space><IdcardOutlined /> Pasport ma'lumotlari</Space>} size="small" className="info-card">
-                        <Descriptions column={1} bordered size="small">
-                            <Descriptions.Item label="Seriya va raqam">
-                                <Text strong>{driver.passport_series || ''} {driver.passport_number || 'Mavjud emas'}</Text>
-                            </Descriptions.Item>
-                            <Descriptions.Item label="Berilgan joyi">
-                                {driver.passport_issued_by || 'Mavjud emas'}
-                            </Descriptions.Item>
-                            <Descriptions.Item label="Berilgan sana">
-                                {formatDate(driver.passport_issued_date)}
-                            </Descriptions.Item>
-                            <Descriptions.Item label="Tug'ilgan sana">
-                                {formatDate(driver.passport_birth_date)}
-                            </Descriptions.Item>
-                        </Descriptions>
-                        
-                        <Divider orientation="left" plain>Pasport nusxalari</Divider>
-                        <Row gutter={16}>
-                            {(driver.passport_photo_front || driver.passport_photo) ? (
-                                <Col span={driver.passport_photo_back ? 12 : 24}>
-                                    <div style={{ textAlign: 'center' }}>
-                                        <Text type="secondary" style={{ fontSize: '12px', display: 'block', marginBottom: '8px' }}>
-                                            {driver.passport_photo_front ? "Old taraf" : "Asosiy nusxa"}
-                                        </Text>
-                                        <Image 
-                                            width="100%" 
-                                            height={160}
-                                            style={{ objectFit: 'contain', borderRadius: '8px', border: '1px solid #f0f0f0', background: '#fafafa' }}
-                                            src={formatImageUrl(driver.passport_photo_front || driver.passport_photo)} 
-                                        />
-                                    </div>
-                                </Col>
-                            ) : null}
-                            
-                            {driver.passport_photo_back ? (
-                                <Col span={12}>
-                                    <div style={{ textAlign: 'center' }}>
-                                        <Text type="secondary" style={{ fontSize: '12px', display: 'block', marginBottom: '8px' }}>Orqa taraf</Text>
-                                        <Image 
-                                            width="100%" 
-                                            height={160}
-                                            style={{ objectFit: 'contain', borderRadius: '8px', border: '1px solid #f0f0f0', background: '#fafafa' }}
-                                            src={formatImageUrl(driver.passport_photo_back)} 
-                                        />
-                                    </div>
-                                </Col>
-                            ) : null}
-
-                            {(!driver.passport_photo_front && !driver.passport_photo_back && !driver.passport_photo) && (
-                                <Col span={24}>
-                                    <Empty description="Pasport rasmlari yuklanmagan" image={Empty.PRESENTED_IMAGE_SIMPLE} />
-                                </Col>
-                            )}
+                <Col span={24}>
+                    <Card title={<Space><DollarOutlined /> Ish faoliyati va Moliya</Space>} size="small" className="info-card">
+                        <Row gutter={24}>
+                            <Col xs={24} sm={12}>
+                                <Card styles={{ body: { padding: '20px', textAlign: 'center', backgroundColor: '#f9f9f9', borderRadius: '12px' } }}>
+                                    <Text type="secondary">Jami reyslar</Text>
+                                    <Title level={3} style={{ margin: '8px 0 0 0' }}>{driver.rays_count || 0}</Title>
+                                </Card>
+                            </Col>
+                            <Col xs={24} sm={12}>
+                                <Card styles={{ body: { padding: '20px', textAlign: 'center', backgroundColor: '#f9f9f9', borderRadius: '12px' } }}>
+                                    <Text type="secondary">Topgan summasi</Text>
+                                    <Title level={3} style={{ margin: '8px 0 0 0', color: '#52c41a' }}>{(Number(driver.total_rays_usd || 0) * 12800).toLocaleString()}</Title>
+                                    <Text style={{ fontSize: '12px' }}>so'm</Text>
+                                </Card>
+                            </Col>
                         </Row>
+                        <Divider style={{ margin: '24px 0' }} />
+                        <Space><CalendarOutlined /> <Text>Ro'yxatdan o'tgan: {formatDate(driver.date_joined || driver.date)}</Text></Space>
                     </Card>
-                </Col>
-
-                <Col xs={24} lg={12}>
-                    <Space direction="vertical" style={{ width: '100%' }} size="middle">
-                        <Card title={<Space><SafetyCertificateOutlined /> Haydovchilik guvohnomasi</Space>} size="small" className="info-card">
-                            <Descriptions column={1} bordered size="small">
-                                <Descriptions.Item label="Guvohnoma raqami">
-                                    <Text strong>{driver.license_number || 'Mavjud emas'}</Text>
-                                </Descriptions.Item>
-                                <Descriptions.Item label="Amal qilish muddati">
-                                    <Text color={dayjs().isAfter(dayjs(driver.license_expiry)) ? 'red' : 'inherit'}>
-                                        {formatDate(driver.license_expiry)}
-                                    </Text>
-                                </Descriptions.Item>
-                            </Descriptions>
-                        </Card>
-
-                        <Card title={<Space><DollarOutlined /> Ish faoliyati va Moliya</Space>} size="small" className="info-card">
-                            <Row gutter={16}>
-                                <Col span={12}>
-                                    <Card styles={{ body: { padding: '12px', textAlign: 'center', backgroundColor: '#f9f9f9', borderRadius: '8px' } }}>
-                                        <Text type="secondary">Jami reyslar</Text>
-                                        <Title level={3} style={{ margin: '8px 0 0 0' }}>{driver.rays_count || 0}</Title>
-                                    </Card>
-                                </Col>
-                                <Col span={12}>
-                                    <Card styles={{ body: { padding: '12px', textAlign: 'center', backgroundColor: '#f9f9f9', borderRadius: '8px' } }}>
-                                        <Text type="secondary">Topgan summasi</Text>
-                                        <Title level={3} style={{ margin: '8px 0 0 0', color: '#52c41a' }}>{(Number(driver.total_rays_usd || 0) * 12800).toLocaleString()}</Title>
-                                        <Text style={{ fontSize: '12px' }}>so'm</Text>
-                                    </Card>
-                                </Col>
-                            </Row>
-                            <Divider style={{ margin: '16px 0' }} />
-                            <Space><EnvironmentOutlined /> <Text>Manzil: {driver.address || 'Kiritilmagan'}</Text></Space>
-                            <br />
-                            <Space><CalendarOutlined /> <Text>Ro'yxatdan o'tgan: {formatDate(driver.date_joined || driver.date)}</Text></Space>
-                        </Card>
-                    </Space>
                 </Col>
             </Row>
             )}

@@ -16,7 +16,7 @@ const { Text } = Typography;
 
 interface TripDetailsModalProps {
   visible: boolean;
-  trip: TripData | null;
+  trip: TripModalData | null;
   onClose: () => void;
 }
 
@@ -49,7 +49,7 @@ interface Client {
   }>;
 }
 
-interface TripData {
+interface TripModalData {
   id: number;
   driver?: Driver;
   car?: Car;
@@ -156,7 +156,7 @@ const TripDetailsModal: React.FC<TripDetailsModalProps> = ({
           </div>
           <div>
             <Text type="secondary">Narxi</Text>
-            <div><Text strong style={{ fontSize: '16px', color: '#1890ff' }}>{trip.price?.toLocaleString() || 0} $</Text></div>
+            <div><Text strong style={{ fontSize: '16px', color: '#1890ff' }}>{trip.price?.toLocaleString() || 0} so'm</Text></div>
           </div>
         </Space>
       </Card>
@@ -207,13 +207,13 @@ const TripDetailsModal: React.FC<TripDetailsModalProps> = ({
           <Card title={<Space><DollarOutlined /> Moliyaviy ma`lumotlar</Space>} style={{ height: '100%' }}>
             <Descriptions column={1} size="small" bordered={false}>
               <Descriptions.Item label="Umumiy narx">
-                <Text strong>{trip.price?.toLocaleString() || 0} $</Text>
+                <Text strong>{trip.price?.toLocaleString() || 0} so'm</Text>
               </Descriptions.Item>
               <Descriptions.Item label="Haydovchi to'lovi">
-                <Text>{trip.dp_price?.toLocaleString() || 0} {trip.dp_currency_name || '$'}</Text>
+                <Text>{trip.dp_price?.toLocaleString() || 0} {trip.dp_currency_name || "so'm"}</Text>
               </Descriptions.Item>
               <Descriptions.Item label="Qo'shimcha xarajat">
-                <Text>{trip.dr_price?.toLocaleString() || 0} $</Text>
+                <Text>{trip.dr_price?.toLocaleString() || 0} so'm</Text>
               </Descriptions.Item>
               <Descriptions.Item label="Davlat">
                 <Text>{trip.country?.name}</Text>
@@ -274,13 +274,13 @@ const TripDetailsModal: React.FC<TripDetailsModalProps> = ({
               {
                 key: 'texnics',
                 label: 'Texnik xizmat',
-                children: trip.expenses.texnics.length > 0 ? (
+                children: trip.expenses.texnics && trip.expenses.texnics.length > 0 ? (
                   <List
                     dataSource={trip.expenses.texnics}
                     renderItem={(item) => (
                       <List.Item>
                         <List.Item.Meta
-                          title={`${item.car_name} - ${item.price} $`}
+                          title={`${item.car_name} - ${item.price} so'm`}
                           description={`Kilometr: ${item.kilometer}`}
                         />
                       </List.Item>
@@ -293,13 +293,13 @@ const TripDetailsModal: React.FC<TripDetailsModalProps> = ({
               {
                 key: 'balons',
                 label: 'Balonlar',
-                children: trip.expenses.balons.length > 0 ? (
+                children: trip.expenses.balons && trip.expenses.balons.length > 0 ? (
                   <List
                     dataSource={trip.expenses.balons}
                     renderItem={(item) => (
                       <List.Item>
                         <List.Item.Meta
-                          title={`${item.car_name} - ${item.price} $`}
+                          title={`${item.car_name} - ${item.price} so'm`}
                           description={`${item.type} - ${item.count} ta - ${item.kilometr} km`}
                         />
                       </List.Item>
@@ -312,13 +312,13 @@ const TripDetailsModal: React.FC<TripDetailsModalProps> = ({
               {
                 key: 'balon_furgons',
                 label: 'Furgon balonlari',
-                children: trip.expenses.balon_furgons.length > 0 ? (
+                children: trip.expenses.balon_furgons && trip.expenses.balon_furgons.length > 0 ? (
                   <List
                     dataSource={trip.expenses.balon_furgons}
                     renderItem={(item) => (
                       <List.Item>
                         <List.Item.Meta
-                          title={`${item.furgon_name} - ${item.price} $`}
+                          title={`${item.furgon_name} - ${item.price} so'm`}
                           description={`${item.type} - ${item.count} ta - ${item.kilometr} km`}
                         />
                       </List.Item>
@@ -331,13 +331,13 @@ const TripDetailsModal: React.FC<TripDetailsModalProps> = ({
               {
                 key: 'optols',
                 label: 'Optollar',
-                children: trip.expenses.optols.length > 0 ? (
+                children: trip.expenses.optols && trip.expenses.optols.length > 0 ? (
                   <List
                     dataSource={trip.expenses.optols}
                     renderItem={(item) => (
                       <List.Item>
                         <List.Item.Meta
-                          title={`${item.car_name} - ${item.price} $`}
+                          title={`${item.car_name} - ${item.price} so'm`}
                           description={`Kilometr: ${item.kilometr}`}
                         />
                       </List.Item>
@@ -350,13 +350,13 @@ const TripDetailsModal: React.FC<TripDetailsModalProps> = ({
               {
                 key: 'chiqimliks',
                 label: 'Chiqimlar',
-                children: trip.expenses.chiqimliks.length > 0 ? (
+                children: trip.expenses.chiqimliks && trip.expenses.chiqimliks.length > 0 ? (
                   <List
                     dataSource={trip.expenses.chiqimliks}
                     renderItem={(item) => (
                       <List.Item>
                         <List.Item.Meta
-                          title={`${item.driver_name} - ${item.price} $`}
+                          title={`${item.driver_name} - ${item.price} so'm`}
                           description={item.description}
                         />
                       </List.Item>
@@ -369,7 +369,7 @@ const TripDetailsModal: React.FC<TripDetailsModalProps> = ({
               {
                 key: 'arizalar',
                 label: 'Arizalar',
-                children: trip.expenses.arizalar.length > 0 ? (
+                children: trip.expenses.arizalar && trip.expenses.arizalar.length > 0 ? (
                   <List
                     dataSource={trip.expenses.arizalar}
                     renderItem={(item) => (
@@ -388,7 +388,7 @@ const TripDetailsModal: React.FC<TripDetailsModalProps> = ({
               {
                 key: 'referenslar',
                 label: 'Referenslar',
-                children: trip.expenses.referenslar.length > 0 ? (
+                children: trip.expenses.referenslar && trip.expenses.referenslar.length > 0 ? (
                   <List
                     dataSource={trip.expenses.referenslar}
                     renderItem={(item) => (
@@ -407,7 +407,7 @@ const TripDetailsModal: React.FC<TripDetailsModalProps> = ({
             ]}
           />
           <Divider style={{ margin: '12px 0' }} />
-          <Text strong>Jami xarajatlar: {trip.expenses.total_usd.toLocaleString()} $</Text>
+          <Text strong>Jami xarajatlar: {trip.expenses.total_usd ? trip.expenses.total_usd.toLocaleString() : 0} so'm</Text>
         </Card>
       )}
     </Modal>

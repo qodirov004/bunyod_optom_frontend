@@ -61,23 +61,35 @@ const ClientAnalytics: React.FC<ClientAnalyticsProps> = ({ clientId }) => {
         setError(null);
 
         // Fetch client data and trips individually since /history/.../client-history/ is returning 404
-        const [clientRes, raysRes, debtsResponse] = await Promise.all([
+        const [clientRes, raysRes, historyRes, debtsResponse] = await Promise.all([
           axiosInstance.get(`/clients/${clientId}/`),
           axiosInstance.get(`/rays/?client=${clientId}`),
+          axiosInstance.get(`/rayshistory/?client=${clientId}`).catch(() => ({ data: [] })),
           axiosInstance.get(`/casa/all-debts/`)
         ]);
 
         const clientData = clientRes.data;
-        const trips = Array.isArray(raysRes.data) ? raysRes.data : (raysRes.data?.results || []);
+        const activeTrips = Array.isArray(raysRes.data) ? raysRes.data : (raysRes.data?.results || []);
+        const historyTrips = Array.isArray(historyRes.data) ? historyRes.data : (historyRes.data?.results || []);
+        
+        // Combine and deduplicate trips
+        const allTrips = [...activeTrips, ...historyTrips];
+        const tripsMap = new Map();
+        allTrips.forEach(trip => {
+          if (trip.id) tripsMap.set(trip.id, trip);
+        });
+        const trips = Array.from(tripsMap.values());
 
         let totalUSD = 0;
         let totalUZS = 0;
         let totalRUB = 0;
 
         trips.forEach((trip: any) => {
-          if (trip.payment_currency === 'USD') totalUSD += Number(trip.price || 0);
-          else if (trip.payment_currency === 'UZS') totalUZS += Number(trip.price || 0);
-          else if (trip.payment_currency === 'RUB') totalRUB += Number(trip.price || 0);
+          const tripAmount = Number(trip.price || trip.cost || 0);
+          if (trip.payment_currency === 'USD') totalUSD += tripAmount;
+          else if (trip.payment_currency === 'UZS') totalUZS += tripAmount;
+          else if (trip.payment_currency === 'RUB') totalRUB += tripAmount;
+          else totalUSD += tripAmount; // Default to USD calculation if no currency specified
         });
 
         const constructedHistoryData = {
@@ -144,9 +156,7 @@ const ClientAnalytics: React.FC<ClientAnalyticsProps> = ({ clientId }) => {
       const day = String(date.getDate()).padStart(2, '0');
       const month = String(date.getMonth() + 1).padStart(2, '0');
       const year = date.getFullYear();
-      const hours = String(date.getHours()).padStart(2, '0');
-      const minutes = String(date.getMinutes()).padStart(2, '0');
-      return `${day}.${month}.${year} ${hours}:${minutes}`;
+      return `${day}.${month}.${year}`;
     } catch {
       return "Noto'g'ri sana";
     }
@@ -169,6 +179,25 @@ const ClientAnalytics: React.FC<ClientAnalyticsProps> = ({ clientId }) => {
       key: 'created_at',
       render: (date: string) => formatDate(date)
     },
+    {
+      title: 'Summa',
+      dataIndex: 'price',
+      key: 'price',
+      render: (price: number, record: any) => `${formatCurrency(Number(price || record.cost || 0))} ${record.payment_currency || 'UZS'}`
+    },
+    {
+      title: 'Status',
+      dataIndex: 'status',
+      key: 'status',
+      render: (status: string) => {
+        let color = 'blue';
+        let label = status;
+        if (status === 'completed') { color = 'green'; label = 'Yakunlangan'; }
+        else if (status === 'in_progress') { color = 'orange'; label = 'Jarayonda'; }
+        else if (status === 'canceled') { color = 'red'; label = 'Bekor qilingan'; }
+        return <Tag color={color}>{label}</Tag>;
+      }
+    }
   ];
 
   return (
@@ -189,10 +218,11 @@ const ClientAnalytics: React.FC<ClientAnalyticsProps> = ({ clientId }) => {
         <Col xs={24} sm={12} lg={6}>
           <Card>
             <Statistic
-              title="To'langan summa (USD)"
-              value={formatCurrency(historyData.total_paid_usd || 0)}
+              title="To'langan summa (so'm)"
+              value={(debtData?.paid_usd || historyData.total_paid_usd || 0) * 12800}
               prefix={<DollarOutlined />}
               valueStyle={{ color: '#3f8600' }}
+              suffix="so'm"
             />
           </Card>
         </Col>
@@ -200,9 +230,10 @@ const ClientAnalytics: React.FC<ClientAnalyticsProps> = ({ clientId }) => {
         <Col xs={24} sm={12} lg={6}>
           <Card>
             <Statistic
-              title="Kutilgan to'lov (USD)"
-              value={formatCurrency(debtData?.expected_usd || 0)}
+              title="Kutilgan to'lov (so'm)"
+              value={Number(debtData?.expected_usd || 0) * 12800}
               prefix={<WalletOutlined />}
+              suffix="so'm"
             />
           </Card>
         </Col>
@@ -210,39 +241,43 @@ const ClientAnalytics: React.FC<ClientAnalyticsProps> = ({ clientId }) => {
         <Col xs={24} sm={12} lg={6}>
           <Card>
             <Statistic
-              title="Qolgan to'lov (USD)"
-              value={formatCurrency(debtData?.remaining_usd || 0)}
+              title="Qolgan to'lov (so'm)"
+              value={Number(debtData?.remaining_usd || 0) * 12800}
               prefix={<BarChartOutlined />}
               valueStyle={{
                 color: (debtData?.remaining_usd || 0) > 0 ? '#cf1322' : '#3f8600'
               }}
+              suffix="so'm"
             />
           </Card>
         </Col>
       </Row>
 
-      {/* Currency Details Card */}
-      {historyData.total_paid && (
-        <Card title="To'lovlar tafsiloti" style={{ marginTop: 24 }}>
-          <Descriptions column={{ xs: 1, sm: 2, md: 3 }} bordered>
-            {historyData.total_paid.USD !== undefined && (
-              <Descriptions.Item label="USD">
-                <Text strong>{formatCurrency(historyData.total_paid.USD)}</Text>
-              </Descriptions.Item>
-            )}
-            {historyData.total_paid.UZS !== undefined && (
-              <Descriptions.Item label="UZS">
-                <Text strong>{formatCurrency(historyData.total_paid.UZS)}</Text>
-              </Descriptions.Item>
-            )}
-            {historyData.total_paid.RUB !== undefined && (
-              <Descriptions.Item label="RUB">
-                <Text strong>{formatCurrency(historyData.total_paid.RUB)}</Text>
-              </Descriptions.Item>
-            )}
-          </Descriptions>
-        </Card>
-      )}
+      {/* Quick Summary Card */}
+      <Card style={{ marginTop: 24, background: '#f0f5ff' }}>
+        <Row gutter={16} align="middle">
+          <Col xs={24} md={16}>
+            <Text type="secondary" style={{ fontSize: '14px' }}>Mijozning umumiy holati:</Text>
+            <div style={{ marginTop: 8 }}>
+              {Number(debtData?.remaining_usd || 0) > 0 ? (
+                <Tag color="red" style={{ fontSize: '14px', padding: '4px 12px' }}>
+                  <WalletOutlined /> Qarzdorlik mavjud
+                </Tag>
+              ) : (
+                <Tag color="green" style={{ fontSize: '14px', padding: '4px 12px' }}>
+                  <CheckCircleOutlined /> To'lov to'liq amalga oshirilgan
+                </Tag>
+              )}
+            </div>
+          </Col>
+          <Col xs={24} md={8} style={{ textAlign: 'right' }}>
+            <Text type="secondary">Oxirgi hisob-kitob:</Text>
+            <div style={{ fontSize: '18px', fontWeight: 'bold', marginTop: 4 }}>
+              {formatDate(new Date().toISOString())}
+            </div>
+          </Col>
+        </Row>
+      </Card>
 
       <Card
         title={
@@ -269,7 +304,7 @@ const ClientAnalytics: React.FC<ClientAnalyticsProps> = ({ clientId }) => {
       {debtData && debtData.remaining_usd > 0 && (
         <Alert
           message="To'lov eslatmasi"
-          description={`${debtData.fullname} uchun ${formatCurrency(debtData.remaining_usd)} USD miqdorida to'lov kutilmoqda.`}
+          description={`${debtData.fullname} uchun ${formatCurrency(debtData.remaining_usd * 12800)} so'm miqdorida to'lov kutilmoqda.`}
           type="warning"
           showIcon
           style={{ marginTop: 24 }}

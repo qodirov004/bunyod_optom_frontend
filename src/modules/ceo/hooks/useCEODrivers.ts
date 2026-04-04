@@ -3,10 +3,10 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { message } from 'antd';
 import { getAllDrivers, getDriver, createDriverWithPhoto as createDriver, updateDriverWithPhoto as updateDriver, deleteDriver } from '../../accounting/api/drivers/driverApi';
 import { DriverType, DriverFilter } from '../../accounting/types/driver';
-import { useTrips } from '../../accounting/hooks/useTrips';
 import { AxiosError } from 'axios';
 import axiosInstance from '@/api/axiosInstance';
-
+import { useTrips } from '../../accounting/hooks/useTrips';
+import { useHistory } from '../../accounting/hooks/useHistory';
 export const useCEODrivers = () => {
   const queryClient = useQueryClient();
   const [filters, setFilters] = useState<DriverFilter>({
@@ -23,9 +23,10 @@ export const useCEODrivers = () => {
     queryKey: ['ceo-drivers', filters],
     queryFn: () => getAllDrivers(filters),
     staleTime: 5 * 60 * 1000,
+    retry: 2,
   });
 
-  const { data: tripsData, isLoading: isLoadingTrips } = useTrips();
+  // Active cars query - independent from drivers, should not block driver display
   const { data: activeCarsData, isLoading: isLoadingCars } = useQuery({
     queryKey: ['active-cars'],
     queryFn: async () => {
@@ -37,23 +38,59 @@ export const useCEODrivers = () => {
         return [];
       }
     },
-    staleTime: 1 * 60 * 1000, // 1 minute
+    staleTime: 1 * 60 * 1000,
   });
   
-  const trips = tripsData || [];
   const activeCars = activeCarsData || [];
+  const { data: trips = [] } = useTrips();
+  const { data: history = [] } = useHistory();
 
   // Process data the same way as accounting module
-  const drivers = Array.isArray(data?.results) ? data.results : [];
+  const drivers = useMemo(() => {
+    const results = Array.isArray(data?.results) ? data.results : [];
+    
+    // Add computed statistics based on active and historical trips
+    return results.map(driver => {
+      // Find active trips for this driver
+      const activeTrips = trips.filter(trip => trip.driver?.id === driver.id);
+      
+      // Find historical trips for this driver
+      const historicalTrips = history.filter(h => 
+        h.driver?.id === driver.id || (h as any).driver_id === driver.id
+      );
+      
+      const totalRaysCount = activeTrips.length + historicalTrips.length;
+      
+      const totalIncome = 
+        activeTrips.reduce((sum, trip) => sum + (Number(trip.price) || 0), 0) +
+        historicalTrips.reduce((sum, h) => sum + (Number((h as any).price || h.total_price) || 0), 0);
+        
+      const totalSalary = 
+        activeTrips.reduce((sum, trip) => sum + (Number(trip.dp_price) || 0), 0) +
+        historicalTrips.reduce((sum, h) => sum + (Number(h.dp_price) || 0), 0);
+        
+      const totalKm = 
+        activeTrips.reduce((sum, trip) => sum + (Number(trip.kilometer) || 0), 0) +
+        historicalTrips.reduce((sum, h) => sum + (Number(h.kilometer) || 0), 0);
+
+      return {
+        ...driver,
+        rays_count: totalRaysCount,
+        total_km: totalKm,
+        total_income: totalIncome,
+        total_rays_usd: totalSalary 
+      };
+    });
+  }, [data, trips, history]);
   const total = data?.count || 0;
 
   // Get drivers on road (active cars)
   const driversOnRoad = useMemo(() => {
-    if (!activeCars.length) return [];
+    if (!activeCars.length || !drivers.length) return [];
     
     // Extract driver IDs from active cars
     const driverIds = new Set(
-      activeCars.map(car => 
+      activeCars.map((car: any) => 
         typeof car.driver === 'object' ? car.driver.id : car.driver
       )
     );
@@ -68,7 +105,7 @@ export const useCEODrivers = () => {
     
     // Extract driver IDs from active cars
     const driverIds = new Set(
-      activeCars.map(car => 
+      activeCars.map((car: any) => 
         typeof car.driver === 'object' ? car.driver.id : car.driver
       )
     );
@@ -141,7 +178,6 @@ export const useCEODrivers = () => {
       message.success('Haydovchi muvaffaqiyatli o\'chirildi');
     },
     onError: (error: any) => {
-      // Check for our custom error messages from the API adapter
       const errorMessage = error.message || 'Haydovchi o\'chirishda xatolik yuz berdi';
       message.error(errorMessage);
     }
@@ -153,7 +189,9 @@ export const useCEODrivers = () => {
     waitingDrivers,
     total,
     activeCars,
-    isLoading: isLoadingDrivers || isLoadingTrips || isLoadingCars,
+    // Only block on driver data loading - active cars load independently
+    isLoading: isLoadingDrivers,
+    isLoadingCars,
     error,
     activeDriversCount,
     inactiveDriversCount,

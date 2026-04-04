@@ -1,13 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { Modal, Form, Input, Select, Button, Upload, Alert, DatePicker, Row, Col, Switch, message } from 'antd';
-import { UploadOutlined, UserOutlined, PhoneOutlined, LockOutlined, IdcardOutlined, HomeOutlined, CalendarOutlined } from '@ant-design/icons';
+import { Modal, Form, Input, Select, Button, Upload, Alert, Row, Col, message } from 'antd';
+import { UploadOutlined, UserOutlined, PhoneOutlined, LockOutlined } from '@ant-design/icons';
 import { DriverType } from '../../../../accounting/types/driver';
 import axiosInstance from "../../../../../api/axiosInstance";
 import { formatImageUrl } from '../../../../../api/axiosInstance';
 import type { UploadFile } from 'antd/es/upload/interface';
 import type { RcFile } from 'antd/es/upload';
 import moment from 'moment';
-import dayjs from 'dayjs';
 
 const { Option } = Select;
 
@@ -31,10 +30,7 @@ const DriverModal: React.FC<DriverModalProps> = ({
     const [error, setError] = useState<string | null>(null);
     const [statusOptions, setStatusOptions] = useState<{ label: string, value: string }[]>([]);
     const [photoUrl, setPhotoUrl] = useState<string | null>(null);
-    const [passportPhotoUrl, setPassportPhotoUrl] = useState<string | null>(null);
     const [fileList, setFileList] = useState<UploadFile[]>([]);
-    const [passportFileList, setPassportFileList] = useState<UploadFile[]>([]);
-    const [passportBackFileList, setPassportBackFileList] = useState<UploadFile[]>([]);
 
     // Use hardcoded status options instead of API call
     useEffect(() => {
@@ -52,9 +48,7 @@ const DriverModal: React.FC<DriverModalProps> = ({
         form.resetFields();
         setError(null);
         setPhotoUrl(driver?.photo || null);
-        setPassportPhotoUrl(driver?.passport_photo || null);
         setFileList([]);
-        setPassportFileList([]);
 
         if (driver?.photo) {
             setFileList([
@@ -63,28 +57,6 @@ const DriverModal: React.FC<DriverModalProps> = ({
                     name: 'Photo',
                     status: 'done',
                     url: formatImageUrl(driver.photo) || undefined,
-                },
-            ]);
-        }
-        
-        if (driver?.passport_photo_front) {
-            setPassportFileList([
-                {
-                    uid: '-2',
-                    name: 'Passport Front',
-                    status: 'done',
-                    url: formatImageUrl(driver.passport_photo_front) || undefined,
-                },
-            ]);
-        }
-        
-        if (driver?.passport_photo_back) {
-            setPassportBackFileList([
-                {
-                    uid: '-3',
-                    name: 'Passport Back',
-                    status: 'done',
-                    url: formatImageUrl(driver.passport_photo_back) || undefined,
                 },
             ]);
         }
@@ -101,15 +73,6 @@ const DriverModal: React.FC<DriverModalProps> = ({
                 username: driver.username,
                 phone_number: driver.phone_number,
                 status: driver.status,
-                address: driver.address,
-                passport: driver.passport,
-                passport_series: driver.passport_series,
-                passport_number: driver.passport_number,
-                passport_issued_by: driver.passport_issued_by,
-                passport_issued_date: driver.passport_issued_date ? dayjs(driver.passport_issued_date) : undefined,
-                passport_birth_date: driver.passport_birth_date ? dayjs(driver.passport_birth_date) : undefined,
-                license_number: driver.license_number,
-                license_expiry: driver.license_expiry ? dayjs(driver.license_expiry) : undefined,
                 is_active: driver.is_active || true,
                 // Don't set password for edit mode
             });
@@ -144,37 +107,9 @@ const DriverModal: React.FC<DriverModalProps> = ({
                 formData.append('password', values.password);
             }
 
-            // Passport info
-            formData.append('passport_series', values.passport_series || '');
-            formData.append('passport_number', values.passport_number || '');
-            formData.append('passport_issued_by', values.passport_issued_by || '');
-            
-            if (values.passport_issued_date) {
-                formData.append('passport_issued_date', values.passport_issued_date.format('YYYY-MM-DD'));
-            }
-            if (values.passport_birth_date) {
-                formData.append('passport_birth_date', values.passport_birth_date.format('YYYY-MM-DD'));
-            }
-
-            // License info
-            formData.append('license_number', values.license_number || '');
-            if (values.license_expiry) {
-                formData.append('license_expiry', values.license_expiry.format('YYYY-MM-DD'));
-            }
-
-            if (values.address) {
-                formData.append('address', values.address);
-            }
-
             // Add files
             if (fileList[0]?.originFileObj) {
                 formData.append('photo', fileList[0].originFileObj);
-            }
-            if (passportFileList[0]?.originFileObj) {
-                formData.append('passport_photo_front', passportFileList[0].originFileObj);
-            }
-            if (passportBackFileList[0]?.originFileObj) {
-                formData.append('passport_photo_back', passportBackFileList[0].originFileObj);
             }
 
             // Submit form
@@ -201,16 +136,6 @@ const DriverModal: React.FC<DriverModalProps> = ({
             message.error('Rasm hajmi 2MB dan oshmasligi kerak!');
         }
         return isJpgOrPng && isLt2M;
-    };
-
-    const customPassportFrontUpload = async ({ file, onSuccess, onError }: any) => {
-        setPhotoUrl(file); // This will be handled in handleSubmit directly as File object
-        onSuccess("ok", file);
-    };
-
-    const customPassportBackUpload = async ({ file, onSuccess, onError }: any) => {
-        setPassportPhotoUrl(file); // This will be handled in handleSubmit directly as File object
-        onSuccess("ok", file);
     };
 
     const customProfileUpload = async ({ file, onSuccess, onError }: any) => {
@@ -333,140 +258,6 @@ const DriverModal: React.FC<DriverModalProps> = ({
                         </Col>
                     )}
 
-                    {/* Passport Info */}
-                    <Col span={24}>
-                        <h4 style={{ borderBottom: '1px solid #f0f0f0', paddingBottom: 8, marginTop: 16 }}>Pasport ma'lumotlari</h4>
-                    </Col>
-                    <Col xs={24} sm={8}>
-                        <Form.Item
-                            name="passport_series"
-                            label="Pasport seriyasi"
-                            normalize={(value) => (value ? value.toUpperCase() : '')}
-                        >
-                            <Input prefix={<IdcardOutlined />} placeholder="AA" maxLength={2} style={{ textTransform: 'uppercase' }} />
-                        </Form.Item>
-                    </Col>
-                    <Col xs={24} sm={8}>
-                        <Form.Item
-                            name="passport_number"
-                            label="Pasport raqami"
-                            normalize={(value) => value.replace(/\D/g, '')}
-                        >
-                            <Input prefix={<IdcardOutlined />} placeholder="1234567" maxLength={7} />
-                        </Form.Item>
-                    </Col>
-                    <Col xs={24} sm={16}>
-                        <Form.Item
-                            name="passport_issued_by"
-                            label="Kim tomonidan berilgan"
-                            normalize={(value) => {
-                                if (!value) return '';
-                                const letters = value.replace(/[^a-zA-Z]/g, '').slice(0, 3).toUpperCase();
-                                const numbers = value.replace(/[^0-9]/g, '').slice(0, 5);
-                                return letters + numbers;
-                            }}
-                        >
-                            <Input prefix={<IdcardOutlined />} placeholder="AAA12345" maxLength={8} />
-                        </Form.Item>
-                    </Col>
-                    <Col xs={24} sm={12}>
-                        <Form.Item
-                            name="passport_issued_date"
-                            label="Berilgan sana"
-                        >
-                            <DatePicker 
-                                style={{ width: '100%' }} 
-                                format="DD.MM.YYYY" 
-                                placeholder="Sanani tanlang" 
-                                inputReadOnly 
-                                allowClear={false}
-                            />
-                        </Form.Item>
-                    </Col>
-                    <Col xs={24} sm={12}>
-                        <Form.Item
-                            name="passport_birth_date"
-                            label="Tug'ilgan sana"
-                        >
-                            <DatePicker 
-                                style={{ width: '100%' }} 
-                                format="DD.MM.YYYY" 
-                                placeholder="Sanani tanlang" 
-                                inputReadOnly 
-                                allowClear={false}
-                            />
-                        </Form.Item>
-                    </Col>
-                    <Col xs={24} sm={12}>
-                        <Form.Item label="Pasport nusxasi (Old taraf)">
-                            <Upload
-                                name="passport_front"
-                                listType="picture"
-                                showUploadList={true}
-                                beforeUpload={handleBeforeUpload}
-                                maxCount={1}
-                                fileList={passportFileList}
-                                customRequest={customPassportFrontUpload}
-                                onChange={({ fileList }) => setPassportFileList(fileList)}
-                            >
-                                {passportFileList.length === 0 && (
-                                    <Button icon={<UploadOutlined />}>Yuklash</Button>
-                                )}
-                            </Upload>
-                        </Form.Item>
-                    </Col>
-                    <Col xs={24} sm={12}>
-                        <Form.Item label="Pasport nusxasi (Orqa taraf)">
-                            <Upload
-                                name="passport_back"
-                                listType="picture"
-                                showUploadList={true}
-                                beforeUpload={handleBeforeUpload}
-                                maxCount={1}
-                                fileList={passportBackFileList}
-                                customRequest={customPassportBackUpload}
-                                onChange={({ fileList }) => setPassportBackFileList(fileList)}
-                            >
-                                {passportBackFileList.length === 0 && (
-                                    <Button icon={<UploadOutlined />}>Yuklash</Button>
-                                )}
-                            </Upload>
-                        </Form.Item>
-                    </Col>
-
-                    {/* Driving License Info */}
-                    <Col span={24}>
-                        <h4 style={{ borderBottom: '1px solid #f0f0f0', paddingBottom: 8, marginTop: 16 }}>Guvohnoma va boshqalar</h4>
-                    </Col>
-                    <Col xs={24} sm={12}>
-                        <Form.Item
-                            name="license_number"
-                            label="Haydovchilik guvohnomasi"
-                            normalize={(value) => {
-                                if (!value) return '';
-                                const letters = value.replace(/[^a-zA-Z]/g, '').slice(0, 2).toUpperCase();
-                                const numbers = value.replace(/[^0-9]/g, '').slice(0, 7);
-                                return letters + numbers;
-                            }}
-                        >
-                            <Input prefix={<IdcardOutlined />} placeholder="AA1234567" maxLength={9} />
-                        </Form.Item>
-                    </Col>
-                    <Col xs={24} sm={12}>
-                        <Form.Item
-                            name="license_expiry"
-                            label="Amal qilish muddati"
-                        >
-                            <DatePicker 
-                                style={{ width: '100%' }} 
-                                format="DD.MM.YYYY" 
-                                placeholder="Sanani tanlang" 
-                                inputReadOnly 
-                                allowClear={false}
-                            />
-                        </Form.Item>
-                    </Col>
-
                     {/* Status */}
                     <Col xs={24} sm={mode === 'create' ? 12 : 24}>
                         <Form.Item
@@ -479,17 +270,6 @@ const DriverModal: React.FC<DriverModalProps> = ({
                                     <Option key={option.value} value={option.value}>{option.label}</Option>
                                 ))}
                             </Select>
-                        </Form.Item>
-                    </Col>
-                    <Col xs={24}>
-                        <Form.Item
-                            name="address"
-                            label="Manzil"
-                        >
-                            <Input.TextArea
-                                rows={2}
-                                placeholder="Manzil"
-                            />
                         </Form.Item>
                     </Col>
                 </Row>

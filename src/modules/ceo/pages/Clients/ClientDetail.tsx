@@ -176,7 +176,7 @@ const ClientDetail = () => {
               {clientDebt && clientDebt.remaining_usd > 0 && (
                 <Alert
                   message="Qarzdorlik mavjud"
-                  description={`${formatCurrency(clientDebt.remaining_usd)} USD miqdorida to'lov amalga oshirilishi kerak.`}
+                  description={`${formatCurrency(clientDebt.remaining_usd * 12800)} so'm miqdorida to'lov amalga oshirilishi kerak.`}
                   type="warning"
                   showIcon
                   style={{ margin: '16px 0' }}
@@ -210,7 +210,7 @@ const ClientDetail = () => {
                 <Descriptions.Item label="Ro'yxatdan o'tgan sana">
                   {client.created_at ? 
                     new Date(client.created_at).toLocaleDateString('uz-UZ') : 
-                    'Sana mavjud emas'
+                    'Ma\'lumot yo\'q'
                   }
                 </Descriptions.Item>
               </Descriptions>
@@ -223,14 +223,13 @@ const ClientDetail = () => {
                 >
                   <div className="payment-stat-item">
                     <Text>Kutilgan summa:</Text>
-                    <Text strong>${formatCurrency(clientDebt.expected_usd)}</Text>
+                    <Text strong>{formatCurrency(clientDebt.expected_usd * 12800)} so'm</Text>
                   </div>
                   <div className="payment-stat-item">
                     <Text>To'langan summa:</Text>
                     <Text 
-                      strong 
                       style={{ color: '#3f8600' }}
-                    >${formatCurrency(clientDebt.paid_usd)}</Text>
+                    >{formatCurrency(clientDebt.paid_usd * 12800)} so'm</Text>
                   </div>
                   <div className="payment-stat-item">
                     <Text>Qolgan summa:</Text>
@@ -239,7 +238,7 @@ const ClientDetail = () => {
                       style={{ 
                         color: clientDebt.remaining_usd > 0 ? '#cf1322' : '#3f8600'
                       }}
-                    >${formatCurrency(clientDebt.remaining_usd)}</Text>
+                    >{formatCurrency(clientDebt.remaining_usd * 12800)} so'm</Text>
                   </div>
                   <div className="payment-status">
                     <Tag 

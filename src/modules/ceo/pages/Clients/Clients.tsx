@@ -229,9 +229,9 @@ export const Clients = () => {
         totalSpent,
         lastTripDate,
         status: clientTrips.some(trip => trip.status !== 'completed') ? 'active' : 'inactive',
-        expectedAmount: debtInfo?.expected_usd || 0,
-        paidAmount: debtInfo?.paid_usd || 0,
-        remainingAmount: debtInfo?.remaining_usd || 0,
+        expectedAmount: (debtInfo?.expected_usd || 0) * 12800,
+        paidAmount: (debtInfo?.paid_usd || 0) * 12800,
+        remainingAmount: (debtInfo?.remaining_usd || 0) * 12800,
         hasDebt: debtInfo ? debtInfo.remaining_usd > 0 : false
       };
     });
@@ -381,14 +381,14 @@ export const Clients = () => {
       dataIndex: 'expectedAmount',
       key: 'expectedAmount',
       align: 'right' as const,
-      render: (amount: number) => `$${formatCurrency(amount)}`,
+      render: (amount: number) => `${formatCurrency(amount)} so'm`,
     },
     {
       title: 'To\'langan to\'lov',
       dataIndex: 'paidAmount',
       key: 'paidAmount',
       align: 'right' as const,
-      render: (amount: number) => `$${formatCurrency(amount)}`,
+      render: (amount: number) => `${formatCurrency(amount)} so'm`,
     },
     {
       title: 'Qolgan to\'lov',
@@ -397,7 +397,7 @@ export const Clients = () => {
       align: 'right' as const,
       render: (amount: number, record: any) => (
         <span style={{ color: amount > 0 ? '#cf1322' : '#3f8600' }}>
-          ${formatCurrency(amount)}
+          {formatCurrency(amount)} so'm
         </span>
       ),
     },
@@ -443,9 +443,9 @@ export const Clients = () => {
       };
     }
 
-    const totalExpected = clientDebts.data.reduce((sum, debt) => sum + (debt.expected_usd || 0), 0);
-    const totalPaid = clientDebts.data.reduce((sum, debt) => sum + (debt.paid_usd || 0), 0);
-    const totalDebt = clientDebts.data.reduce((sum, debt) => sum + (debt.remaining_usd || 0), 0);
+    const totalExpected = (clientDebts.data.reduce((sum, debt) => sum + (debt.expected_usd || 0), 0)) * 12800;
+    const totalPaid = (clientDebts.data.reduce((sum, debt) => sum + (debt.paid_usd || 0), 0)) * 12800;
+    const totalDebt = (clientDebts.data.reduce((sum, debt) => sum + (debt.remaining_usd || 0), 0)) * 12800;
     const clientsWithDebt = clientDebts.data.filter(debt => debt.remaining_usd > 0).length;
 
     return {
@@ -456,12 +456,11 @@ export const Clients = () => {
     };
   }, [clientDebts.data]);
 
-  // Dashboard content
   const renderDashboard = () => (
     <>
       <Row gutter={[24, 24]}>
         <Col xs={24} md={6}>
-          <Card className="dashboard-card" bordered={false}>
+          <Card className="dashboard-card" variant="borderless">
             <Statistic
               title="Jami mijozlar"
               value={clientStats.total}
@@ -480,12 +479,12 @@ export const Clients = () => {
           </Card>
         </Col>
         <Col xs={24} md={6}>
-          <Card className="dashboard-card" bordered={false}>
+          <Card className="dashboard-card" variant="borderless">
             <Statistic
               title="Jami qarzdorlik"
-              value={formatCurrency(debtStats.totalDebt)}
+              value={debtStats.totalDebt}
               prefix={<DollarOutlined />}
-              suffix="USD"
+              suffix="so'm"
               valueStyle={{ color: debtStats.totalDebt > 0 ? '#cf1322' : '#3f8600' }}
             />
             <div className="stat-description">
@@ -494,26 +493,26 @@ export const Clients = () => {
           </Card>
         </Col>
         <Col xs={24} md={6}>
-          <Card className="dashboard-card" bordered={false}>
+          <Card className="dashboard-card" variant="borderless">
             <Statistic
               title="To'langan summa"
-              value={formatCurrency(debtStats.totalPaid)}
+              value={debtStats.totalPaid}
               prefix={<DollarOutlined />}
-              suffix="USD"
+              suffix="so'm"
               valueStyle={{ color: '#3f8600' }}
             />
             <div className="stat-description">
-              <Text type="secondary">Jami kutilgan: ${formatCurrency(debtStats.totalExpected)}</Text>
+              <Text type="secondary">Jami kutilgan: {formatCurrency(debtStats.totalExpected)} so'm</Text>
             </div>
           </Card>
         </Col>
         <Col xs={24} md={6}>
-          <Card className="dashboard-card" bordered={false}>
+          <Card className="dashboard-card" variant="borderless">
             <Statistic
               title="O'rtacha to'lov"
-              value={clientStats.total > 0 ? formatCurrency(debtStats.totalPaid / clientStats.total) : '0'}
+              value={clientStats.total > 0 ? (debtStats.totalPaid / clientStats.total) : 0}
               prefix={<DollarOutlined />}
-              suffix="USD"
+              suffix="so'm"
             />
             <div className="stat-description">
               <Text type="secondary">Har bir mijoz uchun</Text>
@@ -570,21 +569,21 @@ export const Clients = () => {
                     dataIndex: 'expected_usd',
                     key: 'expected_usd',
                     align: 'right' as const,
-                    render: (amount) => `$${formatCurrency(amount)}`
+                    render: (amount: number) => `${formatCurrency(amount * 12800)} so'm`
                   },
                   {
                     title: "To'langan",
                     dataIndex: 'paid_usd',
                     key: 'paid_usd',
                     align: 'right' as const,
-                    render: (amount) => `$${formatCurrency(amount)}`
+                    render: (amount: number) => `${formatCurrency(amount * 12800)} so'm`
                   },
                   {
                     title: 'Qolgan summa',
                     dataIndex: 'remaining_usd',
                     key: 'remaining_usd',
                     align: 'right' as const,
-                    render: (amount) => <span style={{ color: '#cf1322', fontWeight: 'bold' }}>${formatCurrency(amount)}</span>
+                    render: (amount: number) => <span style={{ color: '#cf1322', fontWeight: 'bold' }}>{formatCurrency(amount * 12800)} so'm</span>
                   },
                   {
                     title: 'Harakatlar',
@@ -644,7 +643,7 @@ export const Clients = () => {
 
   // Clients table content
   const renderClientsTable = () => (
-    <Card title="Mijozlar ro'yxati" bordered={false}>
+    <Card title="Mijozlar ro'yxati" variant="borderless">
       <div className="table-actions">
         <Input
           placeholder="Mijozni qidirish..."
@@ -691,7 +690,7 @@ export const Clients = () => {
 
       <Modal
         title={editingClient ? "Mijozni tahrirlash" : "Yangi mijoz qo'shish"}
-        visible={isModalVisible}
+        open={isModalVisible}
         onCancel={handleCancel}
         footer={[
           <Button key="cancel" onClick={handleCancel}>

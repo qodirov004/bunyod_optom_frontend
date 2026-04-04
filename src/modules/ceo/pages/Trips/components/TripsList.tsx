@@ -93,7 +93,7 @@ const TripsList: React.FC<TripsListProps> = ({
     {
       title: 'Narx',
       key: 'price',
-      render: (_, record: TripData) => `${record.price} $`,
+      render: (_, record: TripData) => `${record.price?.toLocaleString() || 0} so'm`,
     },
     {
       title: 'Foyda',
@@ -102,7 +102,7 @@ const TripsList: React.FC<TripsListProps> = ({
         const profit = (record.price || 0) - (record.dr_price || 0) - (record.dp_price || 0);
         return (
           <Tag color={profit > 0 ? 'success' : 'error'}>
-            {profit.toLocaleString()} $
+            {profit.toLocaleString()} so'm
           </Tag>
         );
       },

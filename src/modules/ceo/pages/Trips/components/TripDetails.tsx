@@ -45,13 +45,13 @@ interface TripData {
 
 interface TripDetailsProps {
   trip: TripData | null;
-  visible: boolean;
+  open: boolean;
   onClose: () => void;
 }
 
 export const TripDetails: React.FC<TripDetailsProps> = ({ 
   trip, 
-  visible, 
+  open, 
   onClose 
 }) => {
   if (!trip) return null;
@@ -89,7 +89,7 @@ export const TripDetails: React.FC<TripDetailsProps> = ({
   };
 
   const formatCurrency = (amount: number) => {
-    return `${amount.toLocaleString()} $`;
+    return `${amount.toLocaleString()} so'm`;
   };
 
   const formatDate = (date: Date | null) => {
@@ -108,7 +108,7 @@ export const TripDetails: React.FC<TripDetailsProps> = ({
       placement="right"
       width={680}
       onClose={onClose}
-      open={visible}
+      open={open}
     >
       <Tabs defaultActiveKey="general" items={[
         {

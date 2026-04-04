@@ -257,10 +257,10 @@ const DriverTable: React.FC<DriverTableProps> = ({
       key: "total_income",
       width: 150,
       render: (_: any, record: DriverType) => (
-        <Text style={{ color: '#3f8600', fontWeight: 500 }}>{formatPrice(record.total_rays_usd || record.total_income || 0)}</Text>
+        <Text style={{ color: '#3f8600', fontWeight: 500 }}>{formatPrice(record.total_income || record.total_rays_usd || 0)}</Text>
       ),
       sorter: (a: DriverType, b: DriverType) => 
-        (a.total_rays_usd || a.total_income || 0) - (b.total_rays_usd || b.total_income || 0),
+        (a.total_income || a.total_rays_usd || 0) - (b.total_income || b.total_rays_usd || 0),
     },
     {
       title: "To'langan oyliklar",
@@ -307,7 +307,26 @@ const DriverTable: React.FC<DriverTableProps> = ({
               onClick={() => showDeleteConfirm(record)}
             />
           </Tooltip>
-          <Dropdown overlay={renderMoreActions(record)} trigger={['click']}>
+          <Dropdown menu={{ items: [
+              {
+                key: '1',
+                icon: <PhoneOutlined />,
+                label: 'Qo\'ng\'iroq qilish',
+                onClick: () => handleCallDriver(record.phone_number)
+              },
+              {
+                key: '2',
+                icon: <PrinterOutlined />,
+                label: 'Chop etish',
+                onClick: () => handlePrintDriverInfo(record)
+              },
+              {
+                key: '3',
+                icon: <DownloadOutlined />,
+                label: 'Ma\'lumotlarni yuklab olish',
+                onClick: () => {/* Implementation for download */}
+              }
+            ]}} trigger={['click']}>
             <Button
               size="small"
               shape="circle"
@@ -338,81 +357,6 @@ const DriverTable: React.FC<DriverTableProps> = ({
         },
         style: { cursor: 'pointer' }
       })}
-      expandable={{
-        expandedRowRender: (record) => (
-          <Row gutter={16}>
-            <Col span={8}>
-              <Space direction="vertical">
-                <Space>
-                  <PhoneOutlined />
-                  <Text>{record.phone_number}</Text>
-                </Space>
-                <Space>
-                  <IdcardOutlined />
-                  <Text>{record.passport || 'Mavjud emas'}</Text>
-                </Space>
-              </Space>
-            </Col>
-            <Col span={8}>
-              <Space direction="vertical">
-                <Space>
-                  <CalendarOutlined />
-                  <Text>Qo'shilgan sana: <FormattedDate date={record.date} /></Text>
-                </Space>
-                <Space>
-                  <HistoryOutlined />
-                  <Text>Reyslar soni: {record.rays_count || 0}</Text>
-                </Space>
-              </Space>
-            </Col>
-            <Col span={8}>
-              <Space direction="vertical">
-                <Space>
-                  <DollarOutlined />
-                  <Text>To'langan pul: {formatPrice(record.total_rays_usd || 0)}</Text>
-                </Space>
-                <Space>
-                  <UserOutlined />
-                  <Text>Status: {record.status}</Text>
-                </Space>
-              </Space>
-            </Col>
-            
-            {/* Extended Passport Info */}
-            <Col span={24} style={{ marginTop: '16px' }}>
-              <div style={{ padding: '10px 15px', backgroundColor: '#f5f5f5', borderRadius: '6px' }}>
-                <h5 style={{ margin: '0 0 10px 0', color: '#595959' }}>Pasport va Qo'shimcha Ma'lumotlar</h5>
-                <Row gutter={[16, 8]}>
-                  <Col span={8}>
-                    <Text type="secondary">Seriya va raqam:</Text><br/>
-                    <Text>{record.passport_series || ''} {record.passport_number || 'Mavjud emas'}</Text>
-                  </Col>
-                  <Col span={8}>
-                    <Text type="secondary">Kim bergan:</Text><br/>
-                    <Text>{record.passport_issued_by || 'Mavjud emas'}</Text>
-                  </Col>
-                  <Col span={8}>
-                    <Text type="secondary">Sanalar:</Text><br/>
-                    <Text>Berilgan: <FormattedDate date={record.passport_issued_date} /></Text><br/>
-                    <Text>Tug'ilgan: <FormattedDate date={record.passport_birth_date} /></Text>
-                  </Col>
-                </Row>
-                {record.passport_photo && (
-                  <div style={{ marginTop: '12px' }}>
-                    <Text type="secondary" style={{ display: 'block', marginBottom: '8px' }}>Pasport nusxasi:</Text>
-                    <Avatar 
-                      src={formatImageUrl(record.passport_photo)} 
-                      shape="square" 
-                      size={64} 
-                      icon={<IdcardOutlined />} 
-                    />
-                  </div>
-                )}
-              </div>
-            </Col>
-          </Row>
-        ),
-      }}
     />
   );
 };

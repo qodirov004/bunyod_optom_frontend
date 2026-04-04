@@ -214,19 +214,10 @@ export const cashApi = {
     },
 
     getPaymentTypes: async () => {
-        try {
-            // Use currency endpoint since payment types are actually currencies
-            const response = await axiosInstance.get('/currency/');
-            return response.data;
-        } catch (error) {
-            console.error('Error fetching payment types, using fallback:', error);
-            // Fallback to basic currencies if endpoint fails
-            return [
-                { id: 1, currency: 'USD', rate_to_uzs: '12800' },
-                { id: 2, currency: 'UZS', rate_to_uzs: '1' },
-                { id: 3, currency: 'RUB', rate_to_uzs: '140' }
-            ];
-        }
+        // Project standardized on UZS, removing legacy /currency/ endpoint to avoid 404
+        return [
+            { id: 2, currency: 'UZS', rate_to_uzs: '1' }
+        ];
     },
 
     getAllServiceTypes: async () => {
@@ -384,15 +375,8 @@ export const getCashHistoryById = async (id: number): Promise<CashHistory> => {
 };
 
 export const getCurrencies = async (): Promise<Currency[]> => {
-    try {
-        const response = await axiosInstance.get('/currency/');
-        return response.data;
-    } catch (error) {
-        console.error('Error fetching currencies, using fallback:', error);
-        return [
-            { id: 1, currency: 'USD', rate_to_uzs: '12800', updated_at: new Date().toISOString() },
-            { id: 2, currency: 'UZS', rate_to_uzs: '1', updated_at: new Date().toISOString() },
-            { id: 3, currency: 'RUB', rate_to_uzs: '140', updated_at: new Date().toISOString() }
-        ];
-    }
+    // Project standardized on UZS, removing legacy /currency/ endpoint to avoid 404
+    return [
+        { id: 2, currency: 'UZS', rate_to_uzs: '1', updated_at: new Date().toISOString() }
+    ];
 }; 
