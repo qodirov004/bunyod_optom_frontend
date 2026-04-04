@@ -10,7 +10,7 @@ import {
   ClockCircleOutlined,
   SearchOutlined,
   InfoCircleOutlined,
-  DollarOutlined,
+  WalletOutlined,
   FileTextOutlined,
   MessageOutlined,
   ExclamationCircleOutlined,
@@ -131,11 +131,13 @@ const DriversOnRoad: React.FC<DriversOnRoadProps> = ({
   };
 
   // Format a currency value
-  const formatCurrency = (value: number, currency: string = 'USD') => {
+  const formatCurrency = (value: number) => {
+    // Convert USD to UZS using the fixed multiplier (12800)
+    const uzsValue = (Number(value) || 0) * 12800;
     return new Intl.NumberFormat('uz-UZ', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    }).format(value) + ' ' + currency;
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(uzsValue) + ' so\'m';
   };
 
   // Calculate total duration on road
@@ -169,7 +171,7 @@ const DriversOnRoad: React.FC<DriversOnRoadProps> = ({
           {/* Overview Card */}
           <Col xs={24} lg={8}>
             <Card 
-              title={<><CarOutlined /> Umumiy ma'lumot</>} 
+              title={<><WalletOutlined /> Umumiy ma'lumot</>} 
               className="detail-card"
               variant="borderless"
               style={{ height: '100%', background: '#f8f9fa' }}
@@ -239,7 +241,7 @@ const DriversOnRoad: React.FC<DriversOnRoadProps> = ({
           {/* Expenses Card */}
           <Col xs={24} lg={16}>
             <Card 
-              title={<span><DollarOutlined /> Xarajat va ma'lumotlar</span>}
+              title={<span><WalletOutlined /> Xarajat va ma'lumotlar</span>}
               className="detail-card"
               variant="borderless"
             >
@@ -248,14 +250,14 @@ const DriversOnRoad: React.FC<DriversOnRoadProps> = ({
                   key: "1",
                   label: (
                     <span>
-                      <DollarOutlined /> Xarajatlar ({record.chiqimliklar.length})
+                      <WalletOutlined /> Xarajatlar ({record.chiqimliklar.length})
                     </span>
                   ),
                   children: (
                     <>
                       <div className="expense-details" style={{ marginBottom: 20, background: '#fff', borderRadius: '8px', overflow: 'hidden', border: '1px solid #f0f0f0' }}>
                         <div style={{ padding: '10px 15px', display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #f0f0f0', background: '#fafafa' }}>
-                          <Text strong><DollarOutlined /> Xarajat tafsilotlari</Text>
+                          <Text strong><WalletOutlined /> Xarajat tafsilotlari</Text>
                           <Text style={{ color: '#ff4d4f', fontWeight: 'bold' }}>{formatCurrency(totalExpense)}</Text>
                         </div>
                         
@@ -310,7 +312,7 @@ const DriversOnRoad: React.FC<DriversOnRoadProps> = ({
                             <Timeline.Item 
                               key={item.id} 
                               color="red" 
-                              dot={<DollarOutlined style={{ fontSize: '16px' }} />}
+                              dot={<WalletOutlined style={{ fontSize: '16px' }} />}
                             >
                               <Card 
                                 size="small" 
@@ -425,7 +427,7 @@ const DriversOnRoad: React.FC<DriversOnRoadProps> = ({
     {
       title: 'Haydovchi',
       key: 'driver',
-      fixed: 'left',
+      fixed: 'left' as const,
       width: 240,
       render: (_: any, record: ActiveCar) => {
         return (
@@ -494,12 +496,11 @@ const DriversOnRoad: React.FC<DriversOnRoadProps> = ({
       ),
     },
     {
-      title: 'Umumiy xarajat',
+      title: 'Umumiy xarajat (so\'m)',
       key: 'total_expense',
       width: 160,
       render: (_: any, record: ActiveCar) => (
         <Text style={{ color: '#ff4d4f', fontWeight: 'bold', fontSize: '15px' }}>
-          <DollarOutlined style={{ marginRight: 4 }} /> 
           {formatCurrency(record.total_expense_usd || 0)}
         </Text>
       )
@@ -597,10 +598,9 @@ const DriversOnRoad: React.FC<DriversOnRoadProps> = ({
           <Card variant="borderless" style={{ background: '#fff2e8', borderRadius: '8px' }}>
             <Statistic
               title={<span style={{ fontSize: '14px' }}>Umumiy xarajatlar</span>}
-              value={totalExpenses}
-              precision={2}
-              prefix={<DollarOutlined />}
-              suffix="USD"
+              value={(totalExpenses || 0) * 12800}
+              precision={0}
+              suffix="so'm"
               valueStyle={{ color: '#fa541c' }}
             />
           </Card>
