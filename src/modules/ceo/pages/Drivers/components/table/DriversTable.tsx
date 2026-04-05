@@ -252,8 +252,6 @@ const DriversTable: React.FC<DriversTableProps> = ({
                 <p><strong>Tug'ilgan sana:</strong> <FormattedDate date={record.passport_birth_date} /></p>
               </div>
               <div style={{ flex: '1', minWidth: '250px' }}>
-                <p><strong>Guvohnoma:</strong> {record.license_number || 'Mavjud emas'}</p>
-                <p><strong>Guvohnoma muddati:</strong> <FormattedDate date={record.license_expiry || null} /></p>
                 <p><strong>Tizimdagi login:</strong> {record.username || 'Mavjud emas'}</p>
               </div>
               {record.passport_photo && (

@@ -101,8 +101,6 @@ const DriverTable: React.FC<DriverTableProps> = ({
               <p>ID: ${driver.id}</p>
               <p>Telefon: ${driver.phone_number}</p>
               <p>Status: ${driver.status}</p>
-              <p>Guvohnoma: ${driver.license_number || 'Mavjud emas'}</p>
-              <p>Guvohnoma muddati: ${driver.license_expiry ? new Date(driver.license_expiry).toLocaleDateString() : 'Mavjud emas'}</p>
               <p>Manzil: ${driver.address || 'Mavjud emas'}</p>
             </div>
             <div class="section">
@@ -216,21 +214,6 @@ const DriverTable: React.FC<DriverTableProps> = ({
         if (value === 'waiting') return record.is_busy === false;
         return record.status === value;
       },
-    },
-    {
-      title: 'Guvohnoma',
-      key: 'license',
-      width: 140,
-      render: (_: any, record: DriverType) => (
-        <Space direction="vertical" size={0}>
-          <Text>{record.license_number || 'Mavjud emas'}</Text>
-          {record.license_expiry && (
-            <Text type="secondary" style={{ fontSize: '12px' }}>
-              <FormattedDate date={record.license_expiry} />
-            </Text>
-          )}
-        </Space>
-      ),
     },
     {
       title: 'Reyslar',
