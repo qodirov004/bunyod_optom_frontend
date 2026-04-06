@@ -84,7 +84,9 @@ export const createDriver = async (data: Partial<DriverType>): Promise<DriverTyp
             username: username,
             password: password,
             phone_number: data.phone_number,
-            status: statusValue
+            status: statusValue,
+            date_joined: data.date_joined,
+            date: data.date
         };
         console.log('Sending driver data to API:', driverData);
         try {
@@ -149,6 +151,8 @@ export const updateDriver = async (id: number, data: Partial<DriverType>): Promi
             passport_birth_date: data.passport_birth_date,
             license_number: data.license_number,
             license_expiry: data.license_expiry,
+            date_joined: data.date_joined,
+            date: data.date
         };
         
         // Only include photo if it's a new upload (not a URL string)
@@ -367,6 +371,18 @@ export const updateDriverWithPhoto = async (id: any, formData?: FormData): Promi
             throw new Error('FormData is required for updateDriverWithPhoto');
         }
         const cleanFormData = new FormData();
+        
+        // Copy entries from formData to cleanFormData
+        if (formData) {
+            for (const [key, value] of formData.entries()) {
+                if (value instanceof File) {
+                    cleanFormData.append(key, value, value.name);
+                } else {
+                    cleanFormData.append(key, value);
+                }
+            }
+        }
+
         const hasPhoto = cleanFormData.has('photo');
         if (hasPhoto) {
             const photo = cleanFormData.get('photo');

@@ -135,17 +135,6 @@ const DriversList: React.FC<DriversListProps> = ({
       sorter: (a: DriverType, b: DriverType) => (a.total_rays_usd || 0) - (b.total_rays_usd || 0),
     },
     {
-      title: 'Qo\'shilgan sana',
-      key: 'date_joined',
-      width: 150,
-      render: (_: any, record: DriverType) => formatDate(record.date_joined || record.date),
-      sorter: (a: DriverType, b: DriverType) => {
-        const dateA = new Date(a.date_joined || a.date || 0).getTime();
-        const dateB = new Date(b.date_joined || b.date || 0).getTime();
-        return dateA - dateB;
-      },
-    },
-    {
       title: 'Amallar',
       key: 'actions',
       width: 120,
@@ -167,38 +156,40 @@ const DriversList: React.FC<DriversListProps> = ({
   ];
 
   return (
-    <Table
-      dataSource={filteredDrivers}
-      columns={columns}
-      rowKey="id"
-      loading={loading}
-      pagination={{
-        total,
-        current: filters.page || 1,
-        pageSize: filters.pageSize || 10,
-        showSizeChanger: true,
-        showTotal: (total) => `Jami ${total} ta`,
-        size: 'small'
-      }}
-      onChange={(pagination, filters, sorter: any) => {
-        onFiltersChange({
-          ...filters,
-          page: pagination.current,
-          pageSize: pagination.pageSize,
-          sortBy: sorter.field,
-          sortOrder: sorter.order,
-        });
-      }}
-      onRow={(record) => {
-        return {
-          onClick: () => onEdit(record),
-          style: { cursor: 'pointer' }
-        };
-      }}
-      size="small"
-      bordered={false}
-      style={{ marginTop: 12 }}
-    />
+    <div className="responsive-scroll" style={{ width: '100%' }}>
+      <Table
+        dataSource={filteredDrivers}
+        columns={columns}
+        rowKey="id"
+        loading={loading}
+        pagination={{
+          total,
+          current: filters.page || 1,
+          pageSize: filters.pageSize || 10,
+          showSizeChanger: true,
+          showTotal: (total) => `Jami ${total} ta`,
+          size: 'small'
+        }}
+        onChange={(pagination, filters, sorter: any) => {
+          onFiltersChange({
+            ...filters,
+            page: pagination.current,
+            pageSize: pagination.pageSize,
+            sortBy: sorter.field,
+            sortOrder: sorter.order,
+          });
+        }}
+        onRow={(record) => {
+          return {
+            onClick: () => onEdit(record),
+            style: { cursor: 'pointer' }
+          };
+        }}
+        size="small"
+        bordered={false}
+        style={{ marginTop: 12, minWidth: 900 }}
+      />
+    </div>
   );
 };
 

@@ -1,0 +1,17 @@
+.finance-header-responsive {
+  width: 100%;
+  margin-bottom: 24px;
+  padding: 16px 0;
+}
+
+.finance-header-responsive .ant-col {
+  display: flex;
+  align-items: center;
+}
+
+@media (max-width: 768px) {
+  .finance-header-responsive {
+    padding: 12px 0;
+    margin-bottom: 16px;
+  }
+}

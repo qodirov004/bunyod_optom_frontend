@@ -142,7 +142,8 @@ const TripDetailsModal: React.FC<TripDetailsModalProps> = ({
       open={visible}
       onCancel={onClose}
       footer={null}
-      width={800}
+      width={Math.min(window?.innerWidth || 800, 800)}
+      bodyStyle={{ overflowX: 'hidden' }}
     >
       <Card style={{ marginBottom: 16 }}>
         <Space size="large" style={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -162,10 +163,10 @@ const TripDetailsModal: React.FC<TripDetailsModalProps> = ({
       </Card>
 
       <Row gutter={[16, 16]}>
-        <Col span={12}>
+        <Col xs={24} sm={24} md={12}>
           <Card title={<Space><UserOutlined /> Transport & Haydovchi</Space>} style={{ height: '100%' }}>
             {trip.fourgon ? (
-              <Descriptions column={1} size="small" bordered={false}>
+              <Descriptions column={1} size="small" variant="borderless">
                 <Descriptions.Item label="Furgon">
                   <Text strong>{trip.fourgon.name}</Text>
                 </Descriptions.Item>
@@ -174,7 +175,7 @@ const TripDetailsModal: React.FC<TripDetailsModalProps> = ({
                 </Descriptions.Item>
               </Descriptions>
             ) : trip.car ? (
-              <Descriptions column={1} size="small" bordered={false}>
+              <Descriptions column={1} size="small" variant="borderless">
                 <Descriptions.Item label="Avtomobil">
                   <Text strong>{trip.car.name}</Text>
                 </Descriptions.Item>
@@ -189,7 +190,7 @@ const TripDetailsModal: React.FC<TripDetailsModalProps> = ({
             <Divider style={{ margin: '12px 0' }} />
             
             {trip.driver ? (
-              <Descriptions column={1} size="small" bordered={false}>
+              <Descriptions column={1} size="small" variant="borderless">
                 <Descriptions.Item label="Haydovchi">
                   <Text strong>{trip.driver.fullname}</Text>
                 </Descriptions.Item>
@@ -203,9 +204,9 @@ const TripDetailsModal: React.FC<TripDetailsModalProps> = ({
           </Card>
         </Col>
         
-        <Col span={12}>
+        <Col xs={24} sm={24} md={12}>
           <Card title={<Space><DollarOutlined /> Moliyaviy ma`lumotlar</Space>} style={{ height: '100%' }}>
-            <Descriptions column={1} size="small" bordered={false}>
+            <Descriptions column={1} size="small" variant="borderless">
               <Descriptions.Item label="Umumiy narx">
                 <Text strong>{trip.price?.toLocaleString() || 0} so'm</Text>
               </Descriptions.Item>
@@ -226,8 +227,8 @@ const TripDetailsModal: React.FC<TripDetailsModalProps> = ({
       {trip.client && trip.client.length > 0 && (
         <Card title={<Space><UserOutlined /> Mijoz ma'lumotlari</Space>} style={{ marginTop: 16 }}>
           <Row gutter={[16, 16]}>
-            <Col span={8}>
-              <Descriptions column={1} size="small" bordered={false}>
+            <Col xs={24} sm={24} md={8}>
+              <Descriptions column={1} size="small" variant="borderless">
                 <Descriptions.Item label="Mijoz">
                   <Text strong>{trip.client[0].first_name} {trip.client[0].last_name}</Text>
                 </Descriptions.Item>
@@ -236,23 +237,23 @@ const TripDetailsModal: React.FC<TripDetailsModalProps> = ({
                 </Descriptions.Item>
               </Descriptions>
             </Col>
-            <Col span={16}>
+            <Col xs={24} sm={24} md={16}>
               <Text strong style={{ marginBottom: 8, display: 'block' }}>Mahsulotlar</Text>
               <List
                 dataSource={trip.client[0].products || []}
                 renderItem={(product) => (
                   <List.Item>
                     <Row style={{ width: '100%' }}>
-                      <Col span={8}>
+                      <Col xs={24} sm={24} md={8}>
                         <Text>{product.name}</Text>
                       </Col>
-                      <Col span={5}>
+                      <Col xs={24} sm={24} md={5}>
                         <Text>{product.count} ta</Text>
                       </Col>
-                      <Col span={6}>
+                      <Col xs={24} sm={24} md={6}>
                         <Text>{product.price?.toLocaleString()} {product.currency_name}</Text>
                       </Col>
-                      <Col span={5}>
+                      <Col xs={24} sm={24} md={5}>
                         <Text type="secondary">{product.from_location_name} → {product.to_location_name}</Text>
                       </Col>
                     </Row>

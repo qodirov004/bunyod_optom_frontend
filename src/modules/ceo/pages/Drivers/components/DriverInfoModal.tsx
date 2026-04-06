@@ -9,7 +9,6 @@ import {
     DollarOutlined
 } from '@ant-design/icons';
 import { DriverType } from '../../../../accounting/types/driver';
-import { formatImageUrl } from '../../../../../api/axiosInstance';
 import dayjs from 'dayjs';
 
 const { Title, Text } = Typography;
@@ -52,7 +51,6 @@ const DriverInfoModal: React.FC<DriverInfoModalProps> = ({ visible, driver, onCl
                             <Col>
                                 <Avatar 
                                     size={120} 
-                                    src={formatImageUrl(driver.photo)} 
                                     icon={<UserOutlined />}
                                     style={{ border: '4px solid white', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
                                 />

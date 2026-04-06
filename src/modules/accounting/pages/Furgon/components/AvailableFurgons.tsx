@@ -101,14 +101,17 @@ const AvailableFurgons = () => {
       <Card
         title={<Title level={5}><CarOutlined /> Mavjud furgonlar</Title>}
         extra={
-          <Input
-            placeholder="Qidirish..."
-            prefix={<SearchOutlined />}
-            style={{ width: 250 }}
-            value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
-            allowClear
-          />
+          <div className={styles.tableHeaderExtra}>
+            <div className={styles.searchWrapper}>
+              <Input
+                placeholder="Qidirish..."
+                prefix={<SearchOutlined />}
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
+                allowClear
+              />
+            </div>
+          </div>
         }
       >
         {filteredFurgons.length > 0 ? (
@@ -117,6 +120,7 @@ const AvailableFurgons = () => {
             dataSource={filteredFurgons}
             rowKey="id"
             pagination={{ pageSize: 10 }}
+            scroll={{ x: 800 }}
           />
         ) : (
           <Empty 

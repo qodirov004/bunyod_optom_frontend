@@ -677,7 +677,7 @@ const CashTransactionList: React.FC = () => {
       children: (
         <Card>
           <Space style={{ marginBottom: 16 }} direction="vertical" size="middle" className="w-full">
-            <Space>
+            <Space wrap style={{ width: '100%', justifyContent: 'space-between', gap: 12 }}>
               <Button
                 type="primary"
                 icon={<PlusOutlined />}
@@ -792,6 +792,7 @@ const CashTransactionList: React.FC = () => {
               showSizeChanger: true,
               showTotal: (total) => `Jami: ${total}`
             }}
+            scroll={{ x: 'max-content' }}
           />
         </Card>
       )
@@ -887,6 +888,7 @@ const CashTransactionList: React.FC = () => {
                 showSizeChanger: true,
                 showTotal: (total) => `Jami: ${total}`
               }}
+              scroll={{ x: 'max-content' }}
             />
           ) : (
             <div style={{ textAlign: 'center', padding: '40px 0' }}>

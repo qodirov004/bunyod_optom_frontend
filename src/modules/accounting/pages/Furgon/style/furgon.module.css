@@ -154,6 +154,7 @@
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  width: 100%;
 }
 
 .furgonTable th {
@@ -163,6 +164,32 @@
 
 .furgonTable tr:hover td {
   background: #f0f7ff !important;
+}
+
+.tableHeaderExtra {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.searchWrapper {
+  flex: 1 1 320px;
+  max-width: 420px;
+  min-width: 220px;
+}
+
+.searchWrapper :global(.ant-input) {
+  width: 100%;
+}
+
+.buttonGroup {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: flex-end;
 }
 
 /* Road and Available containers */
@@ -220,11 +247,39 @@
     gap: 16px;
   }
   
+  .tableHeaderExtra {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .searchWrapper {
+    max-width: 100%;
+    min-width: auto;
+  }
+  
+  .buttonGroup {
+    justify-content: stretch;
+  }
+  
+  .buttonGroup button {
+    width: 100%;
+  }
+  
   .statsCards {
     grid-template-columns: 1fr;
   }
   
   .statCard {
     margin-bottom: 16px;
+  }
+  
+  .furgonTable {
+    overflow-x: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .pageHeader {
+    padding: 16px;
   }
 } 

@@ -32,7 +32,7 @@ const FleetStats = memo(({
     <Row gutter={[16, 16]}>
       <Col xs={24} sm={12} md={6}>
         <Card 
-          bordered={false}
+          variant="borderless"
           style={{ 
             borderRadius: '12px',
             background: 'linear-gradient(135deg, #1890ff 0%, #096dd9 100%)',
@@ -54,7 +54,7 @@ const FleetStats = memo(({
 
       <Col xs={24} sm={12} md={6}>
         <Card 
-          bordered={false}
+          variant="borderless"
           style={{ 
             borderRadius: '12px',
             background: 'linear-gradient(135deg, #52c41a 0%, #389e0d 100%)',
@@ -81,7 +81,7 @@ const FleetStats = memo(({
 
       <Col xs={24} sm={12} md={6}>
         <Card 
-          bordered={false}
+          variant="borderless"
           style={{ 
             borderRadius: '12px',
             background: 'linear-gradient(135deg, #722ed1 0%, #531dab 100%)',
@@ -108,7 +108,7 @@ const FleetStats = memo(({
 
       <Col xs={24} sm={12} md={6}>
         <Card 
-          bordered={false}
+          variant="borderless"
           style={{ 
             borderRadius: '12px',
             background: 'linear-gradient(135deg, #fa8c16 0%, #d46b08 100%)',

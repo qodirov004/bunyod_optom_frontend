@@ -164,7 +164,7 @@ export const ExpensesBreakdownCard: React.FC<ExpensesBreakdownCardProps> = ({
           </div>
         }
         className="expenses-breakdown-card"
-        bordered={false}
+        variant="borderless"
       >
         <div className="expenses-content">
           <div className="chart-container">

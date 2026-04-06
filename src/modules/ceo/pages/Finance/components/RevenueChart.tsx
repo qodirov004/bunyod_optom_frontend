@@ -84,7 +84,7 @@ export const RevenueChart: React.FC<RevenueChartProps> = ({ data, isLoading = fa
   return (
     <Card 
       title="Revenue Trends" 
-      bordered={false}
+      variant="borderless"
       style={{ borderRadius: '8px' }}
       extra={
         <Radio.Group 

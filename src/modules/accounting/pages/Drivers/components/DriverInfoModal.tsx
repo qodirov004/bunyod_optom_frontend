@@ -9,7 +9,6 @@ import {
     DollarOutlined
 } from '@ant-design/icons';
 import { DriverType } from '../../../types/driver';
-import { formatImageUrl } from '../../../../../api/axiosInstance';
 import dayjs from 'dayjs';
 
 const { Title, Text } = Typography;
@@ -24,9 +23,10 @@ interface DriverInfoModalProps {
 const DriverInfoModal: React.FC<DriverInfoModalProps> = ({ visible, driver, onClose, loading }) => {
     if (!driver && !loading) return null;
 
-    const formatDate = (date: string | null | undefined) => {
-        if (!date) return 'Mavjud emas';
-        return dayjs(date).format('DD.MM.YYYY');
+    const formatDate = (date: string | null | undefined, record?: DriverType) => {
+        const actualDate = date || record?.joining_date || record?.created_at || record?.date;
+        if (!actualDate) return 'Mavjud emas';
+        return dayjs(actualDate).format('DD.MM.YYYY');
     };
 
     const getStatusTag = (status: string, isBusy: boolean) => {
@@ -56,12 +56,11 @@ const DriverInfoModal: React.FC<DriverInfoModalProps> = ({ visible, driver, onCl
                 <Row gutter={[24, 24]}>
                 {/* Profile Header */}
                 <Col span={24}>
-                    <Card variant="borderless" styles={{ body: { padding: '20px', borderRadius: '12px', background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)' } }}>
+                    <Card bordered={false} styles={{ body: { padding: '20px', borderRadius: '12px', background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)' } }}>
                         <Row align="middle" gutter={24}>
                             <Col>
                                 <Avatar 
                                     size={120} 
-                                    src={driver.photo ? formatImageUrl(driver.photo) : undefined} 
                                     icon={<UserOutlined />}
                                     style={{ border: '4px solid white', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
                                 />
@@ -97,7 +96,7 @@ const DriverInfoModal: React.FC<DriverInfoModalProps> = ({ visible, driver, onCl
                             </Col>
                         </Row>
                         <Divider style={{ margin: '24px 0' }} />
-                        <Space><CalendarOutlined /> <Text>Ro'yxatdan o'tgan: {formatDate(driver.date_joined || driver.date)}</Text></Space>
+                        <Space><CalendarOutlined /> <Text>Ro'yxatdan o'tgan: {formatDate(driver.date_joined, driver)}</Text></Space>
                     </Card>
                 </Col>
             </Row>

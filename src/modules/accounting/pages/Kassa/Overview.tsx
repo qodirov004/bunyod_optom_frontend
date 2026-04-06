@@ -201,7 +201,7 @@ const Overview: React.FC<OverviewProps> = ({ fallbackData }) => {
            To&apos;lovlar tahlili (so&apos;m)
         </div>
         
-        <Card bordered={false} className="analysis-card">
+        <Card variant="borderless" className="analysis-card">
           <Space direction="vertical" size="large" style={{ width: '100%' }}>
             <div className="analysis-item">
               <div className="analysis-header">

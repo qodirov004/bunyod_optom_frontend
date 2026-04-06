@@ -114,6 +114,12 @@
   margin-top: 16px;
 }
 
+.drivers-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 /* Card view styling */
 .cardsGrid {
   margin-top: 16px;

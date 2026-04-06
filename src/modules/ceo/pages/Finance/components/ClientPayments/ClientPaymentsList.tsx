@@ -213,7 +213,7 @@ const ClientPaymentsList: React.FC<ClientPaymentsListProps> = ({
     <div>
       <Row gutter={24}>
         <Col span={16}>
-          <Card title="Client Payments" bordered={false}>
+          <Card title="Client Payments" variant="borderless">
             <Table
               dataSource={payments}
               columns={columns}

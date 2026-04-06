@@ -101,7 +101,9 @@ const TopDriversTable: React.FC<TopDriversTableProps> = ({ drivers, loading }) =
             loading={loading}
             pagination={false}
             size="small"
-            bordered={false}
+            variant="borderless"
+            scroll={{ x: 700 }}
+            style={{ width: '100%' }}
         />
     );
 };

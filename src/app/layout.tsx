@@ -1,5 +1,5 @@
 import "@ant-design/v5-patch-for-react-19";
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter, Space_Grotesk, Roboto_Mono } from "next/font/google";
 import "./globals.css";
 import { ReduxProvider } from "@/providers/ReduxProvider";
@@ -29,6 +29,13 @@ const robotoMono = Roboto_Mono({
 export const metadata: Metadata = {
   title: "RBL LOGISTCS",
   description: "RBL LOGISTCS admin panel",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  userScalable: true,
 };
 
 export default function RootLayout({

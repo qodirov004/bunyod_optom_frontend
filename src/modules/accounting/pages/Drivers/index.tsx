@@ -46,8 +46,9 @@ export const DriversPage: React.FC = () => {
     
     // Get user role from Redux
     const user = useSelector((state: RootState) => state.auth.user);
-    const isAccountant = user?.status?.toLowerCase() === 'bugalter';
-    const canAddDriver = !isAccountant;
+    const userRole = user?.status?.toLowerCase();
+    const isAccountant = userRole === 'bugalter';
+    const canAddDriver = userRole === 'ceo' || userRole === 'bugalter';
     const {
         drivers,
         loading,
@@ -231,7 +232,7 @@ export const DriversPage: React.FC = () => {
             const status = e?.response?.status;
             
             if (status === 403) {
-                message.error('Sizda haydovchi yaratish uchun huquq yo`q (Faqat CEO yoki Admin)');
+                message.error('Sizda haydovchi yaratish uchun huquq yo`q (Faqat CEO yoki Bugalter)');
             } else {
                 message.error(
                     detail

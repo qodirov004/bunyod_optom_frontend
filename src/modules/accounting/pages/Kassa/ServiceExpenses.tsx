@@ -195,7 +195,7 @@ const ServiceExpenses: React.FC = () => {
             {serviceTotals && (
               <>
                 <Col xs={24} sm={12} md={6} lg={4}>
-                  <Card className="expense-card" bordered={false} style={{ background: '#f6ffed' }}>
+                  <Card className="expense-card" variant="borderless" style={{ background: '#f6ffed' }}>
                     <Statistic
                       title={<Space><ToolOutlined /> Texnik xizmat</Space>}
                       value={serviceTotals.totals_usd.texnic}
@@ -206,7 +206,7 @@ const ServiceExpenses: React.FC = () => {
                   </Card>
                 </Col>
                 <Col xs={24} sm={12} md={6} lg={4}>
-                  <Card className="expense-card" bordered={false} style={{ background: '#e6f7ff' }}>
+                  <Card className="expense-card" variant="borderless" style={{ background: '#e6f7ff' }}>
                     <Statistic
                       title={<Space><CarOutlined /> Balon xizmati</Space>}
                       value={serviceTotals.totals_usd.balon}
@@ -217,7 +217,7 @@ const ServiceExpenses: React.FC = () => {
                   </Card>
                 </Col>
                 <Col xs={24} sm={12} md={6} lg={4}>
-                  <Card className="expense-card" bordered={false} style={{ background: '#f0f5ff' }}>
+                  <Card className="expense-card" variant="borderless" style={{ background: '#f0f5ff' }}>
                     <Statistic
                       title={<Space><CarFilled /> Furgon balon</Space>}
                       value={serviceTotals.totals_usd.balon_furgon}
@@ -228,7 +228,7 @@ const ServiceExpenses: React.FC = () => {
                   </Card>
                 </Col>
                 <Col xs={24} sm={12} md={6} lg={4}>
-                  <Card className="expense-card" bordered={false} style={{ background: '#fff2e8' }}>
+                  <Card className="expense-card" variant="borderless" style={{ background: '#fff2e8' }}>
                     <Statistic
                       title={<Space><FireOutlined /> Chiqim xarajat</Space>}
                       value={serviceTotals.totals_usd.chiqimlik}
@@ -239,9 +239,9 @@ const ServiceExpenses: React.FC = () => {
                   </Card>
                 </Col>
                 <Col xs={24} sm={12} md={6} lg={4}>
-                  <Card className="expense-card" bordered={false} style={{ background: '#f9f0ff' }}>
+                  <Card className="expense-card" variant="borderless" style={{ background: '#f9f0ff' }}>
                     <Statistic
-                      title={<Space><ShoppingOutlined /> Yoqilg&apos;i</Space>}
+                      title={<Space><ShoppingOutlined /> Yoqilg&apos;i xarajat</Space>}
                       value={serviceTotals.totals_usd.optol}
                       precision={2}
                       suffix="so'm"
@@ -250,7 +250,7 @@ const ServiceExpenses: React.FC = () => {
                   </Card>
                 </Col>
                 <Col xs={24} sm={12} md={6} lg={4}>
-                  <Card className="expense-card" bordered={false} style={{ background: '#fcfcfc', border: '1px solid #f0f0f0' }}>
+                  <Card className="expense-card" variant="borderless" style={{ background: '#fcfcfc', border: '1px solid #f0f0f0' }}>
                     <Statistic
                       title={<Space><DollarOutlined /> Jami xarajat</Space>}
                       value={serviceTotals.totals_usd.total}
@@ -358,40 +358,54 @@ const ServiceExpenses: React.FC = () => {
         <Card 
           title="Xarajatlar ro'yxati" 
           extra={
-            <Space>
-              <Select 
-                placeholder="Xarajat turi" 
-                style={{ width: 180 }} 
-                onChange={handleTypeChange}
-                value={expenseType}
-              >
-                <Option value="all">Barcha xarajatlar</Option>
-                <Option value="texnic">Texnik xizmat</Option>
-                <Option value="balon">Balon xizmati</Option>
-                <Option value="balon_furgon">Furgon balon xizmati</Option>
-                <Option value="chiqimlik">Chiqim xarajatlari</Option>
-                <Option value="optol">Yoqilg&apos;i xarajatlari</Option>
-              </Select>
+            <div style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: 12,
+              alignItems: 'center',
+              justifyContent: 'flex-end',
+              width: '100%',
+              maxWidth: 860
+            }}>
+              <div style={{ width: 'min(220px, 100%)' }}>
+                <Select 
+                  placeholder="Xarajat turi" 
+                  style={{ width: '100%' }} 
+                  onChange={handleTypeChange}
+                  value={expenseType}
+                >
+                  <Option value="all">Barcha xarajatlar</Option>
+                  <Option value="texnic">Texnik xizmat</Option>
+                  <Option value="balon">Balon xizmati</Option>
+                  <Option value="balon_furgon">Furgon balon xizmati</Option>
+                  <Option value="chiqimlik">Chiqim xarajatlari</Option>
+                  <Option value="optol">Yoqilg&apos;i xarajatlari</Option>
+                </Select>
+              </div>
               
-              <RangePicker 
-                value={dateRange}
-                onChange={handleDateRangeChange}
-                style={{ width: 240 }}
-                placeholder={['Boshlanish', 'Tugash']}
-              />
+              <div style={{ width: 'min(280px, 100%)' }}>
+                <RangePicker 
+                  value={dateRange}
+                  onChange={handleDateRangeChange}
+                  style={{ width: '100%' }}
+                  placeholder={['Boshlanish', 'Tugash']}
+                />
+              </div>
               
-              <Button onClick={handleResetFilters}>
-                Filtrlarni tozalash
-              </Button>
-              
-              <Button 
-                type="primary" 
-                icon={<ReloadOutlined />} 
-                onClick={fetchServiceData}
-              >
-                Yangilash
-              </Button>
-            </Space>
+              <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'flex-end', width: 'auto' }}>
+                <Button onClick={handleResetFilters} style={{ minWidth: 140 }}>
+                  Filtrlarni tozalash
+                </Button>
+                <Button 
+                  type="primary" 
+                  icon={<ReloadOutlined />} 
+                  onClick={fetchServiceData}
+                  style={{ minWidth: 120 }}
+                >
+                  Yangilash
+                </Button>
+              </div>
+            </div>
           }
         >
           <Table
@@ -399,7 +413,9 @@ const ServiceExpenses: React.FC = () => {
             rowKey={(record) => `${record.car}-${record.created_at}-${record.id || Math.random().toString(36).substr(2, 9)}`}
             pagination={{ pageSize: 10 }}
             loading={loading}
+            scroll={{ x: 'max-content' }}
             columns={[
+            
               {
                 title: 'Sana',
                 dataIndex: 'created_at',

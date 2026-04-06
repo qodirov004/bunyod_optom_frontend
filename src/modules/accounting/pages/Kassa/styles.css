@@ -1843,6 +1843,37 @@
   border-left: 3px solid #fa8c16;
 }
 
+/* Responsive finance and Kassa components */
+@media (max-width: 768px) {
+  .filter-card,
+  .service-card,
+  .service-breakdown-card,
+  .cash-transaction-container,
+  .driver-salary-card {
+    padding: 12px !important;
+  }
+
+  .cash-tabs .ant-tabs-nav-wrap,
+  .cash-tabs .ant-tabs-nav {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .cash-tabs .ant-tabs-tab {
+    white-space: normal;
+  }
+
+  .transaction-filters .ant-row,
+  .cash-transaction-container .ant-row,
+  .driver-salary-card .ant-space {
+    flex-wrap: wrap;
+  }
+
+  .driver-salary-card .ant-space {
+    gap: 12px;
+  }
+}
+
 .service-expenses-breakdown {
   padding: 8px 0;
 } 

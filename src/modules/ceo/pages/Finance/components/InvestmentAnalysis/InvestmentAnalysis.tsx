@@ -208,7 +208,7 @@ const InvestmentAnalysis: React.FC = () => {
                 children: (
                 <Row gutter={[16, 16]}>
                   <Col span={24} md={8}>
-                    <Card title="Investitsiya rentabelligini hisoblash" bordered={false}>
+                    <Card title="Investitsiya rentabelligini hisoblash" variant="borderless">
                       <Form
                         layout="vertical"
                         form={roiForm}
@@ -275,7 +275,7 @@ const InvestmentAnalysis: React.FC = () => {
                   </Col>
                   
                   <Col span={24} md={16}>
-                    <Card title="Natijalar" bordered={false}>
+                    <Card title="Natijalar" variant="borderless">
                       <Row gutter={16}>
                         <Col span={24} md={12}>
                           <Statistic
@@ -350,7 +350,7 @@ const InvestmentAnalysis: React.FC = () => {
                 children: (
                 <Row gutter={[16, 16]}>
                   <Col span={24} md={16}>
-                    <Card title="Transport vositalariga investitsiyalar" bordered={false}>
+                    <Card title="Transport vositalariga investitsiyalar" variant="borderless">
                       <Table
                         columns={vehicleColumns}
                         dataSource={vehicleInvestments}
@@ -360,7 +360,7 @@ const InvestmentAnalysis: React.FC = () => {
                   </Col>
                   
                   <Col span={24} md={8}>
-                    <Card title="Investitsiya taqsimoti" bordered={false}>
+                    <Card title="Investitsiya taqsimoti" variant="borderless">
                       <div style={{ height: 300 }}>
                         <Pie {...pieConfig} />
                       </div>
@@ -368,7 +368,7 @@ const InvestmentAnalysis: React.FC = () => {
                   </Col>
                   
                   <Col span={24}>
-                    <Card title="Investitsiya tavsiyalari" bordered={false}>
+                    <Card title="Investitsiya tavsiyalari" variant="borderless">
                       <Row gutter={[16, 16]}>
                         <Col span={24} md={8}>
                           <Card type="inner" title="Eng yuqori ROI">
@@ -419,7 +419,7 @@ const InvestmentAnalysis: React.FC = () => {
                 children: (
                 <Row gutter={[16, 16]}>
                   <Col span={24}>
-                    <Card title="Strategik investitsiya imkoniyatlari" bordered={false}>
+                    <Card title="Strategik investitsiya imkoniyatlari" variant="borderless">
                       <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                         <thead>
                           <tr>

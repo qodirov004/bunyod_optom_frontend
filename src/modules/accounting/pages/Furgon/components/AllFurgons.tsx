@@ -176,23 +176,26 @@ const AllFurgons: React.FC<AllFurgonsProps> = ({ onAddNew }) => {
       <Card
         title={<Title level={5}><CarOutlined /> Furgonlar ro`yxati</Title>}
         extra={
-          <Space>
-            <Input
-              placeholder="Qidirish..."
-              prefix={<SearchOutlined />}
-              style={{ width: 250 }}
-              value={searchText}
-              onChange={(e) => setSearchText(e.target.value)}
-              allowClear
-            />
-            <Button
-              type="primary"
-              icon={<PlusOutlined />}
-              onClick={onAddNew}
-            >
-              Yangi qo`shish
-            </Button>
-          </Space>
+          <div className={styles.tableHeaderExtra}>
+            <div className={styles.searchWrapper}>
+              <Input
+                placeholder="Qidirish..."
+                prefix={<SearchOutlined />}
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
+                allowClear
+              />
+            </div>
+            <div className={styles.buttonGroup}>
+              <Button
+                type="primary"
+                icon={<PlusOutlined />}
+                onClick={onAddNew}
+              >
+                Yangi qo`shish
+              </Button>
+            </div>
+          </div>
         }
       >
         {filteredFurgons.length > 0 ? (
@@ -202,6 +205,7 @@ const AllFurgons: React.FC<AllFurgonsProps> = ({ onAddNew }) => {
             rowKey="id"
             pagination={{ pageSize: 10 }}
             className={styles.furgonTable}
+            scroll={{ x: 'max-content' }}
           />
         ) : (
           <Empty

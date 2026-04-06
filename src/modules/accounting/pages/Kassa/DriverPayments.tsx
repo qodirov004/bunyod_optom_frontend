@@ -50,7 +50,7 @@ const DriverPayments: React.FC = () => {
 
   const expandRow = (record: DriverPaymentData) => {
     return (
-      <Card title="Mijozlar ma'lumotlari" bordered={false}>
+      <Card title="Mijozlar ma'lumotlari" variant="borderless">
         <Table
           columns={[
             {
@@ -78,6 +78,7 @@ const DriverPayments: React.FC = () => {
           dataSource={record.clients || []}
           pagination={false}
           rowKey={(clientRecord, index) => `client-${record.rays_id}-${index}`}
+          scroll={{ x: 'max-content' }}
         />
         
         <Divider />

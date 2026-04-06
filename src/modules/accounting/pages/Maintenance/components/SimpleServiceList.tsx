@@ -236,6 +236,7 @@ const SimpleServiceList: React.FC = () => {
         rowKey={(record) => `${record.car}-${record.created_at}`}
         pagination={{ pageSize: 20 }}
         locale={{ emptyText: <Empty description="Ma'lumotlar topilmadi" /> }}
+        scroll={{ x: 900 }}
       />
     </Card>
   );

@@ -106,9 +106,10 @@ const CarDetailsDrawer: React.FC<CarDetailsDrawerProps> = ({
         </Space>
       }
       placement="right"
-      width={720}
+      width={Math.min(window?.innerWidth || 720, 720)}
       onClose={onClose}
       open={visible}
+      bodyStyle={{ overflowX: 'hidden' }}
       extra={
         <Space>
           <Button icon={<EditOutlined />} type="primary" onClick={() => onEdit(car)}>

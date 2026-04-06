@@ -134,7 +134,7 @@ const DriverFilters: React.FC<DriverFiltersProps> = ({
         
         {/* Advanced filters - collapsible */}
         <Collapse
-          bordered={false}
+          variant="borderless"
           expandIcon={({ isActive }) => (
             <FilterOutlined rotate={isActive ? 90 : 0} />
           )}

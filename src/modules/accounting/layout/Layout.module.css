@@ -1,6 +1,7 @@
 .layout {
     min-height: 100vh;
     transition: all 0.3s ease;
+    width: 100%;
 }
 
 .layout.light {
@@ -14,20 +15,39 @@
 }
 
 .layoutExpanded {
-    margin-left: 210px; /* Further reduced sidebar width */
+    margin-left: 210px;
     transition: all 0.3s ease;
 }
 
 .layoutCollapsed {
-    margin-left: 56px; /* Further reduced collapsed sidebar width */
+    margin-left: 56px;
     transition: all 0.3s ease;
 }
 
+/* Mobile responsive sidebar */
+@media (max-width: 768px) {
+    .layoutExpanded {
+        margin-left: 0;
+    }
+
+    .layoutCollapsed {
+        margin-left: 0;
+    }
+}
+
 .mainContent {
-    margin-top: 48px; /* Further reduced navbar height */
-    padding: 0; /* No padding */
+    margin-top: 48px;
+    padding: 0;
     transition: all 0.3s ease;
     min-height: calc(100vh - 48px);
+    width: 100%;
+}
+
+@media (max-width: 640px) {
+    .mainContent {
+        margin-top: 44px;
+        min-height: calc(100vh - 44px);
+    }
 }
 
 .contentWrapper {

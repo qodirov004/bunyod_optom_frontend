@@ -142,6 +142,7 @@ const TopDriversSection = () => {
                 rowKey="id"
                 className="dashboard-table"
                 size="middle"
+                scroll={{ x: 700 }}
             />
         );
     };

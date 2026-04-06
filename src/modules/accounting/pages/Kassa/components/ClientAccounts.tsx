@@ -476,9 +476,10 @@ const ClientAccounts: React.FC = () => {
         <Drawer
           title="Mijoz ma'lumotlari"
           placement="right"
-          width={750}
+          width={Math.min(window?.innerWidth || 750, 750)}
           onClose={() => setDrawerVisible(false)}
-          visible={drawerVisible}
+          open={drawerVisible}
+          bodyStyle={{ overflowX: 'hidden' }}
           footer={
             <div style={{ textAlign: 'right' }}>
               <Button onClick={() => setDrawerVisible(false)} style={{ marginRight: 8 }}>
@@ -522,7 +523,7 @@ const ClientAccounts: React.FC = () => {
                 
                 {/* Financial info */}
                 <Col xs={24} md={12}>
-                  <Card title="Moliyaviy ma'lumotlar" bordered={false} className="detail-card financial-card">
+                  <Card title="Moliyaviy ma'lumotlar" variant="borderless" className="detail-card financial-card">
                     <Statistic
                       title="Jami qarz miqdori"
                       value={selectedClient.total_debt || 0}
@@ -559,7 +560,7 @@ const ClientAccounts: React.FC = () => {
                 
                 {/* Contact info */}
                 <Col xs={24} md={12}>
-                  <Card title="Aloqa ma'lumotlari" bordered={false} className="detail-card">
+                  <Card title="Aloqa ma'lumotlari" variant="borderless" className="detail-card">
                     <List>
                       <List.Item>
                         <Space>
@@ -600,7 +601,7 @@ const ClientAccounts: React.FC = () => {
                 <Col span={24}>
                   <Card 
                     title="Reyslar tarixi" 
-                    bordered={false}
+                    variant="borderless"
                     className="detail-card"
                     extra={<Text type="secondary">Jami: {getClientRays(selectedClient.id).length} ta reys</Text>}
                   >

@@ -15,6 +15,8 @@ export interface DriverType {
     status: DriverStatus;
     date: string;
     date_joined?: string;
+    joining_date?: string;
+    created_at?: string;
     passport?: string;
     passport_series: string | null;
     passport_number: string | null;

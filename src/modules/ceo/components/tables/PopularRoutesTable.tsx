@@ -64,7 +64,7 @@ export const PopularRoutesTable: React.FC<PopularRoutesTableProps> = ({ data, lo
       pagination={false}
       loading={loading}
       size="middle"
-      bordered={false}
+      variant="borderless"
       className="popular-routes-table"
     />
   );

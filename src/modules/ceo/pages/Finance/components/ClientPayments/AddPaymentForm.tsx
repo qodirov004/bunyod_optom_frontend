@@ -85,7 +85,7 @@ const AddPaymentForm: React.FC<AddPaymentFormProps> = ({
   };
 
   return (
-    <Card title="Add New Payment" bordered={false}>
+    <Card title="Add New Payment" variant="borderless">
       <Form
         form={form}
         layout="vertical"

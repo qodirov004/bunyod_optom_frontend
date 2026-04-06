@@ -37,9 +37,10 @@ export const CarDrawer: React.FC<CarDrawerProps> = ({ open, onClose, editingCar 
     return (
         <Drawer
             title={editingCar ? "Avtomobilni tahrirlash" : "Yangi avtomobil qo'shish"}
-            width={420}
+            width={Math.min(window?.innerWidth || 420, 420)}
             open={open}
             onClose={onClose}
+            bodyStyle={{ overflowX: 'hidden' }}
             extra={
                 <Space>
                     <Button onClick={onClose}>Bekor qilish</Button>

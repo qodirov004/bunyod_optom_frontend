@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { Modal, Form, Input, Select, Button, Upload, Alert, message } from 'antd';
-import {  UserOutlined, PhoneOutlined, LockOutlined, LoadingOutlined, PlusOutlined } from '@ant-design/icons';
+import dayjs from 'dayjs';
+import {  UserOutlined, PhoneOutlined, LockOutlined } from '@ant-design/icons';
 import { DriverType } from '../../../types/driver';
 import axiosInstance from "../../../../../api/axiosInstance";
 import { API_URLS } from "../../../../../api/apiConfig";
-import type { RcFile, UploadProps } from 'antd/es/upload/interface';
-import Image from 'next/image';
-import { getDriverPhotoUrl } from '../photoUtils';
+
 
 const { Option } = Select;
 
@@ -27,23 +26,19 @@ const DriverModal: React.FC<DriverModalProps> = ({
 }) => {
     const [form] = Form.useForm();
     const [loading, setLoading] = useState(false);
-    const [imageLoading, setImageLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [statusOptions, setStatusOptions] = useState([
+    const [statusOptions] = useState([
         { label: 'Haydovchi', value: 'driver' },
         { label: 'Egasi', value: 'Owner' },
         { label: 'CEO', value: 'CEO' },
         { label: 'Bugalter', value: 'Bugalter' },
         { label: 'Zaphos', value: 'Zaphos' },
     ]);
-    const [imageUrl, setImageUrl] = useState<string | null>(null);
-    const [photoFile, setPhotoFile] = useState<File | null>(null);
     
     // Set initial values including image if available
     useEffect(() => {
         form.resetFields();
         setError(null);
-        setPhotoFile(null);
         
         if (mode === 'edit' && driver) {
             form.setFieldsValue({
@@ -53,71 +48,17 @@ const DriverModal: React.FC<DriverModalProps> = ({
                 status: driver.status,
                 // Don't set password for edit mode
             });
-            
-            // Set image URL if driver has a photo
-            if (driver.photo) {
-                setImageUrl(getDriverPhotoUrl(driver.photo));
-            } else {
-                setImageUrl(null);
-            }
         } else {
             // Default values for create mode
             form.setFieldsValue({
                 status: 'driver',
             });
-            setImageUrl(null);
         }
     }, [form, mode, driver, visible]);
     
     // Get status options from backend - Removed because template/ is non-existent
     
-    // Handle image before upload
-    const beforeUpload = (file: RcFile) => {
-        const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png';
-        if (!isJpgOrPng) {
-            message.error('Faqat JPG/PNG formatdagi rasmlar qabul qilinadi!');
-            return false;
-        }
-        
-        const isLt2M = file.size / 1024 / 1024 < 2;
-        if (!isLt2M) {
-            message.error('Rasm hajmi 2MB dan kichik bo\'lishi kerak!');
-            return false;
-        }
-        
-        // Don't automatically upload
-        return false;
-    };
-    
-    // Handle image change
-    const handleImageChange: UploadProps['onChange'] = (info) => {
-        if (info.file instanceof File) {
-            setImageLoading(true);
-            setPhotoFile(info.file);
-            
-            // Read file as data URL to display preview
-            const reader = new FileReader();
-            reader.onload = () => {
-                setImageUrl(reader.result as string);
-                setImageLoading(false);
-            };
-            reader.readAsDataURL(info.file);
-        } else if (info.file.originFileObj instanceof File) {
-            // Handle Ant Design Upload component format
-            const file = info.file.originFileObj;
-            setImageLoading(true);
-            setPhotoFile(file);
-            
-            // Read file as data URL to display preview
-            const reader = new FileReader();
-            reader.onload = () => {
-                setImageUrl(reader.result as string);
-                setImageLoading(false);
-            };
-            reader.readAsDataURL(file);
-            console.log('Setting photo file from originFileObj:', file.name);
-        }
-    };
+
     
     const handleSubmit = async () => {
         try {
@@ -152,30 +93,25 @@ const DriverModal: React.FC<DriverModalProps> = ({
             formData.append('phone_number', values.phone_number);
             formData.append('status', values.status);
             
-            // Add photo file if selected
-            if (photoFile) {
-                console.log('Adding photo to FormData. File info:', {
-                    name: photoFile.name,
-                    size: photoFile.size,
-                    type: photoFile.type,
-                    lastModified: new Date(photoFile.lastModified).toISOString()
-                });
-                formData.append('photo', photoFile, photoFile.name);
-                
-                // Verify photo is in FormData
-                console.log('Verifying photo in FormData:', formData.has('photo'));
-                const photoInForm = formData.get('photo');
-                console.log('Retrieved photo from FormData:', 
-                    photoInForm instanceof File ? 
-                    `File: ${photoInForm.name} (${photoInForm.size} bytes)` : 
-                    String(photoInForm)
-                );
+            // Add date_joined, joining_date and date automatically for new drivers or if missing
+            const existingDate = driver?.date_joined || driver?.joining_date || driver?.created_at || driver?.date;
+            if (mode === 'create' || !existingDate) {
+                const currentDate = dayjs().format('YYYY-MM-DD');
+                formData.append('date_joined', currentDate);
+                formData.append('joining_date', currentDate);
+                formData.append('date', currentDate);
+            } else if (existingDate) {
+                // If it exists, preserve it but ensure it's in the payload
+                const dateStr = dayjs(existingDate).format('YYYY-MM-DD');
+                formData.append('date_joined', dateStr);
+                formData.append('joining_date', dateStr);
+                formData.append('date', dateStr);
             }
             
             // Log form data entries for debugging
             console.log('FormData entries:');
             for (const pair of formData.entries()) {
-                console.log(pair[0] + ': ' + (pair[1] instanceof File ? 'File: ' + pair[1].name : pair[1]));
+                console.log(pair[0] + ': ' + pair[1]);
             }
             
             // Submit form
@@ -183,8 +119,6 @@ const DriverModal: React.FC<DriverModalProps> = ({
             
             // Close modal on success
             form.resetFields();
-            setImageUrl(null);
-            setPhotoFile(null);
         } catch (err: any) {
             console.error("Form submission error:", err);
             // If it's a validation error from Ant Design, it won't have a message property
@@ -199,13 +133,7 @@ const DriverModal: React.FC<DriverModalProps> = ({
         }
     };
     
-    // Upload button
-    const uploadButton = (
-        <div>
-            {imageLoading ? <LoadingOutlined /> : <PlusOutlined />}
-            <div style={{ marginTop: 8 }}>Rasm yuklash</div>
-        </div>
-    );
+
     
     // Password field is required for create mode, optional for edit
     const getPasswordRules = () => {
@@ -252,41 +180,7 @@ const DriverModal: React.FC<DriverModalProps> = ({
                 form={form}
                 layout="vertical"
             >
-                <Form.Item
-                    label="Rasm"
-                    name="photo"
-                    valuePropName="fileList"
-                    getValueFromEvent={(e) => {
-                        if (Array.isArray(e)) {
-                            return e;
-                        }
-                        return e?.fileList;
-                    }}
-                >
-                    <Upload
-                        name="photo"
-                        listType="picture-card"
-                        className="avatar-uploader"
-                        showUploadList={false}
-                        beforeUpload={beforeUpload}
-                        onChange={handleImageChange}
-                        customRequest={({  onSuccess }) => {
-                            setTimeout(() => {
-                                onSuccess?.("ok");
-                            }, 0);
-                        }}
-                    >
-                        {imageUrl ? 
-                            <Image 
-                                src={imageUrl} 
-                                alt="avatar" 
-                                width={100}
-                                height={100}
-                                style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
-                                unoptimized={imageUrl.startsWith('data:')}
-                            /> : uploadButton}
-                    </Upload>
-                </Form.Item>
+
                 
                 <Form.Item
                     label="F.I.O"

@@ -303,6 +303,7 @@ const FinancialReport = () => {
                     columns={columns}
                     className="financial-table"
                     pagination={false}
+                    scroll={{ x: 700 }}
                 />
             </Card>
         </motion.div>

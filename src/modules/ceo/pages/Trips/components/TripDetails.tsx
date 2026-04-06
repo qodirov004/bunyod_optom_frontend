@@ -106,9 +106,10 @@ export const TripDetails: React.FC<TripDetailsProps> = ({
         </Space>
       }
       placement="right"
-      width={680}
+      width={Math.min(window?.innerWidth || 680, 680)}
       onClose={onClose}
       open={open}
+      bodyStyle={{ overflowX: 'hidden', padding: '16px' }}
     >
       <Tabs defaultActiveKey="general" items={[
         {
@@ -185,7 +186,7 @@ export const TripDetails: React.FC<TripDetailsProps> = ({
 
           <Card title="Client" style={{ marginBottom: 16 }}>
             <Row gutter={[16, 16]}>
-              <Col span={12}>
+              <Col xs={24} sm={24} md={12}>
                 <Card size="small" title="Haydovchi">
                   <Space align="start">
                     <Avatar size={64} icon={<UserOutlined />} />
@@ -202,7 +203,7 @@ export const TripDetails: React.FC<TripDetailsProps> = ({
                   </Space>
                 </Card>
               </Col>
-              <Col span={12}>
+              <Col xs={24} sm={24} md={12}>
                 <Card size="small" title="Mijoz">
                   <Space align="start">
                     <Avatar size={64} icon={<TeamOutlined />} />
@@ -217,8 +218,8 @@ export const TripDetails: React.FC<TripDetailsProps> = ({
           </Card>
 
           <Card title="Moliyaviy ma'lumotlar">
-            <Row gutter={16}>
-              <Col span={8}>
+            <Row gutter={[16, 16]}>
+              <Col xs={24} sm={24} md={8}>
                 <Statistic
                   title="Narxi"
                   value={trip.price}
@@ -226,7 +227,7 @@ export const TripDetails: React.FC<TripDetailsProps> = ({
                   prefix={<DollarOutlined />}
                 />
               </Col>
-              <Col span={8}>
+              <Col xs={24} sm={24} md={8}>
                 <Statistic
                   title="Xarajat"
                   value={trip.expense}
@@ -234,7 +235,7 @@ export const TripDetails: React.FC<TripDetailsProps> = ({
                   prefix={<DollarOutlined />}
                 />
               </Col>
-              <Col span={8}>
+              <Col xs={24} sm={24} md={8}>
                 <Statistic
                   title="Foyda"
                   value={trip.profit}

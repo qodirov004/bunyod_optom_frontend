@@ -13,7 +13,7 @@ const QuickActions = memo(({ handleAddCar, handleAddFurgon, setActiveTab }: Quic
     <Row gutter={[16, 16]} style={{ marginTop: '16px' }}>
       <Col span={24}>
         <Card
-          bordered={false}
+          variant="borderless"
           style={{ borderRadius: '12px' }}
         >
           <Row gutter={[16, 16]}>

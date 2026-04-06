@@ -809,6 +809,7 @@ const TripHistoryPage: React.FC = () => {
           showTotal: (total) => `Jami ${total} ta reys`
         }}
         style={styles.tableStyles}
+        scroll={{ x: 1200 }}
       />
     );
   };
@@ -1208,6 +1209,7 @@ const TripHistoryPage: React.FC = () => {
                         );
                       }}
                       style={{ border: '1px solid #f0f0f0', borderRadius: '8px', overflow: 'hidden' }}
+                      scroll={{ x: 600 }}
                     />
                   ) : (
                     <Alert message="Mahsulotlar mavjud emas" type="info" />
@@ -1225,11 +1227,11 @@ const TripHistoryPage: React.FC = () => {
     return (
       <Drawer
         title={`Reys #${selectedTrip.id} tafsilotlari`}
-        width={768}
+        width={Math.min(window?.innerWidth || 768, 768)}
         placement="right"
         onClose={() => setDetailsVisible(false)}
         open={detailsVisible}
-        bodyStyle={styles.drawerContent}
+        bodyStyle={{ ...styles.drawerContent, overflowX: 'hidden' }}
         extra={
           canReturnTrip(selectedTrip) ? (
             <Button

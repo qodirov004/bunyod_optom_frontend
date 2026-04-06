@@ -611,7 +611,7 @@ const DriversOnRoad: React.FC<DriversOnRoadProps> = ({
 
       <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
         <Col xs={24} md={8}>
-          <Card bordered={false} style={{ background: '#f6ffed', borderRadius: '8px' }}>
+          <Card variant="borderless" style={{ background: '#f6ffed', borderRadius: '8px' }}>
             <Space align="center" style={{ width: '100%', justifyContent: 'space-between' }}>
               <div>
                 <Text type="secondary">Yo&apos;ldagi haydovchilar</Text>
@@ -624,7 +624,7 @@ const DriversOnRoad: React.FC<DriversOnRoadProps> = ({
           </Card>
         </Col>
         <Col xs={24} md={8}>
-          <Card bordered={false} style={{ background: '#f9f0ff', borderRadius: '8px' }}>
+          <Card variant="borderless" style={{ background: '#f9f0ff', borderRadius: '8px' }}>
             <Space align="center" style={{ width: '100%', justifyContent: 'space-between' }}>
               <div>
                 <Text type="secondary">Kutishdagi haydovchilar</Text>
@@ -637,7 +637,7 @@ const DriversOnRoad: React.FC<DriversOnRoadProps> = ({
           </Card>
         </Col>
         <Col xs={24} md={8}>
-          <Card bordered={false} style={{ background: '#fff2e8', borderRadius: '8px' }}>
+          <Card variant="borderless" style={{ background: '#fff2e8', borderRadius: '8px' }}>
             <Space align="center" style={{ width: '100%', justifyContent: 'space-between' }}>
               <div>
                 <Text type="secondary">Jami xarajatlar</Text>

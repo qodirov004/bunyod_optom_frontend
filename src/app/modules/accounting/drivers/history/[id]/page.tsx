@@ -589,7 +589,7 @@ const DriverHistoryPage = () => {
                 )
             }}
             size="middle"
-            bordered={false}
+            variant="borderless"
             scroll={{ x: 1000 }}
           />
         ) : (

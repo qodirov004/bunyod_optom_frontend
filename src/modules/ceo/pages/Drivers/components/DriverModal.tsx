@@ -1,11 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Modal, Form, Input, Select, Button, Upload, Alert, Row, Col, message } from 'antd';
-import { UploadOutlined, UserOutlined, PhoneOutlined, LockOutlined } from '@ant-design/icons';
+import { UserOutlined, PhoneOutlined, LockOutlined } from '@ant-design/icons';
 import { DriverType } from '../../../../accounting/types/driver';
 import axiosInstance from "../../../../../api/axiosInstance";
-import { formatImageUrl } from '../../../../../api/axiosInstance';
-import type { UploadFile } from 'antd/es/upload/interface';
-import type { RcFile } from 'antd/es/upload';
 import moment from 'moment';
 
 const { Option } = Select;
@@ -29,8 +26,7 @@ const DriverModal: React.FC<DriverModalProps> = ({
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [statusOptions, setStatusOptions] = useState<{ label: string, value: string }[]>([]);
-    const [photoUrl, setPhotoUrl] = useState<string | null>(null);
-    const [fileList, setFileList] = useState<UploadFile[]>([]);
+
 
     // Use hardcoded status options instead of API call
     useEffect(() => {
@@ -47,19 +43,6 @@ const DriverModal: React.FC<DriverModalProps> = ({
     useEffect(() => {
         form.resetFields();
         setError(null);
-        setPhotoUrl(driver?.photo || null);
-        setFileList([]);
-
-        if (driver?.photo) {
-            setFileList([
-                {
-                    uid: '-1',
-                    name: 'Photo',
-                    status: 'done',
-                    url: formatImageUrl(driver.photo) || undefined,
-                },
-            ]);
-        }
 
         if (mode === 'edit' && driver) {
             // Extract first name and last name from fullname if needed
@@ -107,10 +90,7 @@ const DriverModal: React.FC<DriverModalProps> = ({
                 formData.append('password', values.password);
             }
 
-            // Add files
-            if (fileList[0]?.originFileObj) {
-                formData.append('photo', fileList[0].originFileObj);
-            }
+
 
             // Submit form
             await onSubmit(formData as any);
@@ -125,24 +105,7 @@ const DriverModal: React.FC<DriverModalProps> = ({
         }
     };
 
-    // Handle file upload
-    const handleBeforeUpload = (file: RcFile) => {
-        const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png';
-        if (!isJpgOrPng) {
-            message.error('Faqat JPG/PNG formatdagi rasmlar yuklang!');
-        }
-        const isLt2M = file.size / 1024 / 1024 < 2;
-        if (!isLt2M) {
-            message.error('Rasm hajmi 2MB dan oshmasligi kerak!');
-        }
-        return isJpgOrPng && isLt2M;
-    };
 
-    const customProfileUpload = async ({ file, onSuccess, onError }: any) => {
-        // We'll store the File object itself
-        setFileList([{ ...file, originFileObj: file }]);
-        onSuccess("ok", file);
-    };
 
     return (
         <Modal
@@ -184,27 +147,7 @@ const DriverModal: React.FC<DriverModalProps> = ({
                 }}
             >
                 <Row gutter={16}>
-                    {/* Photo Upload */}
-                    <Col span={24} style={{ marginBottom: '16px', textAlign: 'center' }}>
-                        <Upload
-                            name="avatar"
-                            listType="picture-card"
-                            className="avatar-uploader"
-                            showUploadList={true}
-                            beforeUpload={handleBeforeUpload}
-                            maxCount={1}
-                            fileList={fileList}
-                            customRequest={customProfileUpload}
-                            onChange={({ fileList }) => setFileList(fileList)}
-                        >
-                            {fileList.length === 0 && (
-                                <div>
-                                    <UploadOutlined />
-                                    <div style={{ marginTop: 8 }}>Profil Rasmi</div>
-                                </div>
-                            )}
-                        </Upload>
-                    </Col>
+
 
                     {/* Personal Info */}
                     <Col xs={24} sm={12}>

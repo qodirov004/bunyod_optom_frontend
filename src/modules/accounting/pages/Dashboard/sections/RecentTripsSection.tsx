@@ -98,6 +98,7 @@ console.log(trips);
                 pagination={false}
                 className="dashboard-table"
                 size="middle"
+                scroll={{ x: 900 }}
             />
         );
     };

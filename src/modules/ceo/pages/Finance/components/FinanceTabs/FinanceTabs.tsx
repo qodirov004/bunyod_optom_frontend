@@ -91,10 +91,12 @@ const FinanceTabs: React.FC<FinanceTabsProps> = ({
 
   ];
 
+  const safeActiveKey = tabItems.some(item => item.key === activeTab) ? activeTab : 'overview';
+
   return (
     <Card className="main-card" style={{ marginTop: 24 }}>
       <Tabs
-        activeKey={activeTab}
+        activeKey={safeActiveKey}
         onChange={onTabChange}
         items={tabItems.map(item => ({
           key: item.key,

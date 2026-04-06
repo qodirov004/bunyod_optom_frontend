@@ -60,7 +60,7 @@ const VehicleTable: FC<VehicleTableProps> = memo(({
         </Space>
       }
       style={{ marginBottom: '16px', borderRadius: '12px' }}
-      bordered={false}
+      variant="borderless"
     >
       {vehicles.length > 0 ? (
         <Table 

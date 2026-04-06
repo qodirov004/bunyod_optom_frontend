@@ -41,7 +41,7 @@ const ActiveVehicles = memo(({
               <Title level={5} style={{ margin: 0 }}>Yo&apos;ldagi transport vositalari</Title>
             </div>
           }
-          bordered={false}
+          variant="borderless"
           style={{ borderRadius: '12px' }}
           extra={
             <Button type="primary" ghost onClick={() => setActiveTab('active')}>

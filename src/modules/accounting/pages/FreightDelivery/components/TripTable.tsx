@@ -588,6 +588,7 @@ const TripTable = ({
           rowKey="id"
           loading={loading}
           pagination={pagination ? { pageSize: 10 } : false}
+          scroll={{ x: 1200 }}
         />
       ) : (
         <TripCardView />

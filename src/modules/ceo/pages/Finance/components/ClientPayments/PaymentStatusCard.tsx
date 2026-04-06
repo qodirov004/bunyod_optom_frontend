@@ -59,7 +59,7 @@ const PaymentStatusCard: React.FC<PaymentStatusCardProps> = ({
 
   return (
     <Card 
-      bordered={false} 
+      variant="borderless" 
       style={{ 
         borderRadius: 8, 
         ...style 

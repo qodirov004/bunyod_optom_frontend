@@ -104,47 +104,47 @@ const DriverSalaryList: React.FC = () => {
             gap: '16px'
           }}
         >
-          <Space size="middle" style={{ flexWrap: 'wrap', gap: '16px' }}>
-            <Input
-              placeholder="Haydovchi nomi bo`yicha qidirish"
-              prefix={<SearchOutlined />}
-              value={searchText}
-              onChange={(e) => setSearchText(e.target.value)}
-              style={{ width: 300 }}
-              allowClear
-            />
-            <RangePicker
-              onChange={(dates) => setDateRange(dates as [dayjs.Dayjs | null, dayjs.Dayjs | null])}
-              style={{ width: 300 }}
-              placeholder={['Boshlanish sanasi', 'Tugash sanasi']}
-            />
+            <Space size="middle" style={{ flexWrap: 'wrap', gap: '16px', width: '100%' }}>
+              <Input
+                placeholder="Haydovchi nomi bo`yicha qidirish"
+                prefix={<SearchOutlined />}
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
+                style={{ width: 'min(340px, 100%)', minWidth: 200 }}
+                allowClear
+              />
+              <RangePicker
+                onChange={(dates) => setDateRange(dates as [dayjs.Dayjs | null, dayjs.Dayjs | null])}
+                style={{ width: 'min(340px, 100%)', minWidth: 200 }}
+                placeholder={['Boshlanish sanasi', 'Tugash sanasi']}
+              />
+            </Space>
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={() => setModalVisible(true)}
+              size="large"
+              style={{ minWidth: 160 }}
+            >
+              Yangi to'lov
+            </Button>
           </Space>
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => setModalVisible(true)}
-            size="large"
-          >
-            To`lov qo`shish
-          </Button>
-        </Space>
-
-        <Table
-          dataSource={filteredData}
-          columns={columns}
-          rowKey="id"
-          loading={loading}
-          pagination={{
-            pageSize: 10,
-            showSizeChanger: true,
-            showTotal: (total) => `Jami ${total} ta to'lov`,
-            showQuickJumper: true
-          }}
-          bordered={false}
-          size="middle"
-          className="driver-salary-table"
-          style={{ marginTop: '16px' }}
-        />
+          <Table
+            dataSource={filteredData}
+            rowKey={(record: any, index: number) => record.id?.toString() ?? `${record.driver_name}-${record.paid_at}-${index}`}
+            loading={loading}
+            pagination={{
+              pageSize: 10,
+              showSizeChanger: true,
+              showTotal: (total) => `Jami ${total} ta to'lov`,
+              showQuickJumper: true
+            }}
+            size="middle"
+            className="driver-salary-table"
+            style={{ marginTop: '16px' }}
+            scroll={{ x: 'max-content' }}
+            columns={columns}
+          />
       </Card>
 
       <DriverSalaryModal

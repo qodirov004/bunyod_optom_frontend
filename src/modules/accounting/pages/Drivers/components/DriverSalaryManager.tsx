@@ -287,7 +287,7 @@ const DriverSalaryManager: React.FC<DriverSalaryManagerProps> = ({ driverId }) =
                 showSizeChanger: true,
                 showTotal: (total) => `Jami: ${total} ta to'lov`
               }}
-              bordered={false}
+              variant="borderless"
               size="middle"
             />
           ) : (

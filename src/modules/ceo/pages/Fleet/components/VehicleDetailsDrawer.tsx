@@ -41,10 +41,11 @@ export const VehicleDetailsDrawer: React.FC<VehicleDetailsDrawerProps> = ({
   return (
     <Drawer
       title={<><CarOutlined /> {vehicle.nomi || 'Transport vositasi'} ma'lumotlari</>}
-      width={600}
+      width={Math.min(window?.innerWidth || 600, 600)}
       placement="right"
       onClose={onClose}
       open={visible}
+      bodyStyle={{ overflowX: 'hidden' }}
     >
       <Descriptions bordered column={1}>
         <Descriptions.Item label="Turi">

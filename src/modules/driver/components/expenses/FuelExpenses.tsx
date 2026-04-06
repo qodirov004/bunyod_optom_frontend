@@ -66,7 +66,7 @@ export function FuelExpenses() {
                 </Button>
             }
         >
-            <Table columns={columns} dataSource={data} rowKey="id" pagination={{ pageSize: 5 }} />
+            <Table columns={columns} dataSource={data} rowKey="id" pagination={{ pageSize: 5 }} scroll={{ x: 700 }} />
 
             <Modal
                 title="Yangi chiqim qo'shish"

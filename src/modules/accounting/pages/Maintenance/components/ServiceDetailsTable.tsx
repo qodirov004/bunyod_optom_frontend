@@ -165,8 +165,9 @@ const ServiceDetailsTable: React.FC<ServiceDetailsTableProps> = ({ totals }) => 
         dataSource={data} 
         columns={columns} 
         pagination={false}
-        bordered={false}
+        variant="borderless"
         style={styles.tableContent}
+        scroll={{ x: 600 }}
         summary={() => (
           <Table.Summary>
             <Table.Summary.Row style={styles.summaryRow}>

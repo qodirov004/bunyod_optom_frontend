@@ -235,6 +235,7 @@ const FurgonDashboard: React.FC = () => {
                     size="middle"
                     className={styles.activityTable}
                     style={{ borderRadius: '8px', overflow: 'hidden' }}
+                    scroll={{ x: 600 }}
                   />
                 ) : (
                   <Empty 
@@ -264,7 +265,7 @@ const FurgonDashboard: React.FC = () => {
                 <Row gutter={[24, 24]}>
                   <Col xs={24} sm={12}>
                     <Card 
-                      bordered={false} 
+                      variant="borderless" 
                       className={styles.innerCard}
                       style={{ background: '#f6ffed', borderRadius: '8px' }}
                     >
@@ -290,7 +291,7 @@ const FurgonDashboard: React.FC = () => {
                   </Col>
                   <Col xs={24} sm={12}>
                     <Card 
-                      bordered={false} 
+                      variant="borderless" 
                       className={styles.innerCard}
                       style={{ background: '#e6f7ff', borderRadius: '8px' }}
                     >

@@ -103,7 +103,7 @@ export const KPIMetric: React.FC<KPIMetricProps> = ({
       transition={{ duration: 0.5 }}
       whileHover={{ y: -5 }}
     >
-      <Card className="kpi-metric-card" bordered={false}>
+      <Card className="kpi-metric-card" variant="borderless">
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '16px' }}>
           {getIconElement()}
           <div style={{ flex: 1, marginLeft: icon ? '16px' : 0 }}>

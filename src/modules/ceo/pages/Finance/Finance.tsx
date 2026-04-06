@@ -23,7 +23,7 @@ const Finance: React.FC = () => {
     dashboardStats
   } = useFinanceData();
 
-  const [activeTab, setActiveTab] = useState<string>('dashboard');
+  const [activeTab, setActiveTab] = useState<string>('overview');
   const handleTabChange = (key: string) => {
     setActiveTab(key);
   };

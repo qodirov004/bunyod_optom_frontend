@@ -139,14 +139,16 @@ const AvailableCars = () => {
       <Card
         title={<Title level={5}><CarOutlined /> Mavjud transportlar</Title>}
         extra={
-          <Input
-            placeholder="Qidirish..."
-            prefix={<SearchOutlined />}
-            style={{ width: 250 }}
-            value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
-            allowClear
-          />
+          <div className={styles.cardExtra}>
+            <Input
+              placeholder="Qidirish..."
+              prefix={<SearchOutlined />}
+              className={styles.searchInput}
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              allowClear
+            />
+          </div>
         }
       >
         {filteredCars.length > 0 ? (
@@ -155,6 +157,7 @@ const AvailableCars = () => {
             dataSource={filteredCars}
             rowKey="id"
             pagination={{ pageSize: 10 }}
+            scroll={{ x: 900 }}
             onRow={(record) => ({
               onClick: () => handleCarHistory(record.id),
               style: { cursor: 'pointer' }

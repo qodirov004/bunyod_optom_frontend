@@ -1,6 +1,7 @@
 import React from 'react';
-import { Typography, Button, Space, Tooltip } from 'antd';
+import { Typography, Button, Space, Tooltip, Row, Col } from 'antd';
 import { BankOutlined, ReloadOutlined, PrinterOutlined } from '@ant-design/icons';
+import './financeHeader.css';
 
 const { Title } = Typography;
 
@@ -16,14 +17,14 @@ const FinanceHeader: React.FC<FinanceHeaderProps> = ({
   isLoading 
 }) => {
   return (
-    <div className="dashboard-header">
-      <div className="dashboard-title">
-        <Title level={2}>
+    <Row gutter={[16, 16]} align="middle" className="finance-header-responsive">
+      <Col xs={24} sm={24} md="auto" style={{ flex: '1 0 auto' }}>
+        <Title level={2} style={{ marginBottom: 0 }}>
           <BankOutlined /> Moliya va Buxgalteriya
         </Title>
-      </div>
-      <div className="dashboard-actions">
-        <Space>
+      </Col>
+      <Col xs={24} sm={24} md="auto">
+        <Space wrap>
           <Tooltip title="Yangilash">
             <Button
               icon={<ReloadOutlined />}
@@ -34,8 +35,8 @@ const FinanceHeader: React.FC<FinanceHeaderProps> = ({
             </Button>
           </Tooltip>
         </Space>
-      </div>
-    </div>
+      </Col>
+    </Row>
   );
 };
 

@@ -350,6 +350,7 @@ export const ClientsPage: React.FC = () => {
                 showTotal: (total) => `Jami ${total} ta`,
               }}
               className={styles.clientsTable}
+              scroll={{ x: 1000 }}
             />
           ) : (
             <>

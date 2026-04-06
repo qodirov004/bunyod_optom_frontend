@@ -131,7 +131,7 @@ export const RevenueTable: React.FC<RevenueTableProps> = ({ data, isLoading = fa
   return (
     <Card 
       title="Revenue Transactions" 
-      bordered={false}
+      variant="borderless"
       style={{ borderRadius: '8px' }}
       extra={
         <Button icon={<DownloadOutlined />} size="small">

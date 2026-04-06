@@ -93,6 +93,7 @@ const ServiceTable: React.FC<ServiceTableProps> = ({
       columns={serviceColumns}
       rowKey="id"
       pagination={pagination ? { pageSize: 10 } : false}
+      scroll={{ x: 900 }}
     />
   )
 }

@@ -56,7 +56,7 @@ export function AdditionalApplications() {
                 </Button>
             }
         >
-            <Table columns={columns} dataSource={data} rowKey="id" />
+            <Table columns={columns} dataSource={data} rowKey="id" scroll={{ x: 700 }} />
         </Card>
     );
 } 
