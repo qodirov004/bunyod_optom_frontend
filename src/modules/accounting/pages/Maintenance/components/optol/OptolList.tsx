@@ -110,6 +110,12 @@ const OptolList: React.FC<OptolListProps> = ({
 
   const columns = [
     {
+      title: '№',
+      key: 'index',
+      width: 50,
+      render: (_: any, __: any, index: number) => index + 1
+    },
+    {
       title: 'ID',
       dataIndex: 'id',
       key: 'id',

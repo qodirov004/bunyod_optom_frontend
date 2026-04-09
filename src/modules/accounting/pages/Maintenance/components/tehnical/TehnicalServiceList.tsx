@@ -101,6 +101,12 @@ const TehnicalServiceList: React.FC<TehnicalServiceListProps> = ({
 
   const columns = [
     {
+      title: '№',
+      key: 'index',
+      width: 70,
+      render: (_: any, __: any, index: number) => index + 1
+    },
+    {
       title: 'ID',
       dataIndex: 'id',
       key: 'id',

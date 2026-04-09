@@ -118,6 +118,7 @@ export const MaintenancePage: React.FC = () => {
     isLoading: fuelLoading,
     isError: fuelError,
     addFuelService,
+    updateFuelService,
     deleteFuelService,
   } = useFuelManagement();
 
@@ -246,6 +247,7 @@ export const MaintenancePage: React.FC = () => {
           <FuelAdd addFuelService={addFuelService} />
           <FuelList
             fuelServices={fuelServices}
+            updateFuelService={updateFuelService}
             deleteFuelService={deleteFuelService}
           />
         </div>

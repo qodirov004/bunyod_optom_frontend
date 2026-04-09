@@ -1,58 +1,69 @@
-import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { FuelType } from '@/modules/accounting/types/maintenance';
+import {
+  getFuelServices,
+  createFuelService,
+  updateFuelService,
+  deleteFuelService,
+} from '../api/fuelService';
 import { message } from 'antd';
 
 export const useFuelManagement = () => {
-  const [fuelServices, setFuelServices] = useState<FuelType[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const queryClient = useQueryClient();
 
-  const addFuelService = async (service: FuelType) => {
-    setIsLoading(true);
-    try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      const newService = { ...service, id: Date.now(), created_at: new Date().toISOString() };
-      setFuelServices((prev) => [newService, ...prev]);
-      message.success('Yoqilg\'i harajati muvaffaqiyatli qo\'shildi');
-    } catch (error) {
-      message.error('Xatolik yuz berdi');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // Fetch all fuel expenses
+  const {
+    data: fuelServices = [],
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ['fuelServices'],
+    queryFn: getFuelServices,
+  });
 
-  const updateFuelService = async ({ id, service }: { id: number; service: FuelType }) => {
-    setIsLoading(true);
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      setFuelServices((prev) => prev.map((item) => (item.id === id ? { ...item, ...service } : item)));
-      message.success('Yoqilg\'i harajati yangilandi');
-    } catch (error) {
+  // Create a new fuel expense
+  const createMutation = useMutation({
+    mutationFn: createFuelService,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['fuelServices'] });
+      message.success('Yoqilg\'i xarajati muvaffaqiyatli qo\'shildi');
+    },
+    onError: () => {
       message.error('Xatolik yuz berdi');
-    } finally {
-      setIsLoading(false);
     }
-  };
+  });
 
-  const deleteFuelService = async (id: number) => {
-    setIsLoading(true);
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      setFuelServices((prev) => prev.filter((item) => item.id !== id));
-      message.success('Yoqilg\'i harajati o\'chirildi');
-    } catch (error) {
+  // Update a fuel expense
+  const updateMutation = useMutation({
+    mutationFn: ({ id, service }: { id: number; service: FuelType }) =>
+      updateFuelService(id, service),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['fuelServices'] });
+      message.success('Yoqilg\'i xarajati yangilandi');
+    },
+    onError: () => {
       message.error('Xatolik yuz berdi');
-    } finally {
-      setIsLoading(false);
     }
-  };
+  });
+
+  // Delete a fuel expense
+  const deleteMutation = useMutation({
+    mutationFn: deleteFuelService,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['fuelServices'] });
+      message.success('Yoqilg\'i xarajati o\'chirildi');
+    },
+    onError: () => {
+      message.error('Xatolik yuz berdi');
+    }
+  });
 
   return {
     fuelServices,
     isLoading,
-    isError: false,
-    addFuelService,
-    updateFuelService,
-    deleteFuelService,
+    isError,
+    addFuelService: createMutation.mutate,
+    updateFuelService: updateMutation.mutate,
+    deleteFuelService: deleteMutation.mutate,
   };
 };

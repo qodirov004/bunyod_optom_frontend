@@ -125,6 +125,12 @@ const SimpleServiceList: React.FC = () => {
 
   const serviceColumns = [
     {
+      title: '№',
+      key: 'index',
+      width: 60,
+      render: (_: any, __: any, index: number) => index + 1
+    },
+    {
       title: 'Sana',
       dataIndex: 'created_at',
       key: 'created_at',
@@ -233,7 +239,7 @@ const SimpleServiceList: React.FC = () => {
       <Table
         dataSource={serviceData.all_expenses}
         columns={serviceColumns}
-        rowKey={(record) => `${record.car}-${record.created_at}`}
+        rowKey={(record, index) => `${record.car}-${record.created_at}-${index}`}
         pagination={{ pageSize: 20 }}
         locale={{ emptyText: <Empty description="Ma'lumotlar topilmadi" /> }}
         scroll={{ x: 900 }}

@@ -37,7 +37,18 @@ const FuelAdd: React.FC<FuelAddProps> = ({ addFuelService }) => {
   return (
     <>
       <Card style={{ marginBottom: 16 }}>
-        <Button type="primary" icon={<PlusOutlined />} onClick={showModal}>
+        <Button 
+          type="primary" 
+          icon={<PlusOutlined />} 
+          onClick={showModal}
+          style={{ 
+            background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)', 
+            borderColor: '#d97706',
+            boxShadow: '0 2px 6px rgba(217, 119, 6, 0.3)',
+            height: '40px',
+            borderRadius: '6px'
+          }}
+        >
           Yangi yoqilg'i xarajatini qo'shish
         </Button>
       </Card>
