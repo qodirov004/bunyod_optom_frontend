@@ -33,25 +33,19 @@ const TopDriversSection = () => {
     // Consolidated driver statistics from active and historical trips
     const processedDrivers = useMemo(() => {
         return drivers.map(driver => {
-            // Find active trips for this driver
+            // We no longer overwrite the backend's rays_count with just active/historical local trips.
+            // Because the backend provides the total rays_count.
+            // Calculate real-time active trips to check busy status
             const activeTrips = trips.filter(trip => trip.driver?.id === driver.id);
             const hasActiveTrip = activeTrips.some(trip => !trip.is_completed);
-            
-            // Find historical trips for this driver
-            const historicalTrips = history.filter(h => h.driver?.id === driver.id || (h as any).driver_id === driver.id);
-            
-            // Calculate real-time totals
-            const totalRaysCount = activeTrips.length + historicalTrips.length;
-            const totalRevenue = 
-                activeTrips.reduce((sum, trip) => sum + (Number(trip.price) || 0), 0) +
-                historicalTrips.reduce((sum, h) => sum + (Number(h.total_price) || 0), 0);
 
             return {
                 ...driver,
                 is_busy: driver.is_busy || hasActiveTrip,
                 has_active_trip: hasActiveTrip,
-                rays_count: totalRaysCount,
-                total_rays_usd: totalRevenue
+                // Keep the original backend counts!
+                rays_count: Number(driver.rays_count) || 0,
+                total_rays_usd: Number(driver.total_rays_usd) || 0
             };
         });
     }, [drivers, trips, history]);

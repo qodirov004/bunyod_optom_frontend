@@ -12,7 +12,7 @@ import { useClientPaymentData } from './hooks/useClientPayment';
 import { useCars, useCarStatus } from '../../../accounting/hooks/useCars';
 import { useFurgons, useFurgonStatus } from '../../../accounting/hooks/useFurgon';
 import { useTrips } from '../../../accounting/hooks/useTrips';
-import { useTopDrivers } from '../../../accounting/hooks/useTopDrivers';
+import { useCEODrivers } from '../../hooks/useCEODrivers';
 import { usePopularRoutes } from '../../hooks/usePopularRoutes';
 import { useHistory } from '../../../accounting/hooks/useHistory';
 import { useExpenseTotals } from '../../hooks/useExpenseTotals';
@@ -68,9 +68,19 @@ const Dashboard = ({ hideLayout = false }: { hideLayout?: boolean }) => {
   const { data: historyData = [], isLoading: isLoadingHistory } = useHistory();
   
   // Driver and route statistics
-  const { data: topDriversData = [], isLoading: isLoadingTopDrivers } = useTopDrivers();
+  const { drivers: allDrivers = [], isLoading: isLoadingDrivers } = useCEODrivers();
   const { data: popularRoutesData = [], loading: isLoadingPopularRoutes } = usePopularRoutes();
-  
+
+  // Process drivers to include their trip counts from local trips & history
+  const processedTopDrivers = useMemo(() => {
+    if (!allDrivers || allDrivers.length === 0) return [];
+    
+    // allDrivers already has computed rays_count from useCEODrivers
+    return [...allDrivers]
+      .sort((a, b) => (Number(b.rays_count) || 0) - (Number(a.rays_count) || 0))
+      .slice(0, 5);
+  }, [allDrivers]);
+
   // Expenses data
   const { data: expenseTotalsData, isLoading: isLoadingExpenseTotals } = useExpenseTotals();
 
@@ -193,8 +203,8 @@ const Dashboard = ({ hideLayout = false }: { hideLayout?: boolean }) => {
         />
 
         <TopDriversSection
-          topDriversData={topDriversData}
-          isLoading={isLoadingTopDrivers}
+          topDriversData={processedTopDrivers}
+          isLoading={isLoadingDrivers || isLoadingTrips || isLoadingHistory}
           viewAll={viewAll}
         />
 
