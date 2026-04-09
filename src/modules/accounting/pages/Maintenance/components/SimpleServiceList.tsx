@@ -167,12 +167,6 @@ const SimpleServiceList: React.FC = () => {
       key: 'car_name',
     },
     {
-      title: 'Kilometr',
-      dataIndex: 'kilometer',
-      key: 'kilometer',
-      render: (km: number) => km ? `${km.toLocaleString()} km` : '-'
-    },
-    {
       title: 'Narxi',
       key: 'price',
       render: (_, record: ServiceData) => (
