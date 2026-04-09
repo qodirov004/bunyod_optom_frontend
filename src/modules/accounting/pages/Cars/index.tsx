@@ -4,6 +4,7 @@ import {
     Avatar, Tooltip, Segmented, Popconfirm, Empty, Tabs, message,
     Table
 } from 'antd';
+import type { Breakpoint } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import {
     CarOutlined, CheckCircleOutlined,
@@ -188,28 +189,34 @@ export const CarsPage: React.FC<{ basePath?: string }> = ({ basePath = '/modules
                     title: 'ID',
                     dataIndex: 'id',
                     key: 'id',
-                    width: 70
+                    width: 70,
+                    responsive: ['sm'] as Breakpoint[]
                 },
                 {
                     title: 'Nomi',
                     dataIndex: 'name',
-                    key: 'name'
+                    key: 'name',
+                    fixed: 'left' as const,
+                    width: 150
                 },
                 {
                     title: 'Raqami',
                     dataIndex: 'car_number',
-                    key: 'car_number'
+                    key: 'car_number',
+                    width: 120
                 },
                 {
                     title: 'Kilometr',
                     dataIndex: 'mileage',
                     key: 'mileage',
-                    render: (km) => `${km} km`
+                    render: (km) => `${km} km`,
+                    responsive: ['md'] as Breakpoint[]
                 },
                 {
                     title: 'Ishlab chiqarilgan yili',
                     dataIndex: 'year',
-                    key: 'year'
+                    key: 'year',
+                    responsive: ['lg'] as Breakpoint[]
                 },
                 {
                     title: 'Holati',
@@ -219,12 +226,14 @@ export const CarsPage: React.FC<{ basePath?: string }> = ({ basePath = '/modules
                         <Tag color={getStatusColor(status || '')}>
                             {getStatusText(status)}
                         </Tag>
-                    )
+                    ),
+                    responsive: ['sm'] as Breakpoint[]
                 },
                 {
                     title: 'Amallar',
                     key: 'actions',
                     width: 150,
+                    fixed: 'right' as const,
                     render: (_: any, record: CarResponse) => (
                         <Space>
                             <Button
@@ -271,6 +280,7 @@ export const CarsPage: React.FC<{ basePath?: string }> = ({ basePath = '/modules
                     rowKey="id"
                     className={styles.carsTable}
                     pagination={false}
+                    scroll={{ x: 'max-content' }}
                     onRow={(record) => ({
                         onClick: () => handleEdit(record as unknown as Car)
                     })}

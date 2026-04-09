@@ -22,6 +22,7 @@ import {
   Statistic,
   Dropdown,
 } from 'antd';
+import type { Breakpoint } from 'antd';
 import {
   SearchOutlined,
   ExportOutlined,
@@ -664,6 +665,7 @@ const TripHistoryPage: React.FC = () => {
         dataIndex: 'id',
         key: 'id',
         width: 70,
+        responsive: ['sm'] as Breakpoint[],
       },
       {
         title: 'Haydovchi',
@@ -731,6 +733,7 @@ const TripHistoryPage: React.FC = () => {
         title: 'Narx',
         key: 'price',
         render: (_: any, record: any) => <Text strong style={{ color: '#52c41a' }}>{(record.displayPrice || record.price || 0).toLocaleString()} so'm</Text>,
+        responsive: ['sm'] as Breakpoint[],
       },
       {
         title: 'Sana',

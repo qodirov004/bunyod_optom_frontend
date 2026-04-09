@@ -161,7 +161,8 @@ const DriverModal: React.FC<DriverModalProps> = ({
                     {mode === "create" ? "Qo'shish" : "Saqlash"}
                 </Button>
             ]}
-            width={600}
+            width="95%"
+            style={{ maxWidth: '600px' }}
             forceRender={true}
         >
             {error && (

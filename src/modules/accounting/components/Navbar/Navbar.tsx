@@ -1,10 +1,11 @@
 'use client';
 import React from 'react';
 import { Layout, Typography, Space } from 'antd';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '@/store/store';
+import { toggleSidebar } from '@/modules/accounting/store/slices/settingsSlice';
 import NavRight from './NavRight';
-import { CarOutlined } from '@ant-design/icons';
+import { CarOutlined, MenuOutlined } from '@ant-design/icons';
 
 const { Header } = Layout;
 const { Title } = Typography;
@@ -14,7 +15,7 @@ interface NavbarProps {
 }
 
 const Navbar: React.FC<NavbarProps> = ({ fixed = true }) => {
-    // const dispatch = useDispatch();
+    const dispatch = useDispatch();
     const { theme, sidebarCollapsed } = useSelector((state: RootState) => state.settings);
     
     return (
@@ -22,10 +23,17 @@ const Navbar: React.FC<NavbarProps> = ({ fixed = true }) => {
             className={`navbar ${theme} ${fixed ? 'fixed' : ''} ${sidebarCollapsed ? 'collapsed' : ''}`}
         >
             <div className="navbar-left">
-                <Space align="center">
+                <Space align="center" size={12}>
+                    <button 
+                        className="mobile-menu-trigger" 
+                        onClick={() => dispatch(toggleSidebar())}
+                    >
+                        <MenuOutlined />
+                    </button>
                     <CarOutlined 
+                        className="navbar-brand-icon"
                         style={{ 
-                            fontSize: '24px', 
+                            fontSize: '22px', 
                             color: '#6c5ce7'
                         }} 
                     />

@@ -32,6 +32,9 @@ export const settingsSlice = createSlice({
         toggleSidebar: (state) => {
             state.sidebarCollapsed = !state.sidebarCollapsed;
         },
+        setSidebarCollapsed: (state, action: PayloadAction<boolean>) => {
+            state.sidebarCollapsed = action.payload;
+        },
         toggleNavbarFixed: (state) => {
             state.navbarFixed = !state.navbarFixed;
         },
@@ -43,6 +46,7 @@ export const {
     setTheme,
     setPrimaryColor,
     toggleSidebar,
+    setSidebarCollapsed,
     toggleNavbarFixed
 } = settingsSlice.actions;
 

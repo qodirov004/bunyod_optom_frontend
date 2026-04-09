@@ -197,7 +197,8 @@ const FurgonForm: React.FC<FurgonFormProps> = ({
       onCancel={onCancel}
       onOk={() => form.submit()}
       confirmLoading={submitLoading}
-      width={600}
+      width={700}
+      style={{ maxWidth: '95%', top: 20 }}
     >
       <Form
         form={form}

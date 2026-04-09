@@ -17,8 +17,9 @@ import {
   Row,
   Col,
   Divider,
-  Checkbox
+  Checkbox,
 } from 'antd';
+import type { Breakpoint } from 'antd';
 import {
   SearchOutlined,
   DollarOutlined,
@@ -367,8 +368,9 @@ const RaysTulovlar: React.FC = () => {
               },
               {
                 title: 'Mijoz',
-                dataIndex: 'client_name,',
+                dataIndex: 'client_name',
                 key: 'client_name',
+                responsive: ['sm'] as Breakpoint[],
               },
               {
                 title: 'Summa',
@@ -387,6 +389,7 @@ const RaysTulovlar: React.FC = () => {
                 render: (paymentWay: string) => (
                   <Tag color="blue">{paymentWay}</Tag>
                 ),
+                responsive: ['md'] as Breakpoint[],
               },
               {
                 title: 'Status',
@@ -397,14 +400,17 @@ const RaysTulovlar: React.FC = () => {
                     {status === 'pending' ? 'Kutilmoqda' : 'Tasdiqlangan'}
                   </Tag>
                 ),
+                responsive: ['sm'] as Breakpoint[],
               },
               {
                 title: 'Izoh',
                 dataIndex: 'comment',
                 key: 'comment',
                 render: (comment: string) => comment || '-',
+                responsive: ['lg'] as Breakpoint[],
               },
             ]}
+            scroll={{ x: 'max-content' }}
           />
         )
       }

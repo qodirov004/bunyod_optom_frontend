@@ -247,7 +247,7 @@ export const DriversPage: React.FC = () => {
     const dashboardContent = (
         <>
             <Row gutter={[16, 16]}>
-                <Col xs={24} sm={12} md={8}>
+                <Col xs={24} sm={12} lg={8}>
                     <Card 
                         style={{ 
                             background: 'linear-gradient(135deg, #1890ff 0%, #096dd9 100%)',
@@ -265,7 +265,7 @@ export const DriversPage: React.FC = () => {
                         />
                     </Card>
                 </Col>
-                <Col xs={24} sm={12} md={8}>
+                <Col xs={24} sm={12} lg={8}>
                     <Card 
                         style={{ 
                             background: 'linear-gradient(135deg, #52c41a 0%, #389e0d 100%)',
@@ -283,7 +283,7 @@ export const DriversPage: React.FC = () => {
                         />
                     </Card>
                 </Col>
-                <Col xs={24} sm={12} md={8}>
+                <Col xs={24} sm={24} lg={8}>
                     <Card 
                         style={{ 
                             background: 'linear-gradient(135deg, #722ed1 0%, #531dab 100%)',

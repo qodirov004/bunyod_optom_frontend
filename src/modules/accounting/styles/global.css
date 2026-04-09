@@ -1,4 +1,28 @@
-/* global.css - Main styling for the entire accounting module */
+/* ===== GLOBAL VARIABLES ===== */
+@media (min-width: 1200px) {
+    .five-col-grid {
+        display: flex !important;
+        flex-wrap: wrap !important;
+    }
+    .five-col-item {
+        flex: 0 0 20% !important;
+        max-width: 20% !important;
+    }
+}
+
+:root {
+  /* Sidebar Widths */
+  --sidebar-expanded-width: 240px;
+  --sidebar-collapsed-width: 80px;
+  --sidebar-mobile-width: 0px;
+  
+  /* Navbar Heights */
+  --navbar-height: 64px;
+  --navbar-mobile-height: 56px;
+  
+  /* Transitions */
+  --transition-standard: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
 
 /* ===== GLOBAL RESETS AND BASE STYLES ===== */
 * {
@@ -18,21 +42,34 @@ body {
 /* Main layout container */
 .layout-container {
   min-height: 100vh;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: var(--transition-standard);
 }
 
 /* Content area (main section after sidebar) */
 .content-area {
-  margin-left: 80px; /* Collapsed sidebar width */
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  margin-top: 64px; /* Fixed navbar height */
-  min-height: calc(100vh - 64px);
+  margin-left: var(--sidebar-collapsed-width); 
+  transition: var(--transition-standard);
+  margin-top: var(--navbar-height);
+  min-height: calc(100vh - var(--navbar-height));
   padding: 20px;
   background: #f4f7fe;
 }
 
 .sidebar-expanded .content-area {
-  margin-left: 240px; /* Expanded sidebar width */
+  margin-left: var(--sidebar-collapsed-width); /* Expanded sidebar width overlaid on desktop too, so page doesn't shift */
+}
+
+@media (max-width: 991px) {
+  .content-area {
+    margin-left: 0 !important;
+    margin-top: var(--navbar-mobile-height);
+    min-height: calc(100vh - var(--navbar-mobile-height));
+    padding: 12px;
+  }
+  
+  .sidebar-expanded .content-area {
+    margin-left: 0 !important;
+  }
 }
 
 /* Content wrapper (white background area) */
@@ -96,7 +133,7 @@ body {
 /* Stats card */
 .stat-card {
   flex: 1;
-  min-width: 160px;
+  min-width: 200px; /* Increased min-width for better display */
   margin: 0 4px 8px 4px;
   padding: 16px;
   display: flex;
@@ -105,6 +142,17 @@ body {
   background: #fff;
   transition: all 0.3s ease;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+@media (max-width: 768px) {
+  .stats-row {
+    flex-direction: column;
+  }
+  
+  .stat-card {
+    width: calc(100% - 8px);
+    min-width: 0;
+  }
 }
 
 .stat-card:hover {
@@ -323,8 +371,8 @@ h5 { font-size: 12px !important; }
   transform: translateY(-1px);
 }
 
-/* ===== RESPONSIVE ADJUSTMENTS ===== */
-@media (max-width: 768px) {
+
+@media (max-width: 991px) {
   .stats-row {
     flex-direction: column;
   }
@@ -334,11 +382,24 @@ h5 { font-size: 12px !important; }
   }
   
   .content-area {
-    margin-left: 0;
-    padding: 2px;
+    margin-left: 0 !important;
+    padding: 12px;
   }
   
   .sidebar-expanded .content-area {
-    margin-left: 0;
+    margin-left: 0 !important;
   }
-} 
+
+  .mobile-menu-trigger {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    color: #1e1e2d;
+    transition: color 0.3s;
+  }
+
+  /* Hide custom desktop trigger on tablet/mobile if we used it */
+  .desktop-only-trigger {
+    display: none !important;
+  }
+} 

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Table, Space, Button, Avatar, Tag, Modal, Badge, Tooltip } from 'antd';
+import type { Breakpoint } from 'antd';
 import {
   EditOutlined,
   UserOutlined,
@@ -106,6 +107,7 @@ const DriversList: React.FC<DriversListProps> = ({
           {is_busy ? 'Band' : 'Bo\'sh'}
         </Tag>
       ),
+      responsive: ['md'] as Breakpoint[],
     },
     {
       title: 'Reyslar soni',
@@ -118,6 +120,7 @@ const DriversList: React.FC<DriversListProps> = ({
         </Tag>
       ),
       sorter: (a: DriverType, b: DriverType) => (a.rays_count || 0) - (b.rays_count || 0),
+      responsive: ['sm'] as Breakpoint[],
     },
     {
       title: 'Umumiy summa (so\'m)',
@@ -133,6 +136,7 @@ const DriversList: React.FC<DriversListProps> = ({
         );
       },
       sorter: (a: DriverType, b: DriverType) => (a.total_rays_usd || 0) - (b.total_rays_usd || 0),
+      responsive: ['md'] as Breakpoint[],
     },
     {
       title: 'Amallar',
@@ -187,7 +191,8 @@ const DriversList: React.FC<DriversListProps> = ({
         }}
         size="small"
         bordered={false}
-        style={{ marginTop: 12, minWidth: 900 }}
+        scroll={{ x: 'max-content' }}
+        style={{ marginTop: 12 }}
       />
     </div>
   );

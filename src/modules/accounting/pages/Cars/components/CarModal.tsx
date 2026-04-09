@@ -170,7 +170,8 @@ const CarModal: React.FC<CarModalProps> = ({
             cancelText="Bekor qilish"
             confirmLoading={loading}
             okButtonProps={{ style: { display: isView ? 'none' : 'inline' } }}
-            width={800}
+            width="95%"
+            style={{ maxWidth: '800px' }}
             className={styles.carModal}
             forceRender={true}
         >

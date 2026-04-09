@@ -103,8 +103,8 @@ const Overview: React.FC<OverviewProps> = ({ fallbackData }) => {
         </Button>
       </div>
 
-      <Row gutter={[16, 16]} className="stats-row">
-        <Col xs={24} sm={12} md={8} lg={4} style={{ flex: '1 0 20%', maxWidth: '100%' }}>
+      <Row gutter={[16, 16]} className="stats-row five-col-grid">
+        <Col xs={24} sm={12} md={8} lg={4} className="five-col-item">
           <div className="stat-box income-box" style={{ height: '100%' }}>
             <div className="stat-icon">
               <DollarOutlined />
@@ -119,7 +119,7 @@ const Overview: React.FC<OverviewProps> = ({ fallbackData }) => {
           </div>
         </Col>
         
-        <Col xs={24} sm={12} md={8} lg={4} style={{ flex: '1 0 20%', maxWidth: '100%' }}>
+        <Col xs={24} sm={12} md={8} lg={4} className="five-col-item">
           <div className="stat-box expense-box" style={{ height: '100%' }}>
             <div className="stat-icon">
               <ArrowDownOutlined />
@@ -134,7 +134,7 @@ const Overview: React.FC<OverviewProps> = ({ fallbackData }) => {
           </div>
         </Col>
 
-        <Col xs={24} sm={12} md={8} lg={4} style={{ flex: '1 0 20%', maxWidth: '100%' }}>
+        <Col xs={24} sm={12} md={8} lg={4} className="five-col-item">
           <div className="stat-box service-box" style={{ height: '100%' }}>
             <div className="stat-icon">
               <WalletOutlined />
@@ -149,7 +149,7 @@ const Overview: React.FC<OverviewProps> = ({ fallbackData }) => {
           </div>
         </Col>
 
-        <Col xs={24} sm={12} md={8} lg={4} style={{ flex: '1 0 20%', maxWidth: '100%' }}>
+        <Col xs={24} sm={12} md={8} lg={4} className="five-col-item">
           <div className="stat-box salaries-box" style={{ 
             height: '100%', 
             borderLeft: '4px solid #722ed1', 
@@ -180,7 +180,7 @@ const Overview: React.FC<OverviewProps> = ({ fallbackData }) => {
           </div>
         </Col>
         
-        <Col xs={24} sm={12} md={8} lg={4} style={{ flex: '1 0 20%', maxWidth: '100%' }}>
+        <Col xs={24} sm={12} md={8} lg={4} className="five-col-item">
           <div className={`stat-box ${finalBalance >= 0 ? 'balance-positive-box' : 'balance-negative-box'}`} style={{ height: '100%' }}>
             <div className="stat-icon">
               {finalBalance >= 0 ? <ArrowUpOutlined /> : <ArrowDownOutlined />}

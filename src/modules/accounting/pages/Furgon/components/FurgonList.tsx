@@ -4,6 +4,7 @@ import {
   Typography, Input, Segmented, Tag, Row, Col, Avatar,
   Tooltip
 } from 'antd'
+import type { Breakpoint } from 'antd'
 import { motion } from 'framer-motion'
 import {
   EditOutlined,
@@ -122,12 +123,14 @@ const FurgonList: React.FC = () => {
       dataIndex: 'description',
       key: 'description',
       ellipsis: true,
+      responsive: ['lg'] as Breakpoint[],
     },
     {
       title: 'Kilometr',
       dataIndex: 'kilometer',
       key: 'kilometer',
       render: (kilometer: number) => `${kilometer} km`,
+      responsive: ['md'] as Breakpoint[],
     },
     {
       title: 'Amallar',
@@ -292,6 +295,7 @@ const FurgonList: React.FC = () => {
             columns={columns}
             dataSource={filteredFurgons}
             rowKey="id"
+            scroll={{ x: 'max-content' }}
             pagination={{
               pageSize: 10,
               showSizeChanger: true,

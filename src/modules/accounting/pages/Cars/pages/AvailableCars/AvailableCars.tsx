@@ -157,7 +157,7 @@ const AvailableCars = () => {
             dataSource={filteredCars}
             rowKey="id"
             pagination={{ pageSize: 10 }}
-            scroll={{ x: 900 }}
+            scroll={{ x: 'max-content' }}
             onRow={(record) => ({
               onClick: () => handleCarHistory(record.id),
               style: { cursor: 'pointer' }

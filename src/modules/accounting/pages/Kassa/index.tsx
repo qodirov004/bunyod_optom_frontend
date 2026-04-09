@@ -134,7 +134,7 @@ const KassaPage: React.FC = () => {
       )}
 
       {/* 5 Indikator bitta qatorda */}
-      <Row gutter={[16, 16]} className="dashboard-stats-row">
+      <Row gutter={[16, 16]} className="dashboard-stats-row five-col-grid">
         {/* Sanitization Logic Helper */}
         {(() => {
           const totalIn = cashOverview?.cashbox?.total_in_uzs || cashOverview?.cashbox?.UZS || (cashOverview?.cashbox?.total_in_usd || 0) * 12800;
@@ -147,7 +147,7 @@ const KassaPage: React.FC = () => {
           return (
             <>
               {/* 1. Kassadagi naqd UZS */}
-              <Col xs={24} sm={12} md={8} lg={4} style={{ flex: '1 0 20%', maxWidth: '100%' }}>
+              <Col xs={24} sm={12} md={8} lg={4} className="five-col-item">
                 <Card className="currency-card uzs-card" hoverable variant="borderless" style={{ height: '100%', margin: 0 }}>
                   <div className="currency-card-header">
                     <span className="currency-icon">so'm</span>
@@ -160,7 +160,7 @@ const KassaPage: React.FC = () => {
               </Col>
 
               {/* 2. Jami Kirim (Total In) */}
-              <Col xs={24} sm={12} md={8} lg={4} style={{ flex: '1 0 20%', maxWidth: '100%' }}>
+              <Col xs={24} sm={12} md={8} lg={4} className="five-col-item">
                 <Card className="summary-card total-card" hoverable variant="borderless" style={{ height: '100%', margin: 0 }}>
                   <div className="summary-card-title">Jami kirim</div>
                   <div className="summary-card-value" style={{ fontSize: '20px' }}>
@@ -171,7 +171,7 @@ const KassaPage: React.FC = () => {
               </Col>
 
               {/* 3. Xizmat xarajatlari (Service Expenses) */}
-              <Col xs={24} sm={12} md={8} lg={4} style={{ flex: '1 0 20%', maxWidth: '100%' }}>
+              <Col xs={24} sm={12} md={8} lg={4} className="five-col-item">
                 <Card className="summary-card expenses-card" hoverable variant="borderless" style={{ height: '100%', margin: 0 }}>
                   <div className="summary-card-title">Xizmat xarajatlari</div>
                   <div className="summary-card-value" style={{ fontSize: '20px', color: '#fa8c16' }}>
@@ -182,7 +182,7 @@ const KassaPage: React.FC = () => {
               </Col>
 
               {/* 4. Maoshlar (Salaries) */}
-              <Col xs={24} sm={12} md={8} lg={4} style={{ flex: '1 0 20%', maxWidth: '100%' }}>
+              <Col xs={24} sm={12} md={8} lg={4} className="five-col-item">
                 <Card className="summary-card salaries-card" hoverable variant="borderless" style={{ height: '100%', margin: 0, borderTop: '4px solid #722ed1' }}>
                   <div className="summary-card-title">Maoshlar</div>
                   <div className="summary-card-value" style={{ fontSize: '20px', color: '#722ed1' }}>
@@ -193,7 +193,7 @@ const KassaPage: React.FC = () => {
               </Col>
 
               {/* 5. Balans (Sanitized) */}
-              <Col xs={24} sm={12} md={8} lg={4} style={{ flex: '1 0 20%', maxWidth: '100%' }}>
+              <Col xs={24} sm={12} md={8} lg={4} className="five-col-item">
                 <Card
                   className="summary-card balance-card"
                   hoverable

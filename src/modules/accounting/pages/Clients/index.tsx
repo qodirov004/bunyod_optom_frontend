@@ -15,6 +15,7 @@ import {
   Dropdown,
   Segmented,
 } from 'antd'
+import type { Breakpoint } from 'antd'
 import {
   UserOutlined,
   SearchOutlined,
@@ -128,32 +129,40 @@ export const ClientsPage: React.FC = () => {
       key: 'index',
       width: 60,
       render: (_: unknown, __: unknown, index: number) => (currentPage - 1) * pageSize + index + 1,
+      responsive: ['sm'] as Breakpoint[],
     },
     {
       title: 'Mijoz',
       dataIndex: 'first_name',
       key: 'first_name',
-      render: (_, record: Client) => `${record.first_name} ${record.last_name}`
+      render: (_, record: Client) => `${record.first_name} ${record.last_name}`,
+      fixed: 'left' as const,
+      width: 150,
     },
     {
       title: 'Kompaniya',
       dataIndex: 'company',
       key: 'company',
-      render: (company: string) => company || '-'
+      render: (company: string) => company || '-',
+      responsive: ['md'] as Breakpoint[],
     },
     {
       title: 'Telefon',
       dataIndex: 'number',
       key: 'number',
+      width: 150,
     },
     {
       title: 'Shahar',
       dataIndex: 'city',
       key: 'city',
+      responsive: ['lg'] as Breakpoint[],
     },
     {
       title: 'Amallar',
       key: 'actions',
+      fixed: 'right' as const,
+      width: 120,
       render: (record: Client) => (
         <Space>
           <Tooltip title="Batafsil ko'rish">

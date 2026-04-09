@@ -165,7 +165,7 @@ const CarTable: React.FC<CarTableProps> = ({
                 showTotal: (total) => `Jami ${total} ta`,
             }}
             onChange={onTableChange}
-            scroll={{ x: 1300 }}
+            scroll={{ x: 'max-content' }}
         />
     );
 };

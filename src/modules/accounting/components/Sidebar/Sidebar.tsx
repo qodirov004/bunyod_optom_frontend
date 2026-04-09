@@ -6,8 +6,8 @@ import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '@/store/store';
 import Logo from './Logo';
 import { menuItems } from './Items';
-import { toggleSidebar } from '../../../store/slices/settingsSlice';
-import { MenuFoldOutlined, MenuUnfoldOutlined } from '@ant-design/icons';
+import { toggleSidebar, setSidebarCollapsed } from '../../../store/slices/settingsSlice';
+import { MenuFoldOutlined, MenuUnfoldOutlined, CloseOutlined } from '@ant-design/icons';
 
 const { Sider } = Layout;
 const mainItems = [menuItems[0]]; // Dashboard
@@ -23,6 +23,10 @@ export function Sidebar() {
 
     const handleMenuClick = (key: string) => {
         router.push(key);
+        // On mobile (less than 992px), always close sidebar after clicking a menu item
+        if (window.innerWidth < 992) {
+            dispatch(setSidebarCollapsed(true));
+        }
     };
 
     return (
@@ -31,16 +35,23 @@ export function Sidebar() {
             collapsed={sidebarCollapsed}
             width={240}
             collapsedWidth={80}
+            breakpoint="lg"
             className={`sidebar ${theme}`}
             trigger={null}
         >
             <div className="logo-container">
                 <Logo collapsed={sidebarCollapsed} />
                 <button 
-                    className="sidebar-trigger"
+                    className="sidebar-trigger desktop-only-trigger"
                     onClick={() => dispatch(toggleSidebar())}
                 >
                     {sidebarCollapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+                </button>
+                <button 
+                    className="sidebar-trigger mobile-only-trigger"
+                    onClick={() => dispatch(setSidebarCollapsed(true))}
+                >
+                    <CloseOutlined />
                 </button>
             </div>
 

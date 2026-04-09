@@ -1,4 +1,5 @@
 import { Table, Space, Tag, Button, Popconfirm, Typography, Card, Badge, Empty, Modal, Alert } from 'antd'
+import type { Breakpoint } from 'antd'
 import { CheckCircleOutlined, EnvironmentOutlined, DollarOutlined, UserOutlined, CarFilled, WarningOutlined, CheckOutlined, WalletOutlined, PhoneOutlined, CarOutlined, ShopOutlined } from '@ant-design/icons'
 import React, { useState } from 'react'
 import { RaysResponseType } from '@/modules/accounting/types/freight'
@@ -142,6 +143,7 @@ const TripTable = ({
       title: 'ID',
       dataIndex: 'id',
       key: 'id',
+      responsive: ['sm'] as Breakpoint[],
     },
     {
       title: 'Sana',
@@ -247,6 +249,7 @@ const TripTable = ({
       dataIndex: 'kilometer',
       key: 'kilometer',
       render: (km: number) => `${km} km`,
+      responsive: ['md'] as Breakpoint[],
     },
     {
       title: 'Narxi',
@@ -283,6 +286,7 @@ const TripTable = ({
       dataIndex: 'count',
       key: 'count',
       render: (count: number) => count || '-',
+      responsive: ['lg'] as Breakpoint[],
     },
     {
       title: 'Status',
@@ -360,7 +364,7 @@ const TripTable = ({
     return (
       <div className="trip-cards" style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(4, 1fr)',
+        gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
         gap: '16px',
         padding: '16px'
       }}>

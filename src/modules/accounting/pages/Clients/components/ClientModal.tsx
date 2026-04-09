@@ -66,6 +66,8 @@ export const ClientModal: React.FC<ClientModalProps> = ({ visible, client, onCan
       onOk={handleSubmit}
       okText={client ? 'Saqlash' : "Qo'shish"}
       cancelText="Bekor qilish"
+      width="95%"
+      style={{ maxWidth: '600px' }}
       forceRender={true}
     >
       <Form

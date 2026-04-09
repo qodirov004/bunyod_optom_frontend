@@ -4,6 +4,7 @@ import {
   Input, Row, Col, Statistic,
   Typography, Empty, message, InputNumber, Select
 } from 'antd';
+import type { Breakpoint } from 'antd';
 import {
   EyeOutlined, DollarOutlined, SearchOutlined, FilterOutlined,
   UserOutlined,
@@ -304,6 +305,7 @@ const ClientAccounts: React.FC = () => {
       render: (amount: number) => formatCurrency(amount),
       sorter: (a: ClientDebt, b: ClientDebt) =>
         a.expected_usd - b.expected_usd,
+      responsive: ['md'] as Breakpoint[],
     },
     {
       title: 'To\'langan summa (so\'m)',
@@ -312,6 +314,7 @@ const ClientAccounts: React.FC = () => {
       render: (amount: number) => formatCurrency(amount),
       sorter: (a: ClientDebt, b: ClientDebt) =>
         a.paid_usd - b.paid_usd,
+      responsive: ['md'] as Breakpoint[],
     },
     {
       title: 'Qolgan qarz (so\'m)',
@@ -324,6 +327,7 @@ const ClientAccounts: React.FC = () => {
       ),
       sorter: (a: ClientDebt, b: ClientDebt) =>
         a.remaining_usd - b.remaining_usd,
+      responsive: ['sm'] as Breakpoint[],
     },
     {
       title: 'Amallar',

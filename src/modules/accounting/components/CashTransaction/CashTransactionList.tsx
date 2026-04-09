@@ -17,6 +17,7 @@ import {
   Divider,
   Checkbox
 } from 'antd';
+import type { Breakpoint } from 'antd';
 import {
   PlusOutlined,
   EditOutlined,
@@ -290,6 +291,7 @@ const CashTransactionList: React.FC = () => {
       title: 'Mijoz kompaniyasi',
       dataIndex: 'company_name',
       key: 'company_name',
+      responsive: ['md'] as Breakpoint[],
       render: (company: string) => (
         <span style={{ fontWeight: 500 }}>{company}</span>
       )
@@ -299,7 +301,8 @@ const CashTransactionList: React.FC = () => {
     {
       title: 'Haydovchi',
       dataIndex: 'driver_name',
-      key: 'driver_name'
+      key: 'driver_name',
+      responsive: ['lg'] as Breakpoint[],
     },
     {
       title: 'Summa',
@@ -315,6 +318,7 @@ const CashTransactionList: React.FC = () => {
       title: 'To\'lov turi',
       dataIndex: 'payment_way_name',
       key: 'payment_way_name',
+      responsive: ['lg'] as Breakpoint[],
       render: (payment_way_name: string) => (
         <Tag color="blue">{payment_way_name || 'Aniqlanmagan'}</Tag>
       )
@@ -350,6 +354,7 @@ const CashTransactionList: React.FC = () => {
       title: 'comment',
       dataIndex: 'comment',
       key: 'comment',
+      responsive: ['lg'] as Breakpoint[],
       render: (comment: string) => (
         <span>{comment}</span>
       )

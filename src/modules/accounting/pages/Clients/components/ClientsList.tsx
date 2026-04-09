@@ -143,6 +143,7 @@ export const ClientsList: React.FC<ClientsListProps> = ({
       dataSource={clients}
       rowKey="id"
       loading={loading}
+      scroll={{ x: 'max-content' }}
       pagination={{
         current: currentPage,
         pageSize: pageSize,
