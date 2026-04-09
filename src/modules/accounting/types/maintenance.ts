@@ -65,3 +65,12 @@ export interface OptolType {
   custom_rate_to_uzs?: string | null;
   created_at?: string;
 }
+
+export interface FuelType {
+  id?: number;
+  car: number | null;
+  fuel_type: 'Benzin' | 'Gaz' | null;
+  volume: number | null; // litr yoki kub
+  price: number | null; // narxi (so'm)
+  created_at?: string;
+}

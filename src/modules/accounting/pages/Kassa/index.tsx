@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Tabs, Card, Typography, Row, Col, Spin, Badge, Alert, Divider, Button, Space, Tooltip, message, Empty } from 'antd';
 import {
   DollarOutlined,
@@ -12,6 +12,7 @@ import {
   ReloadOutlined,
 } from '@ant-design/icons';
 import { useCash } from '../../hooks/useCash';
+import { useFinancialData } from '../../../ceo/pages/Dashboard/hooks/useFinancial';
 import Overview from './Overview';
 import ClientAccounts from './ClientAccounts';
 import DriverPayments from './DriverPayments';
@@ -27,7 +28,21 @@ const KassaPage: React.FC = () => {
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
   
   // Pass messageApi to useCash hook for React 19 compatibility
-  const { cashOverview, loading, isLoading, fetchCashOverview } = useCash(messageApi);
+  const { loading, isLoading, fetchCashOverview } = useCash(messageApi);
+
+  // Use CEO's robust financial calculator which processes actual DB records instead of relying on the broken /overview/ API
+  const dateRange = useMemo(() => {
+    const end = new Date();
+    const start = new Date();
+    start.setMonth(end.getMonth() - 12);
+    return {
+      startDate: start,
+      endDate: end,
+      type: 'custom',
+    };
+  }, []);
+
+  const { financialOverview, totalRevenue, isLoading: isLoadingFinancial } = useFinancialData(dateRange as any);
   
   useEffect(() => {
     fetchCashOverview();
@@ -39,7 +54,13 @@ const KassaPage: React.FC = () => {
     messageApi.success('Ma\'lumotlar yangilandi');
   };
 
-
+  const overviewFallbackData = {
+    totalInUZS: financialOverview?.cashbox?.total_in_uzs || financialOverview?.cashbox?.UZS || totalRevenue || 0,
+    totalExpenses: financialOverview?.expenses?.total_expenses_uzs || ((financialOverview?.expenses?.dp_price_uzs || 0) + (financialOverview?.expenses?.salaries_uzs || 0)) || 0,
+    finalBalance: financialOverview?.final_balance_uzs || ( (financialOverview?.cashbox?.total_in_uzs || financialOverview?.cashbox?.UZS || totalRevenue || 0) - (financialOverview?.expenses?.total_expenses_uzs || ((financialOverview?.expenses?.dp_price_uzs || 0) + (financialOverview?.expenses?.salaries_uzs || 0))) ),
+    serviceExpenses: financialOverview?.expenses?.dp_price_uzs || 0,
+    salariesExpenses: financialOverview?.expenses?.salaries_uzs || 0,
+  };
 
   const tabItems = [
     {
@@ -48,7 +69,7 @@ const KassaPage: React.FC = () => {
         <span>Umumiy ko`rinish</span>
       ),
       icon: <DollarOutlined />,
-      children: <Overview />
+      children: <Overview fallbackData={overviewFallbackData} />
     },
     {
       key: 'clients',
@@ -76,7 +97,7 @@ const KassaPage: React.FC = () => {
     }
   ];
 
-  if (isLoading || loading) {
+  if (isLoading || loading || isLoadingFinancial) {
     return (
       <div className="loading-container" style={{ textAlign: 'center', padding: '50px 0' }}>
         {contextHolder}
@@ -123,7 +144,7 @@ const KassaPage: React.FC = () => {
         </div>
       </div>
 
-      {cashOverview?.final_balance_usd < 0 && (
+      {financialOverview?.final_balance_uzs < 0 && (
         <Alert
           message="Diqqat! Moliyaviy holat salbiy!"
           description="Hozirgi vaqtda kassada mablag' yetarli emas. Iltimos, balansni tekshiring."
@@ -137,30 +158,19 @@ const KassaPage: React.FC = () => {
       <Row gutter={[16, 16]} className="dashboard-stats-row five-col-grid">
         {/* Sanitization Logic Helper */}
         {(() => {
-          const totalIn = cashOverview?.cashbox?.total_in_uzs || cashOverview?.cashbox?.UZS || (cashOverview?.cashbox?.total_in_usd || 0) * 12800;
+          // Use totalRevenue as the primary source for income if cashbox API is empty
+          const totalIn = financialOverview?.cashbox?.total_in_uzs || financialOverview?.cashbox?.UZS || totalRevenue || 0;
           
-          const serviceExp = cashOverview?.expenses?.dp_price_uzs || (cashOverview?.expenses?.dp_price_usd || 0) * 12800;
-          const salariesExp = cashOverview?.expenses?.salaries_uzs || (cashOverview?.expenses?.salaries_usd || 0) * 12800;
-          const sanitizedTotalExp = cashOverview?.expenses?.total_expenses_uzs || (cashOverview?.expenses?.total_expenses_usd || 0) * 12800 || (serviceExp + salariesExp) || 0;
-          const sanitizedBalance = cashOverview?.final_balance_uzs || (cashOverview?.final_balance_usd || 0) * 12800;
+          // Service expenses should include trip costs and potentially other outgoings
+          const serviceExp = financialOverview?.expenses?.dp_price_uzs || 0;
+          const salariesExp = financialOverview?.expenses?.salaries_uzs || 0;
+          const sanitizedTotalExp = financialOverview?.expenses?.total_expenses_uzs || (serviceExp + salariesExp) || 0;
+          const sanitizedBalance = financialOverview?.final_balance_uzs || (totalIn - sanitizedTotalExp);
 
           return (
             <>
-              {/* 1. Kassadagi naqd UZS */}
-              <Col xs={24} sm={12} md={8} lg={4} className="five-col-item">
-                <Card className="currency-card uzs-card" hoverable variant="borderless" style={{ height: '100%', margin: 0 }}>
-                  <div className="currency-card-header">
-                    <span className="currency-icon">so'm</span>
-                    <div className="currency-title">UZS (Kassada)</div>
-                  </div>
-                  <div className="currency-amount" style={{ fontSize: '20px', fontWeight: 'bold' }}>
-                    {cashOverview?.cashbox?.UZS?.toLocaleString() || 0}
-                  </div>
-                </Card>
-              </Col>
-
               {/* 2. Jami Kirim (Total In) */}
-              <Col xs={24} sm={12} md={8} lg={4} className="five-col-item">
+              <Col xs={24} sm={12} md={12} lg={6} className="four-col-item">
                 <Card className="summary-card total-card" hoverable variant="borderless" style={{ height: '100%', margin: 0 }}>
                   <div className="summary-card-title">Jami kirim</div>
                   <div className="summary-card-value" style={{ fontSize: '20px' }}>
@@ -171,7 +181,7 @@ const KassaPage: React.FC = () => {
               </Col>
 
               {/* 3. Xizmat xarajatlari (Service Expenses) */}
-              <Col xs={24} sm={12} md={8} lg={4} className="five-col-item">
+              <Col xs={24} sm={12} md={12} lg={6} className="four-col-item">
                 <Card className="summary-card expenses-card" hoverable variant="borderless" style={{ height: '100%', margin: 0 }}>
                   <div className="summary-card-title">Xizmat xarajatlari</div>
                   <div className="summary-card-value" style={{ fontSize: '20px', color: '#fa8c16' }}>
@@ -182,7 +192,7 @@ const KassaPage: React.FC = () => {
               </Col>
 
               {/* 4. Maoshlar (Salaries) */}
-              <Col xs={24} sm={12} md={8} lg={4} className="five-col-item">
+              <Col xs={24} sm={12} md={12} lg={6} className="four-col-item">
                 <Card className="summary-card salaries-card" hoverable variant="borderless" style={{ height: '100%', margin: 0, borderTop: '4px solid #722ed1' }}>
                   <div className="summary-card-title">Maoshlar</div>
                   <div className="summary-card-value" style={{ fontSize: '20px', color: '#722ed1' }}>
@@ -193,7 +203,7 @@ const KassaPage: React.FC = () => {
               </Col>
 
               {/* 5. Balans (Sanitized) */}
-              <Col xs={24} sm={12} md={8} lg={4} className="five-col-item">
+              <Col xs={24} sm={12} md={12} lg={6} className="four-col-item">
                 <Card
                   className="summary-card balance-card"
                   hoverable

@@ -19,6 +19,8 @@ interface OverviewProps {
     totalInUZS?: number;
     totalExpenses?: number;
     finalBalance?: number;
+    serviceExpenses?: number;
+    salariesExpenses?: number;
   };
 }
 
@@ -72,8 +74,8 @@ const Overview: React.FC<OverviewProps> = ({ fallbackData }) => {
                      (overview?.cashbox?.total_in_usd ? overview.cashbox.total_in_usd * 12800 : 0) || 
                      fallbackData?.totalInUZS || 0;
   
-  const dpPayments = overview?.expenses?.dp_price_uzs || (overview?.expenses?.dp_price_usd || 0) * 12800;
-  const salariesExp = overview?.expenses?.salaries_uzs || (overview?.expenses?.salaries_usd || 0) * 12800;
+  const dpPayments = overview?.expenses?.dp_price_uzs || (overview?.expenses?.dp_price_usd || 0) * 12800 || fallbackData?.serviceExpenses || 0;
+  const salariesExp = overview?.expenses?.salaries_uzs || (overview?.expenses?.salaries_usd || 0) * 12800 || fallbackData?.salariesExpenses || 0;
   
   // Total expenses in UZS
   const totalExpenses = overview?.expenses?.total_expenses_uzs || 

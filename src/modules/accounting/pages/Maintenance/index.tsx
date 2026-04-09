@@ -2,7 +2,7 @@ import React from 'react';
 import { Layout, Typography, Tabs, Spin, Alert } from 'antd';
 import {
   DashboardOutlined, ToolOutlined, CarOutlined, ExperimentOutlined,
-  SettingOutlined, TruckOutlined, UnorderedListOutlined
+  SettingOutlined, TruckOutlined, UnorderedListOutlined, FireOutlined
 } from '@ant-design/icons';
 import ServiceDashboard from './components/ServiceDashboard';
 import SimpleServiceList from './components/SimpleServiceList';
@@ -16,11 +16,14 @@ import BalonFurgonAdd from './components/balonfurgon/BalonFurgonAdd';
 import BalonFurgonList from './components/balonfurgon/BalonFurgonList';
 import TehnicalServiceAdd from './components/tehnical/TehnicalServiceAdd';
 import TehnicalServiceList from './components/tehnical/TehnicalServiceList';
+import FuelAdd from './components/fuel/FuelAdd';
+import FuelList from './components/fuel/FuelList';
 import { useServiceManagement } from './hooks/useServiceManagement';
 import { useOptolManagement } from './hooks/useOptolManagement';
 import { useBalonManagement } from './hooks/useBalonManagement';
 import { useBalonFurgonManagement } from './hooks/useBalonFurgonManagement';
 import { useTehnicalServiceManagement } from './hooks/useTehnicalServiceManagement';
+import { useFuelManagement } from './hooks/useFuelManagement';
 import type { TabsProps } from 'antd';
 
 const { Content } = Layout;
@@ -110,8 +113,16 @@ export const MaintenancePage: React.FC = () => {
     deleteTehnicalService,
   } = useTehnicalServiceManagement();
 
-  const isLoading = servicesLoading || optolLoading || balonLoading || balonFurgonLoading || tehnicalLoading;
-  const hasError = servicesError || optolError || balonError || balonFurgonError || tehnicalError;
+  const {
+    fuelServices,
+    isLoading: fuelLoading,
+    isError: fuelError,
+    addFuelService,
+    deleteFuelService,
+  } = useFuelManagement();
+
+  const isLoading = servicesLoading || optolLoading || balonLoading || balonFurgonLoading || tehnicalLoading || fuelLoading;
+  const hasError = servicesError || optolError || balonError || balonFurgonError || tehnicalError || fuelError;
 
   const items: TabsProps['items'] = [
 
@@ -219,6 +230,23 @@ export const MaintenancePage: React.FC = () => {
             tehnicalServices={tehnicalServices}
             updateTehnicalService={updateTehnicalService}
             deleteTehnicalService={deleteTehnicalService}
+          />
+        </div>
+      ),
+    },
+    {
+      key: 'fuel',
+      label: (
+        <span style={styles.tab}>
+          <FireOutlined /> Yoqilg'i harajatlari
+        </span>
+      ),
+      children: (
+        <div style={styles.serviceSection}>
+          <FuelAdd addFuelService={addFuelService} />
+          <FuelList
+            fuelServices={fuelServices}
+            deleteFuelService={deleteFuelService}
           />
         </div>
       ),

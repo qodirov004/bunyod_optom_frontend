@@ -59,7 +59,10 @@ interface Currency {
   rate_to_uzs: string;
 }
 
+import { useClients } from '../../hooks/useClients';
+
 const ClientAccounts: React.FC = () => {
+  const { data: clientsData, isLoading: isClientsLoading } = useClients();
   const [debts, setDebts] = useState<ClientDebt[]>([]);
   const [filteredDebts, setFilteredDebts] = useState<ClientDebt[]>([]);
   const [loading, setLoading] = useState(false);
@@ -439,9 +442,10 @@ const ClientAccounts: React.FC = () => {
           <Card className="summary-card total-clients-card">
             <Statistic
               title="Jami mijozlar"
-              value={totalStats.totalClients}
+              value={clientsData?.total || totalStats.totalClients}
               prefix={<UserOutlined />}
               valueStyle={{ color: '#1890ff' }}
+              loading={isClientsLoading}
             />
           </Card>
         </Col>
