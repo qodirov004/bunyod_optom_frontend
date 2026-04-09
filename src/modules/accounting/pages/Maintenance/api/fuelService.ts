@@ -3,9 +3,13 @@ import { FuelType } from '@/modules/accounting/types/maintenance';
 
 const API_URL = '/fuel/';
 
-// Get all fuel expenses
-export const getFuelServices = async (): Promise<FuelType[]> => {
-  const response = await axiosInstance.get<FuelType[]>(API_URL);
+// Get all fuel expenses with optional date range
+export const getFuelServices = async (dateRange?: { startDate: string | null; endDate: string | null }): Promise<FuelType[]> => {
+  let url = API_URL;
+  if (dateRange && dateRange.startDate && dateRange.endDate) {
+    url += `?start_date=${dateRange.startDate}&end_date=${dateRange.endDate}`;
+  }
+  const response = await axiosInstance.get<FuelType[]>(url);
   return response.data;
 };
 

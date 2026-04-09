@@ -24,12 +24,6 @@ const Navbar: React.FC<NavbarProps> = ({ fixed = true }) => {
         >
             <div className="navbar-left">
                 <Space align="center" size={12}>
-                    <button 
-                        className="mobile-menu-trigger" 
-                        onClick={() => dispatch(toggleSidebar())}
-                    >
-                        <MenuOutlined />
-                    </button>
                     <CarOutlined 
                         className="navbar-brand-icon"
                         style={{ 

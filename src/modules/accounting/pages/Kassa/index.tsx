@@ -60,6 +60,8 @@ const KassaPage: React.FC = () => {
     finalBalance: financialOverview?.final_balance_uzs || ( (financialOverview?.cashbox?.total_in_uzs || financialOverview?.cashbox?.UZS || totalRevenue || 0) - (financialOverview?.expenses?.total_expenses_uzs || ((financialOverview?.expenses?.dp_price_uzs || 0) + (financialOverview?.expenses?.salaries_uzs || 0))) ),
     serviceExpenses: financialOverview?.expenses?.dp_price_uzs || 0,
     salariesExpenses: financialOverview?.expenses?.salaries_uzs || 0,
+    cashPayments: financialOverview?.cashbox?.cash_payments_uzs || 0,
+    bankPayments: financialOverview?.cashbox?.bank_payments_uzs || 0,
   };
 
   const tabItems = [

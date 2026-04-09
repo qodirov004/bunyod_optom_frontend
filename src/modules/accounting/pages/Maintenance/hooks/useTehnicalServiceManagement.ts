@@ -7,8 +7,16 @@ import {
   deleteTehnicalService,
 } from '../api/tehnicalService';
 
-export const useTehnicalServiceManagement = () => {
+export const useTehnicalServiceManagement = (dateRange?: { startDate: any; endDate: any } | null) => {
   const queryClient = useQueryClient();
+
+  // Format dates for API
+  const formattedRange = dateRange && dateRange.startDate && dateRange.endDate 
+    ? { 
+        startDate: dateRange.startDate.format('YYYY-MM-DD'), 
+        endDate: dateRange.endDate.format('YYYY-MM-DD') 
+      } 
+    : undefined;
 
   // Fetch all technical services
   const {
@@ -16,8 +24,8 @@ export const useTehnicalServiceManagement = () => {
     isLoading,
     isError,
   } = useQuery({
-    queryKey: ['tehnicalServices'],
-    queryFn: getTehnicalServices,
+    queryKey: ['tehnicalServices', formattedRange],
+    queryFn: () => getTehnicalServices(formattedRange),
   });
 
   // Create a new technical service

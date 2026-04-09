@@ -3,9 +3,13 @@ import { TehnicalService } from '@/modules/accounting/types/maintenance';
 
 const API_URL = '/texnic/';
 
-// Get all technical services
-export const getTehnicalServices = async (): Promise<TehnicalService[]> => {
-  const response = await axiosInstance.get<TehnicalService[]>(API_URL);
+// Get all technical services with optional date range
+export const getTehnicalServices = async (dateRange?: { startDate: string | null; endDate: string | null }): Promise<TehnicalService[]> => {
+  let url = API_URL;
+  if (dateRange && dateRange.startDate && dateRange.endDate) {
+    url += `?start_date=${dateRange.startDate}&end_date=${dateRange.endDate}`;
+  }
+  const response = await axiosInstance.get<TehnicalService[]>(url);
   return response.data;
 };
 

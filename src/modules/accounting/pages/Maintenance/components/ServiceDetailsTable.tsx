@@ -107,6 +107,15 @@ const ServiceDetailsTable: React.FC<ServiceDetailsTableProps> = ({ totals }) => 
       percentValue: Math.round((totals.chiqimlik / totals.total) * 100),
       status: 'default',
       color: '#52c41a'
+    },
+    {
+      key: '5',
+      category: 'Yoqilg\'i harajatlari',
+      amount: totals.fuel || 0,
+      percentage: calculatePercentage(totals.fuel || 0),
+      percentValue: Math.round(((totals.fuel || 0) / totals.total) * 100),
+      status: 'warning',
+      color: '#fa541c'
     }
   ];
 

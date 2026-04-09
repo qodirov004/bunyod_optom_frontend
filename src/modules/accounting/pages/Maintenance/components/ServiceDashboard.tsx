@@ -2,11 +2,13 @@ import React from 'react';
 import { Row, Col, Card, Table, Typography, Avatar, Empty, Space, Statistic, Spin, Divider } from 'antd';
 import { 
   ToolOutlined, DollarOutlined, CalendarOutlined, CheckCircleOutlined,
-  ExperimentOutlined, SettingOutlined, DashboardOutlined, BarChartOutlined
+  ExperimentOutlined, SettingOutlined, DashboardOutlined, BarChartOutlined, FireOutlined
 } from '@ant-design/icons';
 import { useServiceManagement } from '../hooks/useServiceManagement';
 import { useOptolManagement } from '../hooks/useOptolManagement';
 import { useBalonManagement } from '../hooks/useBalonManagement';
+import { useFuelManagement } from '../hooks/useFuelManagement';
+import { useTehnicalServiceManagement } from '../hooks/useTehnicalServiceManagement';
 import { useServiceTotals } from '../hooks/useServiceTotals';
 import ServiceDetailsTable from './ServiceDetailsTable';
 
@@ -157,14 +159,31 @@ const ServiceDashboard: React.FC = () => {
   const { optolServices, isLoading: optolLoading } = useOptolManagement();
   const { balonServices, isLoading: balonLoading } = useBalonManagement();
   const { 
-    totals, 
-    isLoading: totalsLoading
+    totals: baseTotals, 
+    isLoading: totalsLoading,
+    dateRange
   } = useServiceTotals();
+  const { fuelServices, isLoading: fuelLoading } = useFuelManagement(dateRange);
+  const { tehnicalServices, isLoading: tehnicalLoading } = useTehnicalServiceManagement(dateRange);
   
-  const isLoading = servicesLoading || optolLoading || balonLoading || totalsLoading;
+  const isLoading = servicesLoading || optolLoading || balonLoading || totalsLoading || fuelLoading || tehnicalLoading;
+
+  // Calculate fuel total
+  const fuelTotal = fuelServices?.reduce((sum, item) => sum + (item.price || 0), 0) || 0;
+  
+  // Calculate standard service total manually to avoid discrepancies
+  const manualServiceTotal = services?.reduce((sum, item) => sum + (item.price || 0), 0) || 0;
+  
+  // Enrich totals with fuel and manual service sum
+  const totals = baseTotals ? {
+    ...baseTotals,
+    texnic: manualServiceTotal, // Override with manual sum
+    fuel: fuelTotal,
+    total: manualServiceTotal + (baseTotals.optol || 0) + (baseTotals.balon || 0) + (baseTotals.chiqimlik || 0) + fuelTotal
+  } : null;
   
   // Calculate statistics
-  const totalServices = services?.length || 0;
+  const totalServices = (services?.length || 0) + (tehnicalServices?.length || 0);
   const totalOptolServices = optolServices?.length || 0;
   const totalBalonServices = balonServices?.length || 0;
 
@@ -216,7 +235,7 @@ const ServiceDashboard: React.FC = () => {
 
         {/* Stats Cards Section */}
         <Row gutter={[24, 24]} style={styles.statsRow}>
-          <Col xs={24} sm={12} md={6}>
+          <Col xs={24} sm={12} md={8} lg={4}>
             <div style={styles.statisticCard}>
               <div style={{ ...styles.statisticHeader, background: 'linear-gradient(135deg, #1677ff 0%, #0d47a1 100%)' }}>
                 <Text style={{ color: 'white', fontWeight: 'bold' }}>Umumiy summa</Text>
@@ -229,7 +248,7 @@ const ServiceDashboard: React.FC = () => {
             </div>
           </Col>
 
-          <Col xs={24} sm={12} md={6}>
+          <Col xs={24} sm={12} md={8} lg={4}>
             <div style={styles.statisticCard}>
               <div style={{ ...styles.statisticHeader, background: 'linear-gradient(135deg, #eb2f96 0%, #c41d7f 100%)' }}>
                 <Text style={{ color: 'white', fontWeight: 'bold' }}>Texnik xizmat</Text>
@@ -242,7 +261,7 @@ const ServiceDashboard: React.FC = () => {
             </div>
           </Col>
           
-          <Col xs={24} sm={12} md={6}>
+          <Col xs={24} sm={12} md={8} lg={4}>
             <div style={styles.statisticCard}>
               <div style={{ ...styles.statisticHeader, background: 'linear-gradient(135deg, #fa8c16 0%, #d46b08 100%)' }}>
                 <Text style={{ color: 'white', fontWeight: 'bold' }}>Moy xizmati</Text>
@@ -255,7 +274,7 @@ const ServiceDashboard: React.FC = () => {
             </div>
           </Col>
           
-          <Col xs={24} sm={12} md={6}>
+          <Col xs={24} sm={12} md={8} lg={4}>
             <div style={styles.statisticCard}>
               <div style={{ ...styles.statisticHeader, background: 'linear-gradient(135deg, #722ed1 0%, #531dab 100%)' }}>
                 <Text style={{ color: 'white', fontWeight: 'bold' }}>Balon xizmati</Text>
@@ -264,6 +283,34 @@ const ServiceDashboard: React.FC = () => {
                 <CheckCircleOutlined style={{ fontSize: '32px', color: '#722ed1' }} />
                 <div style={styles.statisticNumber}>{formatCurrency(totals?.balon || 0)}</div>
                 <div style={styles.statisticLabel}>Balon xizmati uchun</div>
+              </div>
+            </div>
+          </Col>
+
+          {/* Chiqimlar Card */}
+          <Col xs={24} sm={12} md={8} lg={4}>
+            <div style={styles.statisticCard}>
+              <div style={{ ...styles.statisticHeader, background: 'linear-gradient(135deg, #52c41a 0%, #389e0d 100%)' }}>
+                <Text style={{ color: 'white', fontWeight: 'bold' }}>Chiqimlar</Text>
+              </div>
+              <div style={styles.statisticContent}>
+                <ToolOutlined style={{ fontSize: '32px', color: '#52c41a' }} />
+                <div style={styles.statisticNumber}>{formatCurrency(totals?.chiqimlik || 0)}</div>
+                <div style={styles.statisticLabel}>Ehtiyot qismlar va h.k.</div>
+              </div>
+            </div>
+          </Col>
+
+          {/* New Fuel Card */}
+          <Col xs={24} sm={12} md={8} lg={4}>
+            <div style={styles.statisticCard}>
+              <div style={{ ...styles.statisticHeader, background: 'linear-gradient(135deg, #fa541c 0%, #d4380d 100%)' }}>
+                <Text style={{ color: 'white', fontWeight: 'bold' }}>Yoqilg'i harajati</Text>
+              </div>
+              <div style={styles.statisticContent}>
+                <FireOutlined style={{ fontSize: '32px', color: '#fa541c' }} />
+                <div style={styles.statisticNumber}>{formatCurrency(totals?.fuel || 0)}</div>
+                <div style={styles.statisticLabel}>Yoqilg'i uchun</div>
               </div>
             </div>
           </Col>

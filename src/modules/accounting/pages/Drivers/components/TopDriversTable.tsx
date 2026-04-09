@@ -1,8 +1,10 @@
 import React from 'react';
-import { Table, Space, Avatar, Tag } from 'antd';
-import { UserOutlined, CarOutlined } from '@ant-design/icons';
+import { Table, Space, Avatar, Tag, Typography } from 'antd';
+import { UserOutlined, CarOutlined, TrophyOutlined } from '@ant-design/icons';
 import { DriverType } from '../../../types/driver';
 import { getDriverPhotoUrl } from '../photoUtils';
+
+const { Text } = Typography;
 
 interface TopDriversTableProps {
     drivers: DriverType[];
@@ -14,17 +16,22 @@ const TopDriversTable: React.FC<TopDriversTableProps> = ({ drivers, loading }) =
         {
             title: "№",
             key: 'rank',
-            width: 40,
-            render: (_: any, __: any, index: number) => (
-                <span style={{ paddingLeft: '8px', fontWeight: 'bold' }}>{index + 1}</span>
-            )
+            width: 60,
+            align: 'center' as const,
+            render: (_: any, __: any, index: number) => {
+                const rank = index + 1;
+                if (rank === 1) return <TrophyOutlined style={{ color: '#ffd700', fontSize: '20px' }} />;
+                if (rank === 2) return <TrophyOutlined style={{ color: '#c0c0c0', fontSize: '18px' }} />;
+                if (rank === 3) return <TrophyOutlined style={{ color: '#cd7f32', fontSize: '16px' }} />;
+                return <span style={{ fontWeight: 'bold', color: '#8c8c8c' }}>{rank}</span>;
+            }
         },
         {
             title: 'Haydovchi',
             dataIndex: 'fullname',
             key: 'fullname',
             render: (_: any, record: any) => (
-                <Space>
+                <Space size={12}>
                     {(() => {
                         const photoUrl = getDriverPhotoUrl(record.photo);
                         const hasPhoto = !!photoUrl;
@@ -32,13 +39,20 @@ const TopDriversTable: React.FC<TopDriversTableProps> = ({ drivers, loading }) =
                         return (
                             <>
                                 <Avatar
+                                    size="large"
                                     src={photoUrl || undefined}
                                     icon={!hasPhoto && <UserOutlined />}
-                                    style={{ backgroundColor: hasPhoto ? 'transparent' : '#1890ff' }}
+                                    style={{ 
+                                        backgroundColor: hasPhoto ? 'transparent' : '#1890ff',
+                                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                                    }}
                                 >
                                     {!hasPhoto && record.fullname?.charAt(0)}
                                 </Avatar>
-                                <span>{record.fullname}</span>
+                                <Space direction="vertical" size={0}>
+                                    <Text strong style={{ fontSize: '14px' }}>{record.fullname}</Text>
+                                    <Text type="secondary" style={{ fontSize: '12px' }}>@{record.username}</Text>
+                                </Space>
                             </>
                         );
                     })()}
@@ -49,13 +63,26 @@ const TopDriversTable: React.FC<TopDriversTableProps> = ({ drivers, loading }) =
             title: 'Telefon',
             dataIndex: 'phone_number',
             key: 'phone_number',
+            render: (phone: string) => <Text style={{ fontFamily: 'monospace' }}>{phone}</Text>
         },
         {
             title: 'Reyslar soni',
             dataIndex: 'rays_count',
             key: 'rays_count',
+            align: 'center' as const,
             render: (rays_count: number | undefined) => (
-                <Tag color="blue" icon={<CarOutlined />} style={{ fontWeight: 'bold' }}>{rays_count || 0} reys</Tag>
+                <Tag 
+                    color={rays_count && rays_count > 0 ? "blue" : "default"} 
+                    icon={<CarOutlined />} 
+                    style={{ 
+                        padding: '4px 12px', 
+                        borderRadius: '20px', 
+                        fontWeight: 'bold',
+                        fontSize: '13px'
+                    }}
+                >
+                    {rays_count || 0} reys
+                </Tag>
             ),
             sorter: (a: any, b: any) => (a.rays_count || 0) - (b.rays_count || 0),
         },
@@ -63,6 +90,7 @@ const TopDriversTable: React.FC<TopDriversTableProps> = ({ drivers, loading }) =
             title: 'Status',
             dataIndex: 'status',
             key: 'status',
+            align: 'center' as const,
             render: (status: string) => {
                 const colors: Record<string, string> = {
                     active: 'success',
@@ -85,7 +113,10 @@ const TopDriversTable: React.FC<TopDriversTableProps> = ({ drivers, loading }) =
                 };
                 
                 return (
-                    <Tag color={colors[status] || 'default'}>
+                    <Tag 
+                        color={colors[status] || 'default'}
+                        style={{ borderRadius: '4px', minWidth: '80px', textAlign: 'center' }}
+                    >
                         {texts[status] || status}
                     </Tag>
                 );
@@ -100,12 +131,16 @@ const TopDriversTable: React.FC<TopDriversTableProps> = ({ drivers, loading }) =
             rowKey="id"
             loading={loading}
             pagination={false}
-            size="small"
-            variant="borderless"
+            size="middle"
             scroll={{ x: 700 }}
-            style={{ width: '100%' }}
+            style={{ 
+                width: '100%',
+                background: '#fff',
+                borderRadius: '8px'
+            }}
+            rowClassName={(_, index) => index < 3 ? 'top-rank-row' : ''}
         />
     );
 };
 
-export default TopDriversTable; 
+export default TopDriversTable;

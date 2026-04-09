@@ -21,6 +21,7 @@ import {
   TruckOutlined,
   CalendarOutlined
 } from '@ant-design/icons';
+import { useCars } from '@/modules/accounting/hooks/useCars';
 import { cashApi } from '../../../api/cash/cashApi';
 import { formatMoney } from '@/utils/format';
 import dayjs from 'dayjs';
@@ -40,6 +41,7 @@ interface ServiceData {
 }
 
 const SimpleServiceList: React.FC = () => {
+  const { cars = [] } = useCars();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [dateRange, setDateRange] = useState<[dayjs.Dayjs | null, dayjs.Dayjs | null]>([null, null]);
@@ -163,8 +165,20 @@ const SimpleServiceList: React.FC = () => {
     },
     {
       title: 'Mashina',
-      dataIndex: 'car_name',
-      key: 'car_name',
+      key: 'car_info',
+      render: (_, record: ServiceData) => {
+        const car = cars.find((c: any) => c.id === record.car);
+        return (
+          <Space direction="vertical" size={0}>
+            <Text strong>{record.car_name}</Text>
+            {car && (
+              <Tag color="blue" style={{ fontSize: '11px', margin: 0 }}>
+                {car.car_number || car.number}
+              </Tag>
+            )}
+          </Space>
+        );
+      }
     },
     {
       title: 'Narxi',

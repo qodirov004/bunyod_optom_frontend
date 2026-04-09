@@ -318,13 +318,110 @@ const TripHistoryPage: React.FC = () => {
     total: 0
   });
 
+  // Client lookup state
+  const [clientsLookup, setClientsLookup] = useState<Record<number, string>>({});
+  const [nameLookup, setNameLookup] = useState<Record<string, string>>({});
+
   useEffect(() => {
     fetchOverviewStats();
+    fetchAllClientsData();
   }, []);
 
   useEffect(() => {
     fetchTrips();
   }, [pagination.current, pagination.pageSize, searchText, dateRange]);
+
+  const fetchAllClientsData = async () => {
+    try {
+      // Fetch from multiple sources for better coverage
+      const [debtsRes, clientsRes] = await Promise.all([
+        axiosInstance.get('/casa/all-debts/'),
+        axiosInstance.get('/clients/?page_size=10000') // Greatly increased size to get everyone
+      ]);
+
+      const lookup: Record<number, string> = {};
+      const nLookup: Record<string, string> = {};
+
+      // Process debts data
+      const debtsData = debtsRes.data;
+      if (Array.isArray(debtsData)) {
+        debtsData.forEach((item: any) => {
+          const company = (item.client_company || item.company_name || '').toString().trim();
+          if (!company) return;
+
+          if (item.client_id) lookup[item.client_id] = company;
+          if (item.id) lookup[item.id] = company;
+          
+          if (item.first_name) nLookup[item.first_name.toString().trim().toLowerCase()] = company;
+          if (item.client_name) nLookup[item.client_name.toString().trim().toLowerCase()] = company;
+          
+          const fullName = `${item.first_name || ''} ${item.last_name || ''}`.trim().toLowerCase();
+          if (fullName && fullName !== 'null null') nLookup[fullName] = company;
+        });
+      }
+
+      // Process clients data (handle both naked array and DRF results wrapper)
+      const clientsData = clientsRes.data?.results || (Array.isArray(clientsRes.data) ? clientsRes.data : []);
+      
+      if (Array.isArray(clientsData)) {
+        clientsData.forEach((client: any) => {
+          const company = (client.company || client.client_company || client.company_name || '').toString().trim();
+          if (!company) return;
+
+          if (client.id) lookup[client.id] = company;
+          
+          const firstName = (client.first_name || '').toString().trim().toLowerCase();
+          const lastName = (client.last_name || '').toString().trim().toLowerCase();
+          const fullName = `${firstName} ${lastName}`.trim().toLowerCase();
+          const name = (client.name || '').toString().trim().toLowerCase();
+          
+          if (fullName && fullName !== 'null null') nLookup[fullName] = company;
+          if (firstName) nLookup[firstName] = company;
+          if (name) nLookup[name] = company;
+        });
+      }
+
+      setClientsLookup(lookup);
+      setNameLookup(nLookup);
+      
+      // Also sync with global window lookup
+      if (typeof window !== 'undefined') {
+        (window as any).__clientsNameLookup = { ...(window as any).__clientsNameLookup, ...nLookup };
+      }
+    } catch (error) {
+      console.error('Error fetching clients for lookup in TripHistory:', error);
+    }
+  };
+
+  const getCompanyName = (client: any) => {
+    if (!client) return '-';
+    
+    // 1. Try stored company name directly from trip data if available
+    const directCompany = (client.company || client.client_company || client.customer_company || '').toString().trim();
+    if (directCompany && directCompany !== '-' && directCompany !== 'null') return directCompany;
+
+    // 2. Try ID lookup (most accurate)
+    const id = client.id || client.client_id || (typeof client === 'number' ? client : null);
+    if (id && clientsLookup[id]) return clientsLookup[id];
+    
+    // 3. Try Name-based lookup from local state
+    const firstName = (client.first_name || client.name || client.client_name || '').toString().trim().toLowerCase();
+    const lastName = (client.last_name || '').toString().trim().toLowerCase();
+    const fullName = `${firstName} ${lastName}`.trim();
+    
+    if (fullName && nameLookup[fullName]) return nameLookup[fullName];
+    if (firstName && nameLookup[firstName]) return nameLookup[firstName];
+    
+    // 4. Try Global window lookup
+    if (typeof window !== 'undefined' && (window as any).__clientsNameLookup) {
+      if (fullName && (window as any).__clientsNameLookup[fullName]) return (window as any).__clientsNameLookup[fullName];
+      if (firstName && (window as any).__clientsNameLookup[firstName]) return (window as any).__clientsNameLookup[firstName];
+    }
+    
+    // 5. Fallback to name if NO company is found, but make it clear it's a name
+    const finalName = client.company || client.first_name || client.name || client.fullname || (client.last_name ? `${client.first_name} ${client.last_name}` : null);
+    return finalName || '-';
+  };
 
   // Reyslar ro'yxatini olish
   const fetchTrips = async () => {
@@ -382,21 +479,27 @@ const TripHistoryPage: React.FC = () => {
               driver: (item.driver_data && typeof item.driver_data === 'object') ? item.driver_data : item.driver,
               car: (item.car_data && typeof item.car_data === 'object') ? item.car_data : item.car,
               fourgon: (item.fourgon_data && typeof item.fourgon_data === 'object') ? item.fourgon_data : item.fourgon,
-              client: ((item.client_data && Array.isArray(item.client_data) && item.client_data.length > 0) ? item.client_data : (item.client || [])).map((c: any) => ({
-                ...c,
-                first_name: c.first_name || c.name || '',
-                company: c.company || '',
-                number: c.number || c.phone || '',
-                products: (c.products || []).map((p: any) => {
-                  // Convert product price if needed
-                  const rate = p.custom_rate_to_uzs ? parseFloat(p.custom_rate_to_uzs) : 1;
-                  const isNotUZS = p.currency && p.currency !== 4;
-                  return {
-                    ...p,
-                    displayPrice: isNotUZS ? (p.price * rate) : p.price
-                  };
-                })
-              })),
+              client: ((item.client_data && Array.isArray(item.client_data) && item.client_data.length > 0) ? item.client_data : 
+                      (Array.isArray(item.client) ? item.client : [])).map((c: any) => {
+                const clientObj = typeof c === 'object' ? c : { id: c };
+                return {
+                  ...clientObj,
+                  key: clientObj.id || `client-${index}`,
+                  first_name: clientObj.first_name || clientObj.name || '',
+                  company: clientObj.company || clientObj.client_company || '',
+                  number: clientObj.number || clientObj.phone || '',
+                  products: (clientObj.products || []).map((p: any, pIndex: number) => {
+                    // Convert product price if needed
+                    const rate = p.custom_rate_to_uzs ? parseFloat(p.custom_rate_to_uzs) : 1;
+                    const isNotUZS = p.currency && p.currency !== 4;
+                    return {
+                      ...p,
+                      key: p.id || `prod-${index}-${pIndex}`,
+                      displayPrice: isNotUZS ? (p.price * rate) : p.price
+                    };
+                  })
+                };
+              }),
               displayPrice: finalPrice,
               displayDrPrice: finalDrPrice,
               displayDpPrice: finalDpPrice,
@@ -678,20 +781,19 @@ const TripHistoryPage: React.FC = () => {
         ),
       },
       {
-        title: 'Mijoz',
+        title: 'Mijoz kompaniyasi',
         key: 'client',
         render: (_: unknown, record: any) => {
-          // Robust checking for client name in mapped 'client' field or raw 'client_data'
-          const clientPrimary = (record.client && record.client.length > 0) ? record.client[0] : null;
-          const clientSecondary = (record.client_data && record.client_data.length > 0) ? record.client_data[0] : null;
-          const c = clientPrimary || clientSecondary;
+          const clientData = (record.client && record.client.length > 0) ? record.client[0] : 
+                            (record.client_data && record.client_data.length > 0) ? record.client_data[0] : null;
           
-          if (!c) return 'Mijoz kiritilmagan';
+          const companyName = getCompanyName(clientData);
           
-          // Try all possible name fields
-          const name = c.company || c.first_name || c.name || c.fullname || (c.last_name ? `${c.first_name} ${c.last_name}` : null);
-          
-          return <Text strong>{name || 'Mijoz kiritilmagan'}</Text>;
+          return (
+            <Text strong style={{ color: '#1890ff' }}>
+              {companyName}
+            </Text>
+          );
         },
       },
       {
@@ -931,6 +1033,7 @@ const TripHistoryPage: React.FC = () => {
                         },
                       ]}
                       pagination={false}
+                      rowKey="id"
                     />
                   ) : (
                     <Alert message="Texnik xizmat xarajatlari mavjud emas" type="info" />
@@ -941,6 +1044,7 @@ const TripHistoryPage: React.FC = () => {
                   {selectedTrip.expenses.balons && selectedTrip.expenses.balons.length > 0 ? (
                     <Table
                       dataSource={selectedTrip.expenses.balons}
+                      rowKey="id"
                       columns={[
                         {
                           title: 'Mashina',
@@ -970,6 +1074,7 @@ const TripHistoryPage: React.FC = () => {
                         },
                       ]}
                       pagination={false}
+                      rowKey="id"
                     />
                   ) : (
                     <Alert message="Balon xarajatlari mavjud emas" type="info" />
@@ -980,6 +1085,7 @@ const TripHistoryPage: React.FC = () => {
                   {selectedTrip.expenses.balon_furgons && selectedTrip.expenses.balon_furgons.length > 0 ? (
                     <Table
                       dataSource={selectedTrip.expenses.balon_furgons}
+                      rowKey="id"
                       columns={[
                         {
                           title: 'Furgon',
@@ -1009,6 +1115,7 @@ const TripHistoryPage: React.FC = () => {
                         },
                       ]}
                       pagination={false}
+                      rowKey="id"
                     />
                   ) : (
                     <Alert message="Furgon balon xarajatlari mavjud emas" type="info" />
@@ -1019,6 +1126,7 @@ const TripHistoryPage: React.FC = () => {
                   {selectedTrip.expenses.optols && selectedTrip.expenses.optols.length > 0 ? (
                     <Table
                       dataSource={selectedTrip.expenses.optols}
+                      rowKey="id"
                       columns={[
                         {
                           title: 'Mashina',
@@ -1044,6 +1152,7 @@ const TripHistoryPage: React.FC = () => {
                         },
                       ]}
                       pagination={false}
+                      rowKey="id"
                     />
                   ) : (
                     <Alert message="Optol xarajatlari mavjud emas" type="info" />
@@ -1054,6 +1163,7 @@ const TripHistoryPage: React.FC = () => {
                   {selectedTrip.expenses.chiqimliks && selectedTrip.expenses.chiqimliks.length > 0 ? (
                     <Table
                       dataSource={selectedTrip.expenses.chiqimliks}
+                      rowKey="id"
                       columns={[
                         {
                           title: 'Haydovchi',
@@ -1092,17 +1202,17 @@ const TripHistoryPage: React.FC = () => {
                         key: 'arizalar',
                         label: 'Arizalar',
                         children: selectedTrip.expenses.arizalar && selectedTrip.expenses.arizalar.length > 0 ? (
-                <List
+                          <List
                             dataSource={selectedTrip.expenses.arizalar}
-                            renderItem={(item) => (
-                              <List.Item>
-                      <List.Item.Meta
+                            renderItem={(item, i) => (
+                              <List.Item key={item.id || `ariza-${i}`}>
+                                <List.Item.Meta
                                   title={`Haydovchi: ${item.driver_name}`}
-                        description={item.description}
-                      />
+                                  description={item.description}
+                                />
                                 <Text type="secondary">{dayjs(item.created_at).format('DD.MM.YYYY HH:mm')}</Text>
-                    </List.Item>
-                  )}
+                              </List.Item>
+                            )}
                           />
                         ) : (
                           <Alert message="Arizalar mavjud emas" type="info" />
@@ -1114,8 +1224,8 @@ const TripHistoryPage: React.FC = () => {
                         children: selectedTrip.expenses.referenslar && selectedTrip.expenses.referenslar.length > 0 ? (
                           <List
                             dataSource={selectedTrip.expenses.referenslar}
-                            renderItem={(item) => (
-                              <List.Item>
+                            renderItem={(item, i) => (
+                              <List.Item key={item.id || `referens-${i}`}>
                                 <List.Item.Meta
                                   title={`Haydovchi: ${item.driver_name}`}
                                   description={item.description}
@@ -1159,7 +1269,7 @@ const TripHistoryPage: React.FC = () => {
                   title={
                     <Space>
                       <UserOutlined />
-                      <span>{client.company || `${client.first_name} ${client.last_name || ''}`}</span>
+                      <span style={{ color: '#1890ff', fontWeight: 600 }}>{getCompanyName(client)}</span>
                     </Space>
                   }
                   extra={<Text type="secondary">{client.number}</Text>}
@@ -1168,6 +1278,7 @@ const TripHistoryPage: React.FC = () => {
                   {client.products && client.products.length > 0 ? (
                     <Table
                       dataSource={client.products}
+                      rowKey={(record, i) => record.id || `prod-${i}`}
                       columns={[
                         {
                           title: 'Mahsulot',
@@ -1184,16 +1295,6 @@ const TripHistoryPage: React.FC = () => {
                           ),
                         },
                         {
-                          title: 'Narxi (so\'m)',
-                          dataIndex: 'price_in_usd',
-                          key: 'price_in_usd',
-                          render: (price: string) => (
-                            <Text strong style={{ color: '#1890ff' }}>
-                              {parseFloat(price).toLocaleString()} so'm
-                            </Text>
-                          ),
-                        },
-                        {
                           title: 'Soni',
                           dataIndex: 'count',
                           key: 'count',
@@ -1202,17 +1303,20 @@ const TripHistoryPage: React.FC = () => {
                       summary={(pageData) => {
                         return (
                           <Table.Summary.Row>
-                            <Table.Summary.Cell index={0} colSpan={4}>
+                            <Table.Summary.Cell index={0} colSpan={1}>
                               <Text strong>Jami:</Text>
                             </Table.Summary.Cell>
-                            <Table.Summary.Cell index={1}>
-                              <Text strong style={{ color: '#52c41a' }}>{selectedTrip.price?.toLocaleString()} so'm</Text>
+                            <Table.Summary.Cell index={1} colSpan={2}>
+                              <div style={{ textAlign: 'right' }}>
+                                <Text strong style={{ color: '#52c41a', whiteSpace: 'nowrap' }}>
+                                  {selectedTrip.price?.toLocaleString()} so'm
+                                </Text>
+                              </div>
                             </Table.Summary.Cell>
                           </Table.Summary.Row>
                         );
                       }}
-                      style={{ border: '1px solid #f0f0f0', borderRadius: '8px', overflow: 'hidden' }}
-                      scroll={{ x: 600 }}
+                      style={{ border: '1px solid #f0f0f0', borderRadius: '8px', overflow: 'hidden', width: '100%' }}
                     />
                   ) : (
                     <Alert message="Mahsulotlar mavjud emas" type="info" />
@@ -1234,7 +1338,7 @@ const TripHistoryPage: React.FC = () => {
         placement="right"
         onClose={() => setDetailsVisible(false)}
         open={detailsVisible}
-        bodyStyle={{ ...styles.drawerContent, overflowX: 'hidden' }}
+        styles={{ body: { ...styles.drawerContent, overflowX: 'hidden' } }}
         extra={
           canReturnTrip(selectedTrip) ? (
             <Button

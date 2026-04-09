@@ -8,6 +8,7 @@ export interface ServiceTotals {
   balon: number;
   chiqimlik: number;
   optol: number;
+  fuel?: number;
   total: number;
 }
 

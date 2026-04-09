@@ -19,6 +19,63 @@
   margin-bottom: 24px;
 }
 
+.five-col-grid, .seven-col-grid {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  margin-left: -8px !important;
+  margin-right: -8px !important;
+}
+
+.five-col-item, .seven-col-item {
+  padding: 8px !important;
+  flex: 0 0 100%;
+}
+
+@media (min-width: 576px) {
+  .five-col-item, .seven-col-item {
+    flex: 0 0 50%;
+  }
+}
+
+@media (min-width: 992px) {
+  .five-col-item {
+    flex: 0 0 20%;
+  }
+  .seven-col-item {
+    flex: 0 0 14.2857%;
+  }
+}
+
+.cash-transfer-box {
+  background: linear-gradient(135deg, #e6f7ff, #ffffff);
+  border-left: 4px solid #1890ff;
+}
+
+.cash-transfer-box .stat-icon {
+  background-color: rgba(24, 144, 255, 0.1);
+  color: #1890ff;
+}
+
+.bank-transfer-box {
+  background: linear-gradient(135deg, #f0f5ff, #ffffff);
+  border-left: 4px solid #2f54eb;
+}
+
+.bank-transfer-box .stat-icon {
+  background-color: rgba(47, 84, 235, 0.1);
+  color: #2f54eb;
+}
+
+.salaries-box {
+  background: linear-gradient(135deg, #f9f0ff, #ffffff);
+  border-left: 4px solid #722ed1;
+}
+
+.salaries-box .stat-icon {
+  background-color: rgba(114, 46, 209, 0.1);
+  color: #722ed1;
+}
+
 .stat-box {
   display: flex;
   align-items: center;

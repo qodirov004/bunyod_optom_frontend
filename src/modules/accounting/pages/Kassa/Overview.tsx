@@ -5,7 +5,8 @@ import {
   DollarOutlined, 
   WalletOutlined,
   ArrowDownOutlined,
-  ArrowUpOutlined
+  ArrowUpOutlined,
+  BankOutlined
 } from '@ant-design/icons';
 import { cashApi } from '../../api/cash/cashApi';
 import { CashOverview as ICashOverview } from '../../types/cash.types';
@@ -21,6 +22,8 @@ interface OverviewProps {
     finalBalance?: number;
     serviceExpenses?: number;
     salariesExpenses?: number;
+    cashPayments?: number;
+    bankPayments?: number;
   };
 }
 
@@ -77,6 +80,9 @@ const Overview: React.FC<OverviewProps> = ({ fallbackData }) => {
   const dpPayments = overview?.expenses?.dp_price_uzs || (overview?.expenses?.dp_price_usd || 0) * 12800 || fallbackData?.serviceExpenses || 0;
   const salariesExp = overview?.expenses?.salaries_uzs || (overview?.expenses?.salaries_usd || 0) * 12800 || fallbackData?.salariesExpenses || 0;
   
+  const cashPayments = fallbackData?.cashPayments || 0;
+  const bankPayments = fallbackData?.bankPayments || 0;
+
   // Total expenses in UZS
   const totalExpenses = overview?.expenses?.total_expenses_uzs || 
                         (overview?.expenses?.total_expenses_usd ? overview.expenses.total_expenses_usd * 12800 : 0) || 
@@ -105,8 +111,8 @@ const Overview: React.FC<OverviewProps> = ({ fallbackData }) => {
         </Button>
       </div>
 
-      <Row gutter={[16, 16]} className="stats-row five-col-grid">
-        <Col xs={24} sm={12} md={8} lg={4} className="five-col-item">
+      <Row gutter={[20, 20]} className="stats-row">
+        <Col xs={24} sm={12} md={8} lg={6}>
           <div className="stat-box income-box" style={{ height: '100%' }}>
             <div className="stat-icon">
               <DollarOutlined />
@@ -120,8 +126,32 @@ const Overview: React.FC<OverviewProps> = ({ fallbackData }) => {
             </div>
           </div>
         </Col>
+
+        <Col xs={24} sm={12} md={8} lg={6}>
+          <div className="stat-box cash-transfer-box">
+            <div className="stat-icon">
+              <DollarOutlined />
+            </div>
+            <div className="stat-content">
+              <div className="stat-title">Naqt pul o'tkazmasi</div>
+              <div className="stat-value">{formatCurrency(cashPayments)}</div>
+            </div>
+          </div>
+        </Col>
+
+        <Col xs={24} sm={12} md={8} lg={6}>
+          <div className="stat-box bank-transfer-box">
+            <div className="stat-icon">
+              <BankOutlined />
+            </div>
+            <div className="stat-content">
+              <div className="stat-title">Bank o'tkazmasi</div>
+              <div className="stat-value">{formatCurrency(bankPayments)}</div>
+            </div>
+          </div>
+        </Col>
         
-        <Col xs={24} sm={12} md={8} lg={4} className="five-col-item">
+        <Col xs={24} sm={12} md={8} lg={6}>
           <div className="stat-box expense-box" style={{ height: '100%' }}>
             <div className="stat-icon">
               <ArrowDownOutlined />
@@ -136,7 +166,7 @@ const Overview: React.FC<OverviewProps> = ({ fallbackData }) => {
           </div>
         </Col>
 
-        <Col xs={24} sm={12} md={8} lg={4} className="five-col-item">
+        <Col xs={24} sm={12} md={8} lg={6}>
           <div className="stat-box service-box" style={{ height: '100%' }}>
             <div className="stat-icon">
               <WalletOutlined />
@@ -151,38 +181,19 @@ const Overview: React.FC<OverviewProps> = ({ fallbackData }) => {
           </div>
         </Col>
 
-        <Col xs={24} sm={12} md={8} lg={4} className="five-col-item">
-          <div className="stat-box salaries-box" style={{ 
-            height: '100%', 
-            borderLeft: '4px solid #722ed1', 
-            background: 'linear-gradient(135deg, #f9f0ff, #ffffff)', 
-            padding: '20px', 
-            borderRadius: '12px', 
-            display: 'flex', 
-            alignItems: 'center' 
-          }}>
-            <div className="stat-icon" style={{ 
-              background: 'rgba(114, 46, 209, 0.1)', 
-              color: '#722ed1', 
-              width: '48px', 
-              height: '48px', 
-              borderRadius: '50%', 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center', 
-              fontSize: '20px', 
-              marginRight: '16px' 
-            }}>
+        <Col xs={24} sm={12} md={12} lg={6}>
+          <div className="stat-box salaries-box">
+            <div className="stat-icon">
               <WalletOutlined />
             </div>
             <div className="stat-content">
-              <div className="stat-title" style={{ color: 'rgba(0,0,0,0.45)', fontSize: '14px' }}>Ish haqi (Maosh)</div>
-              <div className="stat-value" style={{ fontSize: '18px', fontWeight: 'bold', color: '#722ed1' }}>{formatCurrency(salariesExp)}</div>
+              <div className="stat-title">Ish haqi (Maosh)</div>
+              <div className="stat-value">{formatCurrency(salariesExp)}</div>
             </div>
           </div>
         </Col>
         
-        <Col xs={24} sm={12} md={8} lg={4} className="five-col-item">
+        <Col xs={24} sm={12} md={12} lg={6}>
           <div className={`stat-box ${finalBalance >= 0 ? 'balance-positive-box' : 'balance-negative-box'}`} style={{ height: '100%' }}>
             <div className="stat-icon">
               {finalBalance >= 0 ? <ArrowUpOutlined /> : <ArrowDownOutlined />}
@@ -211,6 +222,30 @@ const Overview: React.FC<OverviewProps> = ({ fallbackData }) => {
                 <span className="analysis-value">{formatCurrency(totalInUZS)}</span>
               </div>
               <Progress percent={100} strokeColor="#52c41a" showInfo={false} />
+            </div>
+
+            <div className="analysis-item">
+              <div className="analysis-header">
+                <span>Naqt pul o&apos;tkazmalari</span>
+                <span className="analysis-value">{formatCurrency(cashPayments)}</span>
+              </div>
+              <Progress 
+                percent={Math.round((cashPayments / (totalInUZS + 0.01)) * 100)} 
+                strokeColor="#1890ff" 
+                showInfo={false} 
+              />
+            </div>
+
+            <div className="analysis-item">
+              <div className="analysis-header">
+                <span>Bank o&apos;tkazmalari</span>
+                <span className="analysis-value">{formatCurrency(bankPayments)}</span>
+              </div>
+              <Progress 
+                percent={Math.round((bankPayments / (totalInUZS + 0.01)) * 100)} 
+                strokeColor="#2f54eb" 
+                showInfo={false} 
+              />
             </div>
             
             <div className="analysis-item">

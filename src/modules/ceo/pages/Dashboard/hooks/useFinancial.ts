@@ -6,6 +6,8 @@ export interface FinancialOverview {
   cashbox: {
     UZS: number;
     total_in_uzs: number;
+    cash_payments_uzs: number;
+    bank_payments_uzs: number;
   };
   expenses: {
     dp_price_uzs: number;
@@ -59,6 +61,41 @@ export const useFinancialData = (dateRange: DateRange) => {
     staleTime: 5 * 60 * 1000,
   });
 
+  // Fetch all cash entries (active and history) for Naqt/Bank breakdown
+  const { data: cashEntries = [], isLoading: isLoadingCashEntries } = useQuery({
+    queryKey: ['ceo-financial-cash-entries-combined', dateRange],
+    queryFn: async () => {
+      try {
+        const params = new URLSearchParams();
+        if (dateRange.startDate) {
+          params.append('date_from', new Date(dateRange.startDate).toISOString().split('T')[0]);
+        }
+        if (dateRange.endDate) {
+          params.append('date_to', new Date(dateRange.endDate).toISOString().split('T')[0]);
+        }
+        
+        // Fetch from both active and history endpoints
+        const [activeRes, historyRes] = await Promise.all([
+          axiosInstance.get(`/casa/?${params.toString()}`),
+          axiosInstance.get(`/casahistory/?${params.toString()}`)
+        ]);
+        
+        const activeData = activeRes.data;
+        const historyData = historyRes.data;
+        
+        const activeList = Array.isArray(activeData) ? activeData : (activeData.results || []);
+        const historyList = Array.isArray(historyData) ? historyData : (historyData.results || []);
+        
+        // Combine both into one list for calculation
+        return [...activeList, ...historyList];
+      } catch (error) {
+        console.error('Error fetching cash entries:', error);
+        return [];
+      }
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
   // Fetch cash overview
   const { data: cashOverview, isLoading: isLoadingCash } = useQuery({
     queryKey: ['ceo-financial-cash', dateRange],
@@ -80,7 +117,7 @@ export const useFinancialData = (dateRange: DateRange) => {
     staleTime: 5 * 60 * 1000,
   });
 
-  const isLoading = isLoadingActive || isLoadingHistory || isLoadingSalaries || isLoadingOutgoings || isLoadingCash;
+  const isLoading = isLoadingActive || isLoadingHistory || isLoadingSalaries || isLoadingOutgoings || isLoadingCash || isLoadingCashEntries;
 
   // Combine all trips
   const allTrips = [...activeTrips, ...historyTrips];
@@ -126,12 +163,37 @@ export const useFinancialData = (dateRange: DateRange) => {
     };
   });
 
+  // Calculate Cash vs Bank transfer totals from all entries (confirmed and pending)
+  const cashPayments = Array.isArray(cashEntries) 
+    ? cashEntries
+        .filter((entry: any) => 
+          entry.payment_way === 1 || 
+          entry.payment_way === '1' ||
+          (entry.payment_way_name && entry.payment_way_name.toLowerCase().includes('naqd')) ||
+          (entry.payment_name && entry.payment_name.toLowerCase().includes('naqd'))
+        )
+        .reduce((sum: number, entry: any) => sum + (Number(entry.amount) * (Number(entry.custom_rate_to_uzs) || 1)), 0)
+    : 0;
+
+  const bankPayments = Array.isArray(cashEntries)
+    ? cashEntries
+        .filter((entry: any) => 
+          entry.payment_way === 2 || 
+          entry.payment_way === '2' ||
+          (entry.payment_way_name && (entry.payment_way_name.toLowerCase().includes('bank') || entry.payment_way_name.toLowerCase().includes('o\'tkazma'))) ||
+          (entry.payment_name && (entry.payment_name.toLowerCase().includes('bank') || entry.payment_name.toLowerCase().includes('o\'tkazma')))
+        )
+        .reduce((sum: number, entry: any) => sum + (Number(entry.amount) * (Number(entry.custom_rate_to_uzs) || 1)), 0)
+    : 0;
+
   // Build financial overview object
-  const cashUZS = cashOverview?.cashbox?.UZS || cashOverview?.cashbox?.total_in_uzs || 0;
+  const cashUZS = cashOverview?.cashbox?.UZS || cashOverview?.cashbox?.total_in_uzs || (cashPayments + bankPayments) || 0;
   const financialOverview = {
     cashbox: {
       UZS: cashUZS,
       total_in_uzs: cashUZS,
+      cash_payments_uzs: cashPayments,
+      bank_payments_uzs: bankPayments,
     },
     expenses: {
       dp_price_uzs: tripServiceCosts,

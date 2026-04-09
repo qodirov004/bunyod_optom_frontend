@@ -36,6 +36,7 @@ import CashTransactionModal from './CashTransactionModal';
 import dayjs from 'dayjs';
 import { formatMoney } from '@/utils/format';
 import debounce from 'lodash/debounce';
+import axiosInstance from '@/api/axiosInstance';
 
 const { Option } = Select;
 const { confirm } = Modal;
@@ -62,6 +63,7 @@ const CashTransactionList: React.FC = () => {
 
   const [transactions, setTransactions] = useState<Cash[]>([]);
   const [raysClientsMap, setRaysClientsMap] = useState<RaysClientsMap[]>([]);
+  const [clientsLookup, setClientsLookup] = useState<Record<number, string>>({});
   const [loading, setLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Cash | null>(null);
@@ -282,19 +284,27 @@ const CashTransactionList: React.FC = () => {
       key: 'rays',
       render: (rays: number) => `#${rays}`
     },
-    {
-      title: 'Mijoz',
-      dataIndex: 'client_name',
-      key: 'client_name'
-    },
+    // Removed Client column as requested
     {
       title: 'Mijoz kompaniyasi',
-      dataIndex: 'company_name',
       key: 'company_name',
       responsive: ['md'] as Breakpoint[],
-      render: (company: string) => (
-        <span style={{ fontWeight: 500 }}>{company}</span>
-      )
+      render: (_: any, record: Cash) => {
+        // 1. lookup from clientsLookup (using ID match)
+        const idLookup = clientsLookup[Number(record.client)] || clientsLookup[String(record.client) as any];
+        if (idLookup && idLookup !== '-') return <span style={{ fontWeight: 600, color: '#1890ff' }}>{idLookup}</span>;
+
+        // 2. lookup by Name (if ID lookup failed)
+        const nameLookupMap = (window as any).__clientsNameLookup || {};
+        const nameLookup = record.client_name ? nameLookupMap[record.client_name.toLowerCase()] : null;
+        if (nameLookup && nameLookup !== '-') return <span style={{ fontWeight: 600, color: '#1890ff' }}>{nameLookup}</span>;
+
+        // 3. Try fields from the record as last resort
+        const recordCompany = (record as any).company_name || (record as any).client_company || (record as any).company;
+        if (recordCompany && recordCompany !== '-') return <span style={{ fontWeight: 600, color: '#1890ff' }}>{recordCompany}</span>;
+
+        return <span style={{ color: '#bfbfbf' }}>-</span>;
+      }
     },
 
 
@@ -398,6 +408,54 @@ const CashTransactionList: React.FC = () => {
       )
     }
   ];
+
+  // Fetch all clients/debts to build a lookup for company names
+  useEffect(() => {
+    const fetchAllClientsData = async () => {
+      try {
+        // Fetch from multiple sources for better coverage
+        const [debtsRes, clientsRes] = await Promise.all([
+          axiosInstance.get('/casa/all-debts/'),
+          axiosInstance.get('/clients/?page_size=1000')
+        ]);
+
+        const debts = debtsRes.data || [];
+        const clients = clientsRes.data?.results || clientsRes.data || [];
+        
+        const idMapping: Record<number, string> = {};
+        const nameMapping: Record<string, string> = {};
+        
+        // 1. Process debts (usually more accurate for finance)
+        if (Array.isArray(debts)) {
+          debts.forEach((d: any) => {
+            if (d.client_id && d.client_company) {
+              idMapping[d.client_id] = d.client_company;
+              if (d.fullname) nameMapping[d.fullname.toLowerCase()] = d.client_company;
+            }
+          });
+        }
+
+        // 2. Process all clients list
+        if (Array.isArray(clients)) {
+          clients.forEach((c: any) => {
+            if (c.id && c.company) {
+              idMapping[c.id] = c.company;
+              const fullName = `${c.first_name || ''} ${c.last_name || ''}`.trim();
+              if (fullName) nameMapping[fullName.toLowerCase()] = c.company;
+              if (c.first_name) nameMapping[c.first_name.toLowerCase()] = c.company;
+            }
+          });
+        }
+        
+        setClientsLookup(idMapping);
+        (window as any).__clientsNameLookup = nameMapping; // Temporary store for access in render
+      } catch (error) {
+        console.error('Error fetching clients for lookup:', error);
+      }
+    };
+
+    fetchAllClientsData();
+  }, []);
 
   const handleSearch = (value: string) => {
     setFilters(prev => ({ ...prev, search: value }));
@@ -559,9 +617,11 @@ const CashTransactionList: React.FC = () => {
     },
     {
       title: 'Reys tarixi',
-      dataIndex: 'rays',
       key: 'rays',
-      render: (rays: number) => rays ? `#${rays}` : '-'
+      render: (_: any, record: CashHistory) => {
+        const raysVal = record.rays_history || record.rays;
+        return raysVal ? `#${raysVal}` : '-';
+      }
     },
     {
       title: 'Summa',
@@ -573,18 +633,26 @@ const CashTransactionList: React.FC = () => {
         </span>
       )
     },
-    {
-      title: 'Client',
-      dataIndex: 'client_name',
-      key: 'client_name'
-    },
+    // Removed Client column as requested
     {
       title: 'Mijoz kompaniyasi',
-      dataIndex: 'client_company',
       key: 'client_company',
-      render: (company: string) => (
-        <span style={{ fontWeight: 500 }}>{company}</span>
-      )
+      render: (_: any, record: CashHistory) => {
+        // 1. lookup from clientsLookup (using ID match)
+        const idLookup = clientsLookup[Number(record.client)] || clientsLookup[String(record.client) as any];
+        if (idLookup && idLookup !== '-') return <span style={{ fontWeight: 600, color: '#1890ff' }}>{idLookup}</span>;
+
+        // 2. lookup by Name (if ID lookup failed)
+        const nameLookupMap = (window as any).__clientsNameLookup || {};
+        const nameLookup = record.client_name ? nameLookupMap[record.client_name.toLowerCase()] : null;
+        if (nameLookup && nameLookup !== '-') return <span style={{ fontWeight: 600, color: '#1890ff' }}>{nameLookup}</span>;
+
+        // 3. Try fields from the record as last resort
+        const recordCompany = (record as any).client_company || (record as any).company_name || (record as any).company;
+        if (recordCompany && recordCompany !== '-') return <span style={{ fontWeight: 600, color: '#1890ff' }}>{recordCompany}</span>;
+
+        return <span style={{ color: '#bfbfbf' }}>-</span>;
+      }
     },
 
     {

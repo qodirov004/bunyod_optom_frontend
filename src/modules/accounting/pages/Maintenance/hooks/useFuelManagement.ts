@@ -8,8 +8,16 @@ import {
 } from '../api/fuelService';
 import { message } from 'antd';
 
-export const useFuelManagement = () => {
+export const useFuelManagement = (dateRange?: { startDate: any; endDate: any } | null) => {
   const queryClient = useQueryClient();
+
+  // Format dates for API
+  const formattedRange = dateRange && dateRange.startDate && dateRange.endDate 
+    ? { 
+        startDate: dateRange.startDate.format('YYYY-MM-DD'), 
+        endDate: dateRange.endDate.format('YYYY-MM-DD') 
+      } 
+    : undefined;
 
   // Fetch all fuel expenses
   const {
@@ -17,8 +25,8 @@ export const useFuelManagement = () => {
     isLoading,
     isError,
   } = useQuery({
-    queryKey: ['fuelServices'],
-    queryFn: getFuelServices,
+    queryKey: ['fuelServices', formattedRange],
+    queryFn: () => getFuelServices(formattedRange),
   });
 
   // Create a new fuel expense
