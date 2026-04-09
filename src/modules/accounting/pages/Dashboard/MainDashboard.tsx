@@ -24,9 +24,6 @@ const MainDashboard = () => {
                         <div className="dashboard-section">
                             <VehicleStatusSection />
                         </div>
-                        <div className="dashboard-section">
-                            <TopDriversSection />
-                        </div>
                     </div>
 
                     {/* O'ng panel */}
@@ -35,6 +32,11 @@ const MainDashboard = () => {
                             <RecentTripsSection />
                         </div>
                     </div>
+                </div>
+
+                {/* Pastki qism, to'liq kenglikda */}
+                <div className="dashboard-section" style={{ marginTop: '24px' }}>
+                    <TopDriversSection />
                 </div>
             </Content>
         </Layout>

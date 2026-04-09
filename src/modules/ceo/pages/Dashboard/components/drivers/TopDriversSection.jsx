@@ -31,7 +31,10 @@ const TopDriversSection = ({ topDriversData, isLoading, viewAll }) => {
                 {isLoading ? (
                   <div className="loading-container">Yuklanmoqda...</div>
                 ) : (
-                  topDriversData.slice(0, 5).map((driver, index) => (
+                  [...(topDriversData || [])]
+                    .sort((a, b) => (Number(b.rays_count) || 0) - (Number(a.rays_count) || 0))
+                    .slice(0, 5)
+                    .map((driver, index) => (
                     <Col xs={24} sm={12} md={8} lg={6} key={driver.id}>
                       <div 
                         className="driver-card" 

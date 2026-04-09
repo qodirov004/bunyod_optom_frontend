@@ -18,6 +18,11 @@
   left: var(--sidebar-collapsed-width);
 }
 
+.sidebar-expanded .navbar {
+  width: calc(100% - var(--sidebar-expanded-width)) !important;
+  left: var(--sidebar-expanded-width) !important;
+}
+
 /* Glassmorphism background for all themes */
 .navbar,
 .navbar.light,

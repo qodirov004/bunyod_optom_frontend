@@ -136,7 +136,9 @@ const TopDriversSection = () => {
 
         return (
             <Table
-                dataSource={processedDrivers.slice(0, 5) as DriverData[]} // Top 5 drivers only
+                dataSource={[...processedDrivers]
+                    .sort((a, b) => (b.rays_count || 0) - (a.rays_count || 0))
+                    .slice(0, 5) as DriverData[]} // Top 5 drivers only
                 columns={columns}
                 pagination={false}
                 rowKey="id"

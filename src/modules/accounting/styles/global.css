@@ -56,7 +56,7 @@ body {
 }
 
 .sidebar-expanded .content-area {
-  margin-left: var(--sidebar-collapsed-width); /* Expanded sidebar width overlaid on desktop too, so page doesn't shift */
+  margin-left: var(--sidebar-expanded-width); /* Push content on desktop so it doesn't get covered by sidebar */
 }
 
 @media (max-width: 991px) {
