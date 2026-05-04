@@ -20,6 +20,7 @@ export interface RaysCreate {
   price?: number;
   dr_price?: number;
   dp_price?: number;
+  driver_expense?: number;
   dp_currency?: 'USD' | 'UZS' | 'RUB' | 'EUR' | 'KZT';
   dp_information?: string;
   kilometer?: number;
@@ -31,7 +32,7 @@ export interface RaysCreate {
 export interface ProductCreate {
   name: string;
   price: number;
-  currency: number;
+  currency?: number;
   count: number;
   description?: string;
   is_busy?: boolean;

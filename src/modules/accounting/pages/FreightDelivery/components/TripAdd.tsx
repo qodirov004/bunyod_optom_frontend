@@ -106,6 +106,7 @@ interface TripFormValues {
   price?: number;
   dr_price?: number;
   dp_price: number;
+  driver_expense?: number;
   from1?: string;
   to_go?: string;
   kilometer: number;
@@ -594,7 +595,6 @@ const TripAdd: React.FC<TripAddProps> = ({ onSuccess }) => {
               from_location: Number(product.from_location),
               to_location: Number(product.to_location),
               client: selectedClient.client.id,
-              currency: 4, // UZS
               is_total_price: true
             };
 
@@ -646,7 +646,7 @@ const TripAdd: React.FC<TripAddProps> = ({ onSuccess }) => {
       // In some contexts, the backend expects the driver_id (profile ID) instead of the user ID
       const driverId = (selectedDriverObj as any)?.driver_id || (selectedDriverObj as any)?.driver?.id || Number(values.driver);
 
-      const payload = {
+      const payload: any = {
         driver: driverId,
         car: Number(values.car),
         fourgon: Number(values.fourgon),
@@ -654,17 +654,19 @@ const TripAdd: React.FC<TripAddProps> = ({ onSuccess }) => {
         price: totalPrice,
         dr_price: values.dr_price ? Number(values.dr_price) : 0,
         dp_price: Number(values.dp_price),
-        dp_currency: 4, // UZS
-        currency: 4, // UZS
+        driver_expense: values.driver_expense ? Number(values.driver_expense) : 0,
         from1: fromLocName,
         to_go: toLocName,
         kilometer: Number(values.kilometer),
         dp_information: values.dp_information || '',
         count: values.count || 0,
-        country: values.country || 0,
         is_completed: false,
         client_completed: completedClientIds || []
       };
+
+      if (values.country) {
+        payload.country = values.country;
+      }
 
       // Log the exact payload being sent
       console.log('SENDING EXACT PAYLOAD:', JSON.stringify(payload, null, 2));
@@ -1040,7 +1042,19 @@ const TripAdd: React.FC<TripAddProps> = ({ onSuccess }) => {
                     </Form.Item>
                   </Col>
 
-
+                  <Col span={12}>
+                    <Form.Item
+                      name="driver_expense"
+                      label="Haydovchining xarajatlari"
+                    >
+                      <InputNumber
+                        min={0}
+                        style={{ width: '100%' }}
+                        formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                        parser={value => (value ? value.replace(/\$\s?|(,*)/g, '') : '') as any}
+                      />
+                    </Form.Item>
+                  </Col>
                 </Row>
 
                 <Row gutter={[16, 16]}>
