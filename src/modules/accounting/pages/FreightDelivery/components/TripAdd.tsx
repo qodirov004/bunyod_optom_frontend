@@ -618,9 +618,11 @@ const TripAdd: React.FC<TripAddProps> = ({ onSuccess }) => {
 
       console.log('All products created successfully');
 
-      // NOW create the trip/rays
       // Format client as array of client IDs, which is what RaysCreate expects
       const clientIds = selectedClients.map(client => client.client.id);
+
+      // Extract all created product IDs
+      const createdProductIds = Array.from(createdProductMap.values());
 
       // Ensure dp_currency is a plain string, not a type
       // Create the payload with explicit types
@@ -651,6 +653,7 @@ const TripAdd: React.FC<TripAddProps> = ({ onSuccess }) => {
         car: Number(values.car),
         fourgon: Number(values.fourgon),
         client: clientIds, 
+        product_ids: createdProductIds, // <--- Send explicitly created products
         price: totalPrice,
         dr_price: values.dr_price ? Number(values.dr_price) : 0,
         dp_price: Number(values.dp_price),

@@ -7,6 +7,7 @@ export interface TripOverviewData {
   rays_kilometr: number;
   rays_price: number;
   rays_total_price: number;
+  rays_driver_expense: number;
 }
 
 // Function to fetch trip overview data
@@ -21,7 +22,8 @@ const fetchTripOverview = async (): Promise<TripOverviewData> => {
       rays_count: 0,
       rays_kilometr: 0,
       rays_price: 0,
-      rays_total_price: 0
+      rays_total_price: 0,
+      rays_driver_expense: 0
     };
   }
 };

@@ -164,6 +164,16 @@
   color: #1890ff;
 }
 
+.driver-expense-box {
+  background: linear-gradient(135deg, #fffbe6, #ffffff);
+  border-left: 4px solid #faad14;
+}
+
+.driver-expense-box .stat-icon {
+  background-color: rgba(250, 173, 20, 0.1);
+  color: #faad14;
+}
+
 /* Section container */
 .section-container {
   margin-bottom: 24px;

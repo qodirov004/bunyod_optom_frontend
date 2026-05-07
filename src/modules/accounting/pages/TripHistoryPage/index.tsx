@@ -249,7 +249,7 @@ interface Driver {
 interface Car {
   id: number;
   name: string;
-  number: string;
+  car_number: string;
 }
 
 interface Country {
@@ -280,6 +280,7 @@ interface Trip {
   displayDrPrice?: number;
   dp_price?: number;
   displayDpPrice?: number;
+  driver_expense?: number;
   displayProfit?: number;
   dp_currency_name?: string;
   created_at: string;
@@ -469,9 +470,9 @@ const TripHistoryPage: React.FC = () => {
                                       (item.expenses?.optols?.reduce((s: number, e: any) => s + (e.price * (e.custom_rate_to_uzs ? parseFloat(e.custom_rate_to_uzs) : 1)), 0) || 0) +
                                       (item.expenses?.chiqimliks?.reduce((s: number, e: any) => s + (e.price * (e.custom_rate_to_uzs ? parseFloat(e.custom_rate_to_uzs) : 1)), 0) || 0);
 
-            // New Profit Formula: Income - (Driver's payment + All truck-related expenses)
+            // New Profit Formula: Income - (Driver's payment + All truck-related expenses + driver_expense)
             // We don't subtract dr_price separately if individual expenses are already being added.
-            const tripProfit = finalPrice - finalDpPrice - expensesPriceTotal;
+            const tripProfit = finalPrice - finalDpPrice - expensesPriceTotal - (item.driver_expense || 0);
 
             return {
               ...item,
@@ -524,14 +525,8 @@ const TripHistoryPage: React.FC = () => {
             total: response.data.count || response.data.results.length
           });
           
-          // Override statsData with local page totals if backend stats look small or wrong
-          setStatsData(prev => ({
-            ...prev,
-            rays_count: response.data.count || mappedResults.length,
-            rays_kilometr: localTotalKm > prev.rays_kilometr ? localTotalKm : prev.rays_kilometr,
-            rays_price: localTotalSum > prev.rays_price ? localTotalSum : prev.rays_price,
-            rays_total_price: localTotalProfit < 0 && localTotalProfit > -1000000 ? localTotalProfit : (localTotalProfit || prev.rays_total_price)
-          }));
+          // Don't override backend overview stats with local page calculations
+          // Backend rayshistory-overview already returns correct totals
           
           console.log("Paginatsiya ma'lumotlari yuklandi va xaritlandi:", mappedResults.length);
         } 
@@ -548,13 +543,8 @@ const TripHistoryPage: React.FC = () => {
             ...pagination,
             total: response.data.length
           });
-
-          setStatsData({
-            rays_count: mappedResults.length,
-            rays_kilometr: localTotalKm,
-            rays_price: localTotalSum,
-            rays_total_price: localTotalProfit
-          });
+          
+          // Don't override backend overview stats with local page calculations
 
           console.log("Ma'lumotlar yuklandi va xaritlandi:", mappedResults.length);
         }
@@ -802,7 +792,7 @@ const TripHistoryPage: React.FC = () => {
         render: (_: unknown, record: Trip) => (
           <Space direction="vertical" size="small">
             <Space>
-              <CarOutlined /> {record.car ? `${record.car.name} (${record.car.number})` : '-'}
+              <CarOutlined /> {record.car ? `${record.car.name} (${record.car.car_number || record.car.number || 'n/a'})` : '-'}
             </Space>
             {record.fourgon && (
               <Space>
@@ -986,6 +976,16 @@ const TripHistoryPage: React.FC = () => {
                 <Col xs={24} sm={12}>
                   <Statistic
                     title="Haydovchi xarajatlari"
+                    value={selectedTrip.driver_expense || 0}
+                    suffix="so'm"
+                    valueStyle={{ color: '#ff4d4f' }}
+                    precision={0}
+                    formatter={value => value.toLocaleString()}
+                  />
+                </Col>
+                <Col xs={24} sm={12}>
+                  <Statistic
+                    title="Qo'shimcha xarajat"
                     value={selectedTrip.dr_price || 0}
                     suffix="so'm"
                     valueStyle={{ color: '#fa8c16' }}
@@ -1245,10 +1245,10 @@ const TripHistoryPage: React.FC = () => {
                 <Card style={styles.detailsCard}>
                   <Statistic
                     title="Jami xarajatlar"
-                    value={selectedTrip.expenses.total_usd || 0}
+                    value={selectedTrip.expenses.total_uzs || selectedTrip.expenses.total_usd || 0}
                     suffix="so'm"
                     valueStyle={{ color: '#fa8c16' }}
-                    precision={2}
+                    precision={0}
                     formatter={value => value.toLocaleString()}
                   />
                 </Card>

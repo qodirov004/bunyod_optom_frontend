@@ -96,6 +96,16 @@ const TripStatsSummary: React.FC<TripStatsProps> = ({
       <Col xs={24} sm={12} md={8}>
         <Card>
           <Statistic
+            title="Haydovchi xarajatlari"
+            value={formatCurrency(overview?.rays_driver_expense || 0)}
+            prefix={<DollarOutlined />}
+            valueStyle={{ color: '#ff4d4f' }}
+          />
+        </Card>
+      </Col>
+      <Col xs={24} sm={12} md={8}>
+        <Card>
+          <Statistic
             title="Umumiy masofa"
             value={overview?.rays_kilometr || 0}
             suffix="km"

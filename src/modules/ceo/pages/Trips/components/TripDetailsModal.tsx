@@ -63,6 +63,7 @@ interface TripModalData {
   price?: number;
   dr_price?: number;
   dp_price?: number;
+  driver_expense?: number;
   dp_currency_name?: string;
   created_at: string;
   dp_information?: string;
@@ -212,6 +213,9 @@ const TripDetailsModal: React.FC<TripDetailsModalProps> = ({
               </Descriptions.Item>
               <Descriptions.Item label="Haydovchi to'lovi">
                 <Text>{trip.dp_price?.toLocaleString() || 0} {trip.dp_currency_name || "so'm"}</Text>
+              </Descriptions.Item>
+              <Descriptions.Item label="Haydovchi xarajatlari">
+                <Text style={{ color: '#ff4d4f' }}>{trip.driver_expense?.toLocaleString() || 0} so'm</Text>
               </Descriptions.Item>
               <Descriptions.Item label="Qo'shimcha xarajat">
                 <Text>{trip.dr_price?.toLocaleString() || 0} so'm</Text>

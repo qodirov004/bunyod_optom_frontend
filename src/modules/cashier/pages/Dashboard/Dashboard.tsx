@@ -65,9 +65,11 @@ const CashierDashboard = () => {
     { title: 'Haydovchi', dataIndex: 'driver_name', key: 'driver_name', render: (_: any, r: any) => r.driver?.fullname || '—' },
     { title: 'Summa', dataIndex: 'amount', key: 'amount', render: (v: number) => v?.toLocaleString() },
     { title: 'Valyuta', dataIndex: 'currency', key: 'currency', render: (_: any, r: any) => r.currency?.currency || 'UZS' },
-    { title: 'Holat', dataIndex: 'status', key: 'status', render: (s: string) => (
-      <Tag color={s === 'pending' ? 'orange' : s === 'confirmed' ? 'green' : 'red'}>{s}</Tag>
-    )},
+    {
+      title: 'Holat', dataIndex: 'status', key: 'status', render: (s: string) => (
+        <Tag color={s === 'pending' ? 'orange' : s === 'confirmed' ? 'green' : 'red'}>{s}</Tag>
+      )
+    },
   ];
 
   const viaDriverColumns = [

@@ -30,6 +30,7 @@ const { Title, Text } = Typography;
 const { RangePicker } = DatePicker;
 
 interface ServiceData {
+  id: string;
   type: string;
   price: number;
   currency: string;
@@ -247,7 +248,7 @@ const SimpleServiceList: React.FC = () => {
       <Table
         dataSource={serviceData.all_expenses}
         columns={serviceColumns}
-        rowKey={(record, index) => `${record.car}-${record.created_at}-${index}`}
+        rowKey="id"
         pagination={{ pageSize: 20 }}
         locale={{ emptyText: <Empty description="Ma'lumotlar topilmadi" /> }}
         scroll={{ x: 900 }}

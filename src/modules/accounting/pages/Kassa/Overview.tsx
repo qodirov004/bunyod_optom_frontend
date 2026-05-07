@@ -71,25 +71,27 @@ const Overview: React.FC<OverviewProps> = ({ fallbackData }) => {
     );
   }
 
-  // Use UZS values directly or fallback to USD conversion or provided fallbackData
+  // Use UZS values directly or fallback to provided fallbackData
   const totalInUZS = overview?.cashbox?.total_in_uzs || 
                      overview?.cashbox?.UZS || 
-                     (overview?.cashbox?.total_in_usd ? overview.cashbox.total_in_usd * 12800 : 0) || 
                      fallbackData?.totalInUZS || 0;
   
-  const dpPayments = overview?.expenses?.dp_price_uzs || (overview?.expenses?.dp_price_usd || 0) * 12800 || fallbackData?.serviceExpenses || 0;
-  const salariesExp = overview?.expenses?.salaries_uzs || (overview?.expenses?.salaries_usd || 0) * 12800 || fallbackData?.salariesExpenses || 0;
+  const dpPayments = overview?.expenses?.dp_price_uzs || fallbackData?.serviceExpenses || 0;
+  const salariesExp = overview?.expenses?.salaries_uzs || fallbackData?.salariesExpenses || 0;
   
-  const cashPayments = fallbackData?.cashPayments || 0;
-  const bankPayments = fallbackData?.bankPayments || 0;
+  const driverExp = overview?.expenses?.driver_expenses_uzs || 0;
+  const cashPayments = overview?.cashbox?.naqd_uzs || fallbackData?.cashPayments || 0;
+  const bankPayments = overview?.cashbox?.bank_uzs || fallbackData?.bankPayments || 0;
 
   // Total expenses in UZS
   const totalExpenses = overview?.expenses?.total_expenses_uzs || 
-                        (overview?.expenses?.total_expenses_usd ? overview.expenses.total_expenses_usd * 12800 : 0) || 
                         fallbackData?.totalExpenses || 
                         (dpPayments + salariesExp);
 
-  const finalBalance = fallbackData?.finalBalance ?? (totalInUZS - totalExpenses);
+  // Final Balance in UZS
+  const finalBalance = overview?.final_balance_uzs || 
+                       (totalInUZS - totalExpenses) || 
+                       fallbackData?.finalBalance || 0;
   
   const expenseRatio = Math.min(Math.round((totalExpenses / (totalInUZS + 0.01)) * 100), 100);
 
@@ -99,7 +101,7 @@ const Overview: React.FC<OverviewProps> = ({ fallbackData }) => {
         <div>
           <Title level={3}>Kassa holati</Title>
           <Text type="secondary">
-            Kassadagi mablag`lar va xarajatlar to`g`risida umumiy ma`lumot
+            Kassadagi mablag`lar va xarajatlar (joriy oy uchun)
           </Text>
         </div>
         <Button 
@@ -115,7 +117,7 @@ const Overview: React.FC<OverviewProps> = ({ fallbackData }) => {
         <Col xs={24} sm={12} md={8} lg={6}>
           <div className="stat-box income-box" style={{ height: '100%' }}>
             <div className="stat-icon">
-              <DollarOutlined />
+              <WalletOutlined />
             </div>
             <div className="stat-content">
               <div className="stat-title">Jami mablag'</div>
@@ -130,7 +132,7 @@ const Overview: React.FC<OverviewProps> = ({ fallbackData }) => {
         <Col xs={24} sm={12} md={8} lg={6}>
           <div className="stat-box cash-transfer-box">
             <div className="stat-icon">
-              <DollarOutlined />
+              <WalletOutlined />
             </div>
             <div className="stat-content">
               <div className="stat-title">Naqt pul o'tkazmasi</div>
@@ -193,6 +195,21 @@ const Overview: React.FC<OverviewProps> = ({ fallbackData }) => {
           </div>
         </Col>
         
+        <Col xs={24} sm={12} md={12} lg={6}>
+          <div className="stat-box driver-expense-box" style={{ height: '100%' }}>
+            <div className="stat-icon">
+              <WalletOutlined />
+            </div>
+            <div className="stat-content">
+              <div className="stat-title">Haydovchi xarajatlari</div>
+              <div className="stat-value" style={{ fontSize: '18px' }}>{formatCurrency(driverExp)}</div>
+              <div className="stat-description">
+                Yo'l xarajatlari
+              </div>
+            </div>
+          </div>
+        </Col>
+
         <Col xs={24} sm={12} md={12} lg={6}>
           <div className={`stat-box ${finalBalance >= 0 ? 'balance-positive-box' : 'balance-negative-box'}`} style={{ height: '100%' }}>
             <div className="stat-icon">
@@ -276,6 +293,18 @@ const Overview: React.FC<OverviewProps> = ({ fallbackData }) => {
               <Progress 
                 percent={Math.round((salariesExp / (totalExpenses + 0.01)) * 100)} 
                 strokeColor="#722ed1" 
+                showInfo={false} 
+              />
+            </div>
+            
+            <div className="analysis-item">
+              <div className="analysis-header">
+                <span>Haydovchi xarajatlari</span>
+                <span className="analysis-value">{formatCurrency(driverExp)}</span>
+              </div>
+              <Progress 
+                percent={Math.round((driverExp / (totalExpenses + 0.01)) * 100)} 
+                strokeColor="#faad14" 
                 showInfo={false} 
               />
             </div>

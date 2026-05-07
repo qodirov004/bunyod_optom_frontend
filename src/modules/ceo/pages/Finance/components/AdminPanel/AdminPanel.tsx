@@ -191,10 +191,10 @@ const AdminPanel: React.FC = () => {
           </Button>
         </Space>
       </Row>
-      
+
       <Card>
-        <Tabs 
-          activeKey={activeTab} 
+        <Tabs
+          activeKey={activeTab}
           onChange={setActiveTab}
           items={[
             {
@@ -225,14 +225,14 @@ const AdminPanel: React.FC = () => {
               children: (
                 <Form layout="vertical" form={form}>
                   <Title level={5}>Umumiy sozlamalar</Title>
-                  
+
                   <Form.Item
                     label="Tizim nomi"
                     name="systemName"
                   >
                     <Input />
                   </Form.Item>
-                  
+
                   <Form.Item
                     label="Valyuta"
                     name="currency"
@@ -243,14 +243,14 @@ const AdminPanel: React.FC = () => {
                       <Option value="eur">EUR (€)</Option>
                     </Select>
                   </Form.Item>
-                  
+
                   <Form.Item
                     label="Soliq stavkasi (%)"
                     name="taxRate"
                   >
                     <Input type="number" min={0} max={100} />
                   </Form.Item>
-                  
+
                   <Form.Item
                     label="Hisobot davri"
                     name="reportingPeriod"
@@ -262,7 +262,7 @@ const AdminPanel: React.FC = () => {
                       <Option value="yearly">Yillik</Option>
                     </Select>
                   </Form.Item>
-                  
+
                   <Button type="primary">
                     Saqlash
                   </Button>
@@ -291,7 +291,7 @@ const AdminPanel: React.FC = () => {
                         </Space>
                       </div>
                     </div>
-                    
+
                     <div>
                       <Title level={5}>Zaxira nusxa</Title>
                       <Text type="secondary">

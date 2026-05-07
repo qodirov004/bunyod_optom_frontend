@@ -154,6 +154,7 @@ const DriverTable: React.FC<DriverTableProps> = ({
             <Avatar
               size="large"
               icon={<UserOutlined />}
+              src={formatImageUrl(record.photo)} // Added src for photo
               style={{
                 backgroundColor: '#1890ff',
               }}
@@ -169,7 +170,7 @@ const DriverTable: React.FC<DriverTableProps> = ({
             )}
           </div>
           <div>
-            <div style={{ fontWeight: 500 }}>{record.fullname}</div>
+            <div style={{ fontWeight: 500, whiteSpace: 'nowrap' }}>{record.fullname}</div>
             <div style={{ fontSize: '12px', color: '#8c8c8c' }}>
               {record.phone_number}
             </div>
@@ -188,14 +189,14 @@ const DriverTable: React.FC<DriverTableProps> = ({
           statusIcon = <CarOutlined />;
           statusText = 'Yo\'lda';
           statusColor = 'success';
-        } else if (record.status === 'driver' || record.status === 'active') {
+        } else if (record.status === 'driver' || record.status === 'active' || record.is_active) {
           statusIcon = <ClockCircleOutlined />;
           statusText = 'Kutishda';
           statusColor = 'default';
         } else {
           statusIcon = <UserOutlined />;
-          statusText = record.status;
-          statusColor = 'processing';
+          statusText = 'Nofaol';
+          statusColor = 'error';
         }
         
         return <Tag color={statusColor} icon={statusIcon}>{statusText}</Tag>;
@@ -213,6 +214,22 @@ const DriverTable: React.FC<DriverTableProps> = ({
         if (value === 'on_road') return record.is_busy === true;
         if (value === 'waiting') return record.is_busy === false;
         return record.status === value;
+      },
+    },
+    {
+      title: 'Mashina raqami',
+      key: 'car',
+      width: 150,
+      render: (_: any, record: DriverType) => {
+        if (!record.is_busy || !record.car) {
+          return <Text type="secondary">Biriktirilmagan</Text>;
+        }
+        return (
+          <div style={{ lineHeight: '1.2' }}>
+            <div style={{ fontWeight: 500, fontSize: '13px' }}>{record.car?.name || 'Nomalum model'}</div>
+            <div style={{ fontSize: '11px', color: '#1890ff', fontWeight: 600 }}>{record.car?.car_number || record.car?.number || 'Davlat raqami yo\'q'}</div>
+          </div>
+        );
       },
     },
     {
@@ -322,25 +339,28 @@ const DriverTable: React.FC<DriverTableProps> = ({
   ];
   
   return (
-    <Table
-      columns={columns}
-      dataSource={drivers}
-      rowKey="id"
-      loading={loading}
-      pagination={pagination}
-      size="middle"
-      rowSelection={rowSelection}
-      onRow={(record) => ({
-        onClick: (event: any) => {
-          // Don't trigger if clicking on an interactive element (buttons, icons)
-          if (event.target.closest('.ant-btn') || event.target.closest('.ant-dropdown-trigger')) {
-            return;
-          }
-          onRowClick(record);
-        },
-        style: { cursor: 'pointer' }
-      })}
-    />
+    <div style={{ width: '100%', overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+      <Table
+        columns={columns}
+        dataSource={drivers}
+        rowKey="id"
+        loading={loading}
+        pagination={pagination}
+        size="small"
+        scroll={{ x: 1000 }} // Enable horizontal scroll
+        rowSelection={rowSelection}
+        onRow={(record) => ({
+          onClick: (event: any) => {
+            // Don't trigger if clicking on an interactive element (buttons, icons)
+            if (event.target.closest('.ant-btn') || event.target.closest('.ant-dropdown-trigger')) {
+              return;
+            }
+            onRowClick(record);
+          },
+          style: { cursor: 'pointer' }
+        })}
+      />
+    </div>
   );
 };
 

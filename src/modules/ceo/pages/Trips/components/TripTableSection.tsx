@@ -70,7 +70,7 @@ export const TripTableSection: React.FC<TripTableSectionProps> = ({
       render: (car: any) => (
         <Space>
           <CarOutlined />
-          {car ? `${car.name} (${car.number})` : 'Noma\'lum'}
+          {car ? `${car.name} (${car.car_number || car.number || 'n/a'})` : 'Noma\'lum'}
         </Space>
       ),
     },

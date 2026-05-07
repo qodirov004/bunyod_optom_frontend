@@ -88,9 +88,12 @@ const FreightDeliveryPage: React.FC = () => {
   const [tripHistoryCount, setTripHistoryCount] = useState<number>(0)
   const [loadingHistoryCount, setLoadingHistoryCount] = useState<boolean>(false)
   const [isDriverPaymentModalVisible, setIsDriverPaymentModalVisible] = useState<boolean>(false)
+  const [isReturnAdvanceModalVisible, setIsReturnAdvanceModalVisible] = useState<boolean>(false)
   const [selectedTripId, setSelectedTripId] = useState<number | null>(null)
   const [paymentForm] = Form.useForm()
+  const [returnForm] = Form.useForm()
   const [paymentLoading, setPaymentLoading] = useState(false)
+  const [returnLoading, setReturnLoading] = useState(false)
   const [messageApi, contextHolder] = message.useMessage()
   
   // Fetch triphistory count on component mount
@@ -208,6 +211,23 @@ const FreightDeliveryPage: React.FC = () => {
       }
     }
   };
+
+  const handleReturnAdvance = (tripId: number) => {
+    setSelectedTripId(tripId);
+    setIsReturnAdvanceModalVisible(true);
+    
+    // Suggest amount if possible
+    if (tripId) {
+      const trip = activeTrips.find(t => t.id === tripId);
+      if (trip) {
+        // Here we could calculate the debt if we had the spent info
+        returnForm.setFieldsValue({
+          amount: 0,
+          comment: "Ortiqcha pul qaytarildi"
+        });
+      }
+    }
+  };
   
   const handlePaymentSubmit = async (values: any) => {
     if (!selectedTripId) {
@@ -284,8 +304,30 @@ const FreightDeliveryPage: React.FC = () => {
       setPaymentLoading(false);
     }
   };
-  
 
+  const handleReturnAdvanceSubmit = async (values: any) => {
+    if (!selectedTripId) return;
+
+    setReturnLoading(true);
+    try {
+      await axiosInstance.post(`/rays/${selectedTripId}/return-advance/`, {
+        amount: values.amount,
+        comment: values.comment
+      });
+      
+      messageApi.success('Mablag` muvaffaqiyatli qaytarildi va kassaga kirim qilindi');
+      setIsReturnAdvanceModalVisible(false);
+      returnForm.resetFields();
+      refetch();
+    } catch (error: any) {
+      console.error('Error returning advance:', error);
+      messageApi.error('Mablag`ni qaytarishda xatolik yuz berdi');
+    } finally {
+      setReturnLoading(false);
+    }
+  };
+  
+ 
   
   const TripDashboard = () => {
     if (isLoading) return <Spin size="large" className="centered-spin" />
@@ -589,6 +631,7 @@ const FreightDeliveryPage: React.FC = () => {
           loading={isLoading} 
           viewMode={viewMode}
           onDriverPayment={handleDriverPayment}
+          onReturnAdvance={handleReturnAdvance}
         />
       </div>
     )
@@ -732,6 +775,88 @@ const FreightDeliveryPage: React.FC = () => {
                     icon={<CreditCardOutlined />}
                   >
                     To`lovni amalga oshirish
+                  </Button>
+                </div>
+              </Form.Item>
+            </Form>
+          </>
+        )}
+      </Modal>
+
+      <Modal
+        title="Ortiqcha pulni qaytarish (Kassaga kirim)"
+        open={isReturnAdvanceModalVisible}
+        onCancel={() => {
+          setIsReturnAdvanceModalVisible(false);
+          setSelectedTripId(null);
+          returnForm.resetFields();
+        }}
+        footer={null}
+        width={500}
+      >
+        {selectedTripId && (
+          <>
+            {(() => {
+              const trip = activeTrips.find(t => t.id === selectedTripId);
+              return trip ? (
+                <div style={{ marginBottom: 20 }}>
+                  <Text strong>Haydovchi: </Text>
+                  <Text>{trip.driver?.fullname}</Text>
+                  <br />
+                  <Text strong>Reys: </Text>
+                  <Text>#{trip.id} ({trip.from1} → {trip.to_go})</Text>
+                  <br />
+                  <Text type="secondary">
+                    Haydovchi xarajatlaridan ortib qolgan pulni shu yerda kassaga qaytarishingiz mumkin.
+                  </Text>
+                </div>
+              ) : null;
+            })()}
+
+            <Form
+              form={returnForm}
+              layout="vertical"
+              onFinish={handleReturnAdvanceSubmit}
+            >
+              <Form.Item
+                name="amount"
+                label="Qaytariladigan summa"
+                rules={[{ required: true, message: 'Summani kiriting' }]}
+              >
+                <InputNumber
+                  style={{ width: '100%' }}
+                  formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                  parser={value => value!.replace(/\$\s?|(,*)/g, '')}
+                  prefix={<DollarOutlined />}
+                  min={0}
+                  placeholder="Qaytariladigan miqdor"
+                />
+              </Form.Item>
+
+              <Form.Item
+                name="comment"
+                label="Izoh"
+              >
+                <TextArea rows={3} placeholder="Masalan: Ortiqcha avans qaytarildi" />
+              </Form.Item>
+
+              <Form.Item style={{ marginBottom: 0 }}>
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                  <Button onClick={() => {
+                    setIsReturnAdvanceModalVisible(false);
+                    setSelectedTripId(null);
+                    returnForm.resetFields();
+                  }}>
+                    Bekor qilish
+                  </Button>
+                  <Button 
+                    type="primary" 
+                    htmlType="submit" 
+                    loading={returnLoading} 
+                    icon={<ReloadOutlined />}
+                    style={{ backgroundColor: '#faad14', borderColor: '#faad14' }}
+                  >
+                    Kassaga qaytarish
                   </Button>
                 </div>
               </Form.Item>

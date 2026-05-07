@@ -40,9 +40,14 @@ interface Client {
   company: string;
   id: number;
   first_name: string;
+  company: string;
   total_expected_amount_usd?: number;
+  total_expected_amount_uzs?: number;
   casa_paid?: number;
+  casa_paid_uzs?: number;
   total_remaining_usd?: number;
+  total_remaining_uzs?: number;
+  products?: { id: number; name: string; price_usd: number }[];
 }
 
 interface RaysClientsMap {
@@ -110,6 +115,25 @@ const RaysTulovlar: React.FC = () => {
   const [drivers, setDrivers] = useState<Driver[]>([]);
   const [paymentCategories, setPaymentCategories] = useState<PaymentCategory[]>([]);
   const [paymentCategoriesLoading, setPaymentCategoriesLoading] = useState<boolean>(false);
+  const [uzsId, setUzsId] = useState<number>(2); // Default to 2
+
+  // Fetch currencies to find UZS ID
+  useEffect(() => {
+    const fetchCurrencies = async () => {
+      try {
+        const response = await axiosInstance.get('/currency/');
+        const data = response.data.results || response.data || [];
+        const currencies = Array.isArray(data) ? data : [];
+        const uzs = currencies.find((c: any) => c.currency === 'UZS');
+        if (uzs) {
+          setUzsId(uzs.id);
+        }
+      } catch (error) {
+        console.error('Error fetching currencies:', error);
+      }
+    };
+    fetchCurrencies();
+  }, []);
 
   useEffect(() => {
     setIsClient(true);
@@ -201,7 +225,7 @@ const RaysTulovlar: React.FC = () => {
       rays: selectedRays,
       amount: values.amount,
       amount_in_usd: values.amount.toString(),
-      currency: 4, // UZS
+      currency: uzsId, // Dynamic UZS ID
       payment_way: values.payment_way,
       comment: values.comment || '',
       is_debt: values.is_debt || false,
@@ -278,32 +302,52 @@ const RaysTulovlar: React.FC = () => {
                 <Col xs={24} sm={12} md={8} lg={6} key={`client-col-${client.id}`}>
                   <Card
                     title={
-                      <Space>
-                        <UserOutlined />
-                        {client.company}
+                      <Space direction="vertical" size={0}>
+                        <div style={{ fontWeight: 600 }}>{client.company}</div>
+                        <div style={{ fontSize: '12px', color: '#8c8c8c' }}>{client.first_name}</div>
                       </Space>
                     }
                     className="client-payment-card"
                   >
                     <p>
                       <strong>Kelishilgan summa:</strong>{' '}
-                      <span style={{ color: '#1890ff' }}>
-                        {expectedAmount ? formatCurrency(expectedAmount) : 'Belgilanmagan'}
+                      <span style={{ color: '#1890ff', fontWeight: 'bold' }}>
+                        {client.total_expected_amount_uzs !== undefined 
+                          ? formatCurrency(client.total_expected_amount_uzs, 'UZS') 
+                          : 'Belgilanmagan'}
                       </span>
                     </p>
                     <p>
                       <strong>To&apos;langan:</strong>{' '}
                       <span style={{ color: '#52c41a' }}>
-                        {formatCurrency(totalPaid)}
+                        {formatCurrency(client.casa_paid_uzs, 'UZS')}
                       </span>
                     </p>
                     <p>
                       <strong>Qolgan qarz:</strong>{' '}
-                      <span style={{ color: '#f5222d' }}>
-                        {formatCurrency(remainingDebt)}
+                      <span style={{ color: '#f5222d', fontWeight: 'bold' }}>
+                        {formatCurrency(client.total_remaining_uzs, 'UZS')}
                       </span>
                     </p>
-                    <Divider />
+                    
+                    {client.products && client.products.length > 0 && (
+                      <div style={{ marginTop: '10px', padding: '8px', background: '#f5f5f5', borderRadius: '4px' }}>
+                        <div style={{ fontSize: '12px', fontWeight: 'bold', marginBottom: '4px' }}>Yuklar ro&apos;yxati:</div>
+                        {client.products.map(product => {
+                          // Calculate UZS on the fly for the product if we need to, 
+                          // but for simplicity we'll just use the total logic above if possible.
+                          // However, we can also approximate it.
+                          const productPriceUzs = product.price_usd * 12800; // Approximation or we can just hide it if not needed
+                          return (
+                            <div key={`prod-${product.id}`} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
+                              <span>• {product.name}</span>
+                              <span style={{ color: '#1890ff' }}>{formatCurrency(productPriceUzs, 'UZS')}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                    <Divider style={{ margin: '12px 0' }} />
                     <Button
                       type="primary"
                       icon={<DollarOutlined />}
@@ -462,7 +506,7 @@ const RaysTulovlar: React.FC = () => {
                   </Badge>
                   <span>Mijozlar: </span>
                   {rays.clients.map(client => (
-                    <Tag key={`client-tag-${client.id}`} icon={<UserOutlined />}>{client.company}</Tag>
+                    <Tag key={`client-tag-${client.id}`} icon={<UserOutlined />} color="cyan">{client.company}</Tag>
                   ))}
                 </Space>
               ),

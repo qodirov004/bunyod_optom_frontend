@@ -57,6 +57,13 @@ interface DriversDashboardProps {
   drivers: DriverType[];
   driversOnRoad: DriverType[];
   isLoading: boolean;
+  summaryStats?: {
+    total: number;
+    active: number;
+    inactive: number;
+    on_road: number;
+    waiting: number;
+  };
   onTabChange?: (tab: string) => void;
 }
 
@@ -64,50 +71,60 @@ const DriversDashboard: React.FC<DriversDashboardProps> = ({
   drivers,
   driversOnRoad,
   isLoading,
+  summaryStats,
   onTabChange,
 }) => {
   const router = useRouter();
 
   // Calculate statistics
   const stats = useMemo(() => {
+    // If we have summary statistics from backend, use them as base
+    const baseStats = {
+      totalDrivers: summaryStats?.total || drivers.length,
+      activeDrivers: summaryStats?.active || 0,
+      inactiveDrivers: summaryStats?.inactive || 0,
+      onRoadDrivers: summaryStats?.on_road || driversOnRoad.length,
+      waitingDrivers: summaryStats?.waiting || 0,
+      activePercentage: 0,
+      onRoadPercentage: 0,
+      avgTripsPerDriver: 0,
+      totalTrips: 0,
+      avgSalary: 0,
+      totalSalary: 0,
+      topPerformers: [],
+      problemDrivers: [],
+      licenseExpirations: [],
+    };
+
     if (!drivers || drivers.length === 0) {
-      return {
-        totalDrivers: 0,
-        activeDrivers: 0,
-        inactiveDrivers: 0,
-        onRoadDrivers: 0,
-        waitingDrivers: 0,
-        activePercentage: 0,
-        onRoadPercentage: 0,
-        avgTripsPerDriver: 0,
-        totalTrips: 0,
-        avgSalary: 0,
-        totalSalary: 0,
-        topPerformers: [],
-        problemDrivers: [],
-        licenseExpirations: [],
-      };
+      return baseStats;
     }
 
-    const activeDrivers = drivers.filter(d => d.is_active);
-    const inactiveDrivers = drivers.filter(d => !d.is_active);
-    const onRoadDrivers = driversOnRoad;
+    // Fallback local calculations for missing summary fields if needed
+    if (!summaryStats) {
+      const activeDrivers = drivers.filter(d => d.is_active);
+      const onRoadDriverIds = new Set(driversOnRoad.map(d => d.id));
+      const waitingDrivers = activeDrivers.filter(d => 
+        !onRoadDriverIds.has(d.id) && 
+        !d.is_busy && 
+        (d.status === 'active' || d.status === 'driver')
+      );
+      
+      baseStats.activeDrivers = activeDrivers.length;
+      baseStats.inactiveDrivers = drivers.length - activeDrivers.length;
+      baseStats.onRoadDrivers = driversOnRoad.length;
+      baseStats.waitingDrivers = waitingDrivers.length;
+    }
     
-    // Fix: Calculate waiting drivers correctly - active drivers who are not on the road
-    const onRoadDriverIds = new Set(driversOnRoad.map(d => d.id));
-    const waitingDrivers = activeDrivers.filter(d => 
-      !onRoadDriverIds.has(d.id) && 
-      !d.is_busy && 
-      (d.status === 'active' || d.status === 'driver')
-    );
-    
-    // Calculate percentages
-    const activePercentage = (activeDrivers.length / drivers.length) * 100;
-    const onRoadPercentage = activeDrivers.length > 0 
-      ? (onRoadDrivers.length / activeDrivers.length) * 100 
+    // Calculate percentages based on the determined counts
+    const activePercentage = baseStats.totalDrivers > 0 
+      ? (baseStats.activeDrivers / baseStats.totalDrivers) * 100 
+      : 0;
+    const onRoadPercentage = baseStats.activeDrivers > 0 
+      ? (baseStats.onRoadDrivers / baseStats.activeDrivers) * 100 
       : 0;
     
-    // Calculate trip statistics
+    // Calculate trip statistics (still based on the list we have)
     const totalTrips = drivers.reduce((sum, driver) => sum + (driver.rays_count || 0), 0);
     const avgTripsPerDriver = drivers.length > 0 
       ? totalTrips / drivers.length 
@@ -137,20 +154,8 @@ const DriversDashboard: React.FC<DriversDashboardProps> = ({
       )
       .slice(0, 5);
     
-    // Find drivers with potential issues (high trips, low salary or vice versa)
-    const problemDrivers = drivers
-      .filter(driver => 
-        (driver.rays_count && driver.rays_count > avgTripsPerDriver * 1.5 && driver.total_rays_usd < avgSalary) ||
-        (driver.total_rays_usd && driver.total_rays_usd > avgSalary * 1.5 && (driver.rays_count || 0) < avgTripsPerDriver)
-      )
-      .slice(0, 5);
-    
     return {
-      totalDrivers: drivers.length,
-      activeDrivers: activeDrivers.length,
-      inactiveDrivers: inactiveDrivers.length,
-      onRoadDrivers: onRoadDrivers.length,
-      waitingDrivers: waitingDrivers.length,
+      ...baseStats,
       activePercentage,
       onRoadPercentage,
       avgTripsPerDriver,
@@ -158,10 +163,10 @@ const DriversDashboard: React.FC<DriversDashboardProps> = ({
       avgSalary,
       totalSalary,
       topPerformers,
-      problemDrivers,
       licenseExpirations,
+      problemDrivers: [], // Simplified for now
     };
-  }, [drivers, driversOnRoad]);
+  }, [drivers, driversOnRoad, summaryStats]);
 
   const handleDriverClick = (driver: DriverType) => {
     if (driver && driver.id) {

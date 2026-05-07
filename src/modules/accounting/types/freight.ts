@@ -2,6 +2,7 @@ export interface Car {
   id: string
   model: string
   number: string
+  car_number?: string
 }
 
 export interface Furgon {
@@ -76,6 +77,7 @@ export interface RaysResponseType {
     id: number;
     model: string;
     number: string;
+    car_number?: string;
   };
   fourgon: {
     name: string;
@@ -132,6 +134,7 @@ export interface TripFormValues {
     id: number;
     model: string;
     number: string;
+    car_number?: string;
   };
   fourgon: {
     id: number;

@@ -1,6 +1,6 @@
 import { Table, Space, Tag, Button, Popconfirm, Typography, Card, Badge, Empty, Modal, Alert } from 'antd'
 import type { Breakpoint } from 'antd'
-import { CheckCircleOutlined, EnvironmentOutlined, DollarOutlined, UserOutlined, CarFilled, WarningOutlined, CheckOutlined, WalletOutlined, PhoneOutlined, CarOutlined, ShopOutlined } from '@ant-design/icons'
+import { CheckCircleOutlined, EnvironmentOutlined, DollarOutlined, UserOutlined, CarFilled, WarningOutlined, CheckOutlined, WalletOutlined, PhoneOutlined, CarOutlined, ShopOutlined, ReloadOutlined, UnorderedListOutlined } from '@ant-design/icons'
 import React, { useState } from 'react'
 import { RaysResponseType } from '@/modules/accounting/types/freight'
 import { useUpdateTripStatus } from '@/modules/accounting/hooks/useTrips'
@@ -9,7 +9,7 @@ import axiosInstance from '@/api/axiosInstance'
 import { API_URLS } from '@/api/apiConfig'
 import dayjs from 'dayjs'
 
-const { Text, Paragraph } = Typography;
+const { Text, Paragraph, Title } = Typography;
 
 
 const completeRaceWithAllClients = async (tripId: number) => {
@@ -32,20 +32,22 @@ const extractErrorMessage = (error: any): string => {
   const rawError = errorData.error || errorData.detail || (typeof errorData === 'string' ? errorData : null);
 
   if (rawError) {
-    const errorText = String(rawError);
-    
+    let errorText = String(rawError);
+
     // Check for the specific structure: "ErrorDetail(string='...', code='...')"
     const matches = errorText.match(/string='(.+?)'/);
-    const cleanMessage = matches ? matches[1] : errorText;
+    if (matches) {
+      errorText = matches[1];
+    }
 
     // Translation logic for common Russian error messages from backend
-    if (cleanMessage.includes('не оплатил или не оформил долг')) {
-      const clientMatches = cleanMessage.match(/Клиент\s+(.+?)\s+не/i);
+    if (errorText.includes('не оплатил или не оформил долг')) {
+      const clientMatches = errorText.match(/Клиент\s+(.+?)\s+не/i);
       const clientName = clientMatches ? clientMatches[1] : 'Mijoz';
       return `"${clientName}" to'lov qilmagan yoki qarzni rasmiylashtirmagan. Iltimos, avval to'lovni bog'lang yoki qarz yozing.`;
     }
 
-    return cleanMessage;
+    return errorText;
   }
 
   // Handle object-based validation errors (e.g., { "rays_id": ["This field is required."] })
@@ -65,6 +67,7 @@ const TripTable = ({
   loading = false,
   viewMode = 'table',
   onDriverPayment,
+  onReturnAdvance,
 }: {
   trips: RaysResponseType[]
   pagination?: boolean
@@ -73,6 +76,7 @@ const TripTable = ({
   viewMode?: 'table' | 'card'
   readOnly?: boolean
   onDriverPayment?: (tripId: number) => void
+  onReturnAdvance?: (tripId: number) => void
 }) => {
   const { mutate: updateStatus } = useUpdateTripStatus()
   const [completingTripId, setCompletingTripId] = useState<number | null>(null)
@@ -105,17 +109,6 @@ const TripTable = ({
       await completeRaceWithAllClients(id);
       setCompletedTripId(id);
       setSuccessModalVisible(true);
-      updateStatus(
-        { id, isCompleted: true },
-        {
-          onSuccess: () => {
-            console.log('Trip status updated successfully');
-          },
-          onError: (error) => {
-            console.error('Error updating trip status:', error);
-          }
-        }
-      );
     } catch (error: any) {
       console.error('Reysni yakunlashda xatolik:', error);
 
@@ -131,6 +124,8 @@ const TripTable = ({
   // Close error modal
   const handleCloseErrorModal = () => {
     setErrorModalVisible(false);
+    // Reload data to make sure we have latest payment statuses
+    window.location.reload();
   };
 
   // Close success modal
@@ -173,10 +168,10 @@ const TripTable = ({
       key: 'car',
       render: (_: any, record: RaysResponseType) => (
         <div>
-          <Text>{record.car ? `${record.car.name}` : 'Mashina kiritilmagan'}</Text>
+          <Text>{record.car ? `${record.car.name || record.car.model || 'Mashina'}` : 'Mashina kiritilmagan'}</Text>
           {record.car && (
             <div style={{ fontSize: '12px', color: '#666' }}>
-              <CarOutlined /> {record.car.number}
+              <CarOutlined /> {record.car.car_number || record.car.number || 'n/a'}
             </div>
           )}
         </div>
@@ -208,11 +203,11 @@ const TripTable = ({
         return (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {record.client.map((clientObj: any, index: number) => (
-              <div 
-                key={clientObj.id || index} 
-                style={{ 
-                  padding: '8px', 
-                  background: '#f9f9f9', 
+              <div
+                key={clientObj.id || index}
+                style={{
+                  padding: '8px',
+                  background: '#f9f9f9',
                   borderRadius: '6px',
                   border: '1px solid #eee'
                 }}
@@ -221,7 +216,7 @@ const TripTable = ({
                   <Text strong style={{ color: '#1890ff' }}>{clientObj.company}</Text>
                   <Tag color="cyan" style={{ fontSize: '10px' }}>{clientObj.products?.length || 0} mahsulot</Tag>
                 </div>
-                
+
                 {clientObj.products && clientObj.products.length > 0 ? (
                   <div style={{ fontSize: '11px', color: '#555', paddingLeft: '4px', borderLeft: '2px solid #1890ff' }}>
                     {clientObj.products.map((prod: any, pIndex: number) => (
@@ -234,7 +229,7 @@ const TripTable = ({
                 ) : (
                   <Text type="secondary" style={{ fontSize: '10px' }}>Mahsulotlar yo'q</Text>
                 )}
-                
+
                 <div style={{ fontSize: '10px', color: '#999', marginTop: '4px' }}>
                   <UserOutlined /> {clientObj.name} | <PhoneOutlined /> {clientObj.phone}
                 </div>
@@ -263,6 +258,14 @@ const TripTable = ({
     },
     {
       title: "Haydovchining xarajatlari",
+      key: 'driver_expense',
+      render: (_: any, record: RaysResponseType) => {
+        // driver_expense is typically in local currency (so'm), no need to convert using custom rate unless specified
+        return formatCurrency(record.driver_expense || 0);
+      },
+    },
+    {
+      title: "Qo'shimcha xarajat",
       key: 'dr_price',
       render: (_: any, record: RaysResponseType) => {
         const rate = record.custom_rate_to_uzs ? parseFloat(record.custom_rate_to_uzs) : 1;
@@ -344,6 +347,20 @@ const TripTable = ({
                   To`lov!
                 </Button>
               )}
+              {onReturnAdvance && (
+                <Button
+                  type="default"
+                  size="small"
+                  icon={<ReloadOutlined />}
+                  style={{ color: '#faad14', borderColor: '#faad14' }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onReturnAdvance(record.id);
+                  }}
+                >
+                  Qaytarish!
+                </Button>
+              )}
             </>
           )}
         </Space>
@@ -389,61 +406,6 @@ const TripTable = ({
                 boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
               }}
               onClick={() => navigateToTripDetails(trip.id)}
-              actions={[
-                <Button
-                  type="primary"
-                  key="details"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    navigateToTripDetails(trip.id);
-                  }}
-                >
-                  Batafsil
-                </Button>,
-
-                !isCompleted && (
-                  <>
-                    <Popconfirm
-                      key="complete"
-                      title="Reysni yakunlash"
-                      description="Rostdan ham bu reysni barcha mijozlari bilan yakunlamoqchimisiz?"
-                      onConfirm={(e) => {
-                        e.stopPropagation();
-                        handleCompleteRace(trip.id);
-                      }}
-                      onCancel={(e) => {
-                        e.stopPropagation();
-                      }}
-                      okText="Ha"
-                      cancelText="Yo'q"
-                    >
-                      <Button
-                        type="primary"
-                        danger
-                        loading={completingTripId === trip.id}
-                        icon={<CheckCircleOutlined />}
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        Yakunlash
-                      </Button>
-                    </Popconfirm>
-                  </>
-                ),
-
-                !isCompleted && onDriverPayment && (
-                  <Button
-                    key="payment"
-                    type="default"
-                    icon={<WalletOutlined />}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onDriverPayment(trip.id);
-                    }}
-                  >
-                    To`lov
-                  </Button>
-                )
-              ].filter(Boolean)}
             >
               <div className="trip-card-content">
                 <Paragraph className="route-info">
@@ -483,7 +445,7 @@ const TripTable = ({
                       </span>
                       {trip.car && (
                         <span style={{ fontSize: 12, color: '#666' }}>
-                          {trip.car.number}
+                        {trip.car.car_number || trip.car.number || 'n/a'}
                         </span>
                       )}
                     </div>
@@ -512,21 +474,107 @@ const TripTable = ({
                     </div>
                   </div>
 
-                  <div style={{ 
-                    maxHeight: '150px', 
-                    overflowY: 'auto', 
-                    display: 'flex', 
-                    flexDirection: 'column', 
-                    gap: '8px', 
+                  {/* Buttons Grid */}
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: '1fr 1fr',
+                    gap: '8px',
+                    marginTop: '16px',
+                    padding: '12px 0',
+                    borderTop: '1px solid #f0f0f0'
+                  }}>
+                    <Button
+                      type="primary"
+                      icon={<UnorderedListOutlined />}
+                      style={{
+                        borderRadius: '6px',
+                        background: '#1890ff',
+                        color: '#fff'
+                      }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigateToTripDetails(trip.id);
+                      }}
+                    >
+                      Batafsil
+                    </Button>
+
+                    {!isCompleted && (
+                      <Popconfirm
+                        title="Reysni yakunlash"
+                        description="Rostdan ham reysni yakunlamoqchimisiz?"
+                        onConfirm={(e) => {
+                          e?.stopPropagation();
+                          handleCompleteRace(trip.id);
+                        }}
+                        onCancel={(e) => e?.stopPropagation()}
+                        okText="Ha"
+                        cancelText="Yo'q"
+                      >
+                        <Button
+                          type="primary"
+                          danger
+                          icon={<CheckCircleOutlined />}
+                          loading={completingTripId === trip.id}
+                          style={{ borderRadius: '6px' }}
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          Yakunlash
+                        </Button>
+                      </Popconfirm>
+                    )}
+
+                    {!isCompleted && onDriverPayment && (
+                      <Button
+                        icon={<WalletOutlined />}
+                        style={{
+                          borderRadius: '6px',
+                          borderColor: '#1890ff',
+                          color: '#1890ff'
+                        }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onDriverPayment(trip.id);
+                        }}
+                      >
+                        To'lov
+                      </Button>
+                    )}
+
+                    {!isCompleted && onReturnAdvance && (
+                      <Button
+                        icon={<ReloadOutlined />}
+                        style={{
+                          borderRadius: '6px',
+                          borderColor: '#faad14',
+                          color: '#faad14',
+                          background: '#fffbe6'
+                        }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onReturnAdvance(trip.id);
+                        }}
+                      >
+                        Qaytarish
+                      </Button>
+                    )}
+                  </div>
+
+                  <div style={{
+                    maxHeight: '150px',
+                    overflowY: 'auto',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '8px',
                     padding: '4px',
                     background: '#f8f9fa',
                     borderRadius: '6px'
                   }}>
                     {trip.client.map((clientObj: any, cIndex: number) => (
-                      <div key={clientObj.id || cIndex} style={{ 
-                        background: '#fff', 
-                        border: '1px solid #e6f7ff', 
-                        borderRadius: 6, 
+                      <div key={clientObj.id || cIndex} style={{
+                        background: '#fff',
+                        border: '1px solid #e6f7ff',
+                        borderRadius: 6,
                         padding: '6px 10px'
                       }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
@@ -550,7 +598,7 @@ const TripTable = ({
                     const rate = trip.custom_rate_to_uzs ? parseFloat(trip.custom_rate_to_uzs) : 1;
                     const isPriceNotUZS = trip.currency && trip.currency !== 4;
                     const isDpNotUZS = trip.dp_currency && trip.dp_currency !== 4;
-                    
+
                     const dPrice = isPriceNotUZS ? (trip.price * rate) : trip.price;
                     const dDrPrice = isPriceNotUZS ? (trip.dr_price * rate) : trip.dr_price;
                     const dDpPrice = isDpNotUZS ? (trip.dp_price * rate) : trip.dp_price;
@@ -558,7 +606,8 @@ const TripTable = ({
                     return (
                       <>
                         <p><DollarOutlined /> Narxi: <Text strong>{formatCurrency(dPrice)}</Text></p>
-                        <p>Haydovchining xarajatlari: {formatCurrency(dDrPrice)}</p>
+                        <p>Haydovchining xarajatlari: {formatCurrency(trip.driver_expense || 0)}</p>
+                        <p>Qo'shimcha xarajat: {formatCurrency(dDrPrice)}</p>
                         <p>Haydovchiga to`lov: {formatCurrency(dDpPrice)}</p>
                       </>
                     );
@@ -566,7 +615,7 @@ const TripTable = ({
                 </div>
 
                 <div className="trip-footer">
-                   <Text type="secondary">{dayjs(trip.created_at).format('DD.MM.YYYY HH:mm')}</Text>
+                  <Text type="secondary">{dayjs(trip.created_at).format('DD.MM.YYYY HH:mm')}</Text>
                   {trip.count && <Badge count={trip.count} color="blue" />}
                 </div>
               </div>
@@ -600,31 +649,93 @@ const TripTable = ({
 
       {/* Error Modal */}
       <Modal
-        title={
-          <div style={{ display: 'flex', alignItems: 'center' }}>
-            <WarningOutlined style={{ color: '#ff4d4f', marginRight: 8 }} />
-            <span>Reysni yakunlab bo`lmadi</span>
-          </div>
-        }
+        title={null}
         open={errorModalVisible}
         onCancel={handleCloseErrorModal}
-        footer={[
-          <Button key="close" type="primary" onClick={handleCloseErrorModal}>
+        footer={null}
+        centered
+        width={450}
+        styles={{
+          body: { padding: 0, borderRadius: '12px', overflow: 'hidden' }
+        }}
+      >
+        <div style={{
+          padding: '24px',
+          textAlign: 'center',
+          background: 'linear-gradient(135deg, #fff1f0 0%, #fff 100%)'
+        }}>
+          <div style={{
+            width: '60px',
+            height: '60px',
+            borderRadius: '50%',
+            background: '#ff4d4f',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            margin: '0 auto 16px',
+            boxShadow: '0 4px 12px rgba(255, 77, 79, 0.3)'
+          }}>
+            <WarningOutlined style={{ color: '#fff', fontSize: '30px' }} />
+          </div>
+
+          <Title level={4} style={{ margin: '0 0 8px', color: '#262626' }}>
+            Reysni yakunlab bo'lmadi
+          </Title>
+          <Text type="secondary">Tizimda to'lov bilan bog'liq to'siq aniqlandi</Text>
+        </div>
+
+        <div style={{ padding: '24px' }}>
+          <div style={{
+            background: '#fff',
+            border: '1px solid #ffa39e',
+            borderRadius: '8px',
+            padding: '16px',
+            marginBottom: '20px',
+            position: 'relative',
+            overflow: 'hidden'
+          }}>
+            <div style={{
+              position: 'absolute',
+              left: 0,
+              top: 0,
+              bottom: 0,
+              width: '4px',
+              background: '#ff4d4f'
+            }} />
+            <Text strong style={{ display: 'block', marginBottom: '4px', color: '#ff4d4f' }}>
+              Xatolik sababi:
+            </Text>
+            <Text style={{ fontSize: '15px', color: '#434343', lineHeight: '1.5' }}>
+              {errorMessage.replace(/❌|Reysni yakunlab bo'lmaydi:|\[ErrorDetail\(string="|", code='invalid'\)\]/g, '').trim()}
+            </Text>
+          </div>
+
+          <div style={{ marginBottom: '24px' }}>
+            <Text strong style={{ display: 'block', marginBottom: '8px', color: '#52c41a' }}>
+              <CheckCircleOutlined /> Keyingi qadamlar:
+            </Text>
+            <ul style={{ paddingLeft: '20px', margin: 0, color: '#595959' }}>
+              <li>Mijoz to'lovini tekshiring</li>
+              <li>Agar to'lov bo'lmasa, qarz sifatida rasmiylashtiring</li>
+              <li>Barcha mijozlar yopilgandan so'ng qayta urinib ko'ring</li>
+            </ul>
+          </div>
+
+          <Button
+            type="primary"
+            block
+            size="large"
+            onClick={handleCloseErrorModal}
+            style={{
+              height: '45px',
+              borderRadius: '8px',
+              background: '#434343',
+              borderColor: '#434343',
+              boxShadow: '0 4px 10px rgba(0,0,0,0.1)'
+            }}
+          >
             Tushundim
           </Button>
-        ]}
-        centered
-      >
-        <div style={{ padding: '12px 0' }}>
-          <Alert
-            message="To'lov bilan bog'liq muammo"
-            description={errorMessage}
-            type="error"
-            showIcon
-          />
-          <Paragraph style={{ marginTop: 16 }}>
-            Reys yakunlashi uchun barcha mijozlar to`lovni amalga oshirgan yoki qarz rasmiylashtirilgan bo`lishi kerak. Iltimos, avval mijoz bilan to`lov masalasini hal qiling.
-          </Paragraph>
         </div>
       </Modal>
 
@@ -670,7 +781,7 @@ const TripTable = ({
               <Card className="trip-summary-card" variant="borderless">
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
                   <Text strong>Yo`nalish:</Text>
-                   <Text>{completedTrip.from1} → {completedTrip.to_go}</Text>
+                  <Text>{completedTrip.from1} → {completedTrip.to_go}</Text>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
                   <Text strong>Haydovchi:</Text>

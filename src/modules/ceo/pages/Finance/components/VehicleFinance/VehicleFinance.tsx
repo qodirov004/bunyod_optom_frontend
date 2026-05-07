@@ -295,9 +295,9 @@ const VehicleFinance: React.FC = () => {
             <Statistic
               title="Jami daromad"
               value={vehicles.reduce((sum, v) => sum + v.totalRevenue, 0)}
-              precision={2}
+              precision={0}
               prefix={<DollarOutlined />}
-              suffix="USD"
+              suffix="so'm"
             />
           </Card>
         </Col>
@@ -306,9 +306,9 @@ const VehicleFinance: React.FC = () => {
             <Statistic
               title="Jami xarajat"
               value={vehicles.reduce((sum, v) => sum + v.totalExpenses, 0)}
-              precision={2}
+              precision={0}
               prefix={<DollarOutlined />}
-              suffix="USD"
+              suffix="so'm"
             />
           </Card>
         </Col>

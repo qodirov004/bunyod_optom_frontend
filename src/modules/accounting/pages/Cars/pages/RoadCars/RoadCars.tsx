@@ -6,7 +6,7 @@ import {
   InfoCircleOutlined,
   HistoryOutlined,
 } from '@ant-design/icons';
-import { useCarStatus } from '../../../../hooks/useCars';
+import { useCarStatus, useCars } from '../../../../hooks/useCars';
 import { useRouter, usePathname } from 'next/navigation';
 import { formatImageUrl } from '@/api/axiosInstance';
 import styles from './RoadCars.module.css';
@@ -18,6 +18,7 @@ const RoadCars = () => {
   const pathname = usePathname();
   const [searchText, setSearchText] = useState('');
   const { inRaysCars, isLoading } = useCarStatus();
+  const { cars } = useCars();
 
   const handleCarHistory = (id: number) => {
     const basePath = pathname ? pathname.split('/').slice(0, 3).join('/') : '/modules/accounting';
@@ -29,37 +30,54 @@ const RoadCars = () => {
   };
 
 
-  const filteredCars = inRaysCars.filter(car => 
+  // Use busy cars from the main list if they are more than inRaysCars
+  // to ensure all vehicles on the road are shown as requested by the user
+  const busyCars = cars.filter(car => car.is_busy);
+  const displayCars = busyCars.length > inRaysCars.length ? busyCars : inRaysCars;
+
+  const filteredCars = displayCars.filter(car => 
     car.name.toLowerCase().includes(searchText.toLowerCase()) ||
     car.car_number.toLowerCase().includes(searchText.toLowerCase()) ||
-    car.number.toLowerCase().includes(searchText.toLowerCase())
+    (car.number && car.number.toLowerCase().includes(searchText.toLowerCase()))
   );
 
   const columns = [
     {
       title: 'Avtomobil',
-      dataIndex: 'name',
-      key: 'name',
+      dataIndex: 'car_number',
+      key: 'car_number',
       render: (_, record) => (
         <Space>
           {record.photo ? (
             <Avatar 
               src={formatImageUrl(record.photo) || undefined}
               shape="square" 
-              size={48}
+              size={54}
+              className={styles.carAvatar}
             />
           ) : (
             <Avatar 
               icon={<CarOutlined />} 
               shape="square" 
-              size={48}
+              size={54}
               style={{ backgroundColor: '#1890ff' }}
             />
           )}
           <div>
-            <Text strong>{record.name}</Text>
+            <div style={{ 
+              background: '#f0f0f0', 
+              padding: '2px 8px', 
+              borderRadius: '4px', 
+              display: 'inline-block',
+              border: '1px solid #d9d9d9',
+              marginBottom: '4px'
+            }}>
+              <Text strong style={{ fontSize: '15px', color: '#141414', letterSpacing: '1px' }}>
+                {record.car_number || record.number}
+              </Text>
+            </div>
             <div>
-              <Text type="secondary">#{record.car_number}</Text>
+              <Text type="secondary" style={{ fontSize: '13px' }}>{record.name}</Text>
             </div>
           </div>
         </Space>

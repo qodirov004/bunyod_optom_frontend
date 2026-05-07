@@ -9,7 +9,7 @@ export const apiRootURL = 'https://logistika.api.ardentsoft.uz/';
 
 export const formatImageUrl = (url: string | null | undefined) => {
     if (!url || typeof url !== 'string' || url.trim() === '') return null;
-    
+
     if (url.startsWith('http')) {
         if (url.includes('127.0.0.1') || url.includes('localhost')) {
             const parts = url.split(':8000/');
@@ -22,15 +22,15 @@ export const formatImageUrl = (url: string | null | undefined) => {
         }
         return url;
     }
-    
+
     // Normalize relative paths
     let cleanUrl = url.startsWith('/') ? url.substring(1) : url;
-    
+
     // Check for media prefix
     if (!cleanUrl.startsWith('media/')) {
         cleanUrl = `media/${cleanUrl}`;
     }
-    
+
     return `${apiRootURL}${cleanUrl}`;
 };
 
@@ -97,7 +97,7 @@ axiosInstance.interceptors.response.use(
             const isDriverSalary403 = error.response?.status === 403 && error.config?.url?.includes('driversalary');
             const isDriverHistory403 = error.response?.status === 403 && error.config?.url?.includes('driver-history');
             const isUtility404 = error.response?.status === 404 && (
-                error.config?.url?.includes('currency') || 
+                error.config?.url?.includes('currency') ||
                 error.config?.url?.includes('chiqim-turi')
             );
 
@@ -113,24 +113,24 @@ axiosInstance.interceptors.response.use(
         if (error.response?.status === 401) {
             const currentPath = typeof window !== 'undefined' ? window.location.pathname : '';
             const isLoginRequest = error.config?.url?.includes('/login');
-            
+
             // Skip automated actions for login attempts specifically
             if (!isLoginRequest && !currentPath.includes('/login') && !currentPath.includes('/auth/login')) {
                 console.warn('Session invalid or expired (401)');
-                
+
                 // Only clear token if we're reasonably sure it's the right thing to do
                 // but DON'T force a page reload which is what's annoying the user
                 if (typeof window !== 'undefined') {
                     const redirectInProgress = sessionStorage.getItem('redirect_in_progress');
-                    
+
                     if (!redirectInProgress) {
                         sessionStorage.setItem('redirect_in_progress', 'true');
-                        
+
                         // We still remove the token as it's invalid anyway
                         // removeToken(); // Not removing immediately, let AuthProvider decide
-                        
+
                         console.log('Auth check failed (401), but skipping automatic redirect to prevent page jump.');
-                        
+
                         // Clear flag after a delay
                         setTimeout(() => {
                             sessionStorage.removeItem('redirect_in_progress');

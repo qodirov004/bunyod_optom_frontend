@@ -25,12 +25,12 @@ interface RouteComponents {
 }
 
 const ROUTES: RouteComponents = {
-    '/zaphos': ZaphosDashboard,
-    '/zaphos/texnic': TexnicPage,
-    '/zaphos/optol': OptolPage,
-    '/zaphos/balon': BalonPage,
-    '/zaphos/cars': CarsPage,
-    '/zaphos/furgon': FurgonPage,
+    '/modules/zaphos': ZaphosDashboard,
+    '/modules/zaphos/texnic': TexnicPage,
+    '/modules/zaphos/optol': OptolPage,
+    '/modules/zaphos/balon': BalonPage,
+    '/modules/zaphos/cars': CarsPage,
+    '/modules/zaphos/furgon': FurgonPage,
 };
 
 export function ZaphosLayout() {
@@ -38,8 +38,7 @@ export function ZaphosLayout() {
     const { theme, sidebarCollapsed } = useSelector((state: RootState) => state.settings);
 
     const currentComponent = useMemo(() => {
-        const path = pathname.replace('/modules', '');
-        const Component = ROUTES[path] || ZaphosDashboard;
+        const Component = ROUTES[pathname] || ZaphosDashboard;
         return <Component />;
     }, [pathname]);
 

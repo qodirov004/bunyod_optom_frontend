@@ -50,6 +50,7 @@ export interface DriverType {
         paymentType: string;
     };
     status_updated_at?: string;
+    car?: any;
 }
 
 export interface DriverFilter {

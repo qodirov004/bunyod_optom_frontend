@@ -74,14 +74,14 @@ const ExpensesReport: React.FC<ExpensesReportProps> = ({ vehicles, services, tri
   const getExpensesByCategory = () => {
     const services = filteredServices;
     const expensesByCategory: Record<string, number> = {};
-    
+
     services.forEach(service => {
       if (!expensesByCategory[service.serviceType]) {
         expensesByCategory[service.serviceType] = 0;
       }
       expensesByCategory[service.serviceType] += service.price;
     });
-    
+
     return Object.entries(expensesByCategory).map(([name, value]) => ({
       name: getCategoryTranslation(name),
       value,
@@ -92,14 +92,14 @@ const ExpensesReport: React.FC<ExpensesReportProps> = ({ vehicles, services, tri
   const getExpensesByVehicle = () => {
     const services = filteredServices;
     const expensesByVehicle: Record<string, number> = {};
-    
+
     services.forEach(service => {
       if (!expensesByVehicle[service.vehicleId]) {
         expensesByVehicle[service.vehicleId] = 0;
       }
       expensesByVehicle[service.vehicleId] += service.price;
     });
-    
+
     return Object.entries(expensesByVehicle).map(([vehicleId, value]) => {
       const vehicle = vehicles.find(v => v.id === vehicleId);
       return {
@@ -194,7 +194,7 @@ const ExpensesReport: React.FC<ExpensesReportProps> = ({ vehicles, services, tri
                 </Select>
               </Col>
               <Col xs={24} sm={12} md={16}>
-                <RangePicker 
+                <RangePicker
                   style={{ width: '100%' }}
                   onChange={(dates) => {
                     if (dates) {
@@ -208,7 +208,7 @@ const ExpensesReport: React.FC<ExpensesReportProps> = ({ vehicles, services, tri
             </Row>
           </Card>
         </Col>
-        
+
         <Col xs={24}>
           <Card>
             <Row gutter={16}>
@@ -242,7 +242,7 @@ const ExpensesReport: React.FC<ExpensesReportProps> = ({ vehicles, services, tri
                   </Col>
                 </Row>
               </Col>
-              
+
               <Col xs={24} md={16}>
                 <Title level={5}>Xarajatlar tahlili</Title>
                 <Row gutter={16}>
@@ -258,7 +258,7 @@ const ExpensesReport: React.FC<ExpensesReportProps> = ({ vehicles, services, tri
                             cy="50%"
                             outerRadius={60}
                             fill="#8884d8"
-                            label={({name, percent}) => `${name} ${(percent * 100).toFixed(0)}%`}
+                            label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                           >
                             {getExpensesByCategory().map((entry, index) => (
                               <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
@@ -269,7 +269,7 @@ const ExpensesReport: React.FC<ExpensesReportProps> = ({ vehicles, services, tri
                       </ResponsiveContainer>
                     </Card>
                   </Col>
-                  
+
                   {selectedVehicle === 'all' && (
                     <Col xs={24} sm={12}>
                       <Card title="Transport bo'yicha" size="small">
@@ -283,7 +283,7 @@ const ExpensesReport: React.FC<ExpensesReportProps> = ({ vehicles, services, tri
                               cy="50%"
                               outerRadius={60}
                               fill="#8884d8"
-                              label={({name, percent}) => `${name} ${(percent * 100).toFixed(0)}%`}
+                              label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                             >
                               {getExpensesByVehicle().map((entry, index) => (
                                 <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
@@ -300,7 +300,7 @@ const ExpensesReport: React.FC<ExpensesReportProps> = ({ vehicles, services, tri
             </Row>
           </Card>
         </Col>
-        
+
         <Col span={24}>
           <Card title="Xarajatlar ro'yxati">
             <Table
@@ -398,7 +398,7 @@ const ExpensesReport: React.FC<ExpensesReportProps> = ({ vehicles, services, tri
           ]}
           summary={pageData => {
             const totalExpenses = pageData.reduce((sum, item) => sum + item.expenses, 0);
-            
+
             return (
               <>
                 <Table.Summary.Row>

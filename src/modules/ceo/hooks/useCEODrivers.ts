@@ -49,54 +49,75 @@ export const useCEODrivers = () => {
   const drivers = useMemo(() => {
     const results = Array.isArray(data?.results) ? data.results : [];
     
-    // Add computed statistics based on active and historical trips
+    // Create a map of driver ID to car object for O(1) lookup and to avoid closure/equality bugs
+    const activeCarMap = new Map();
+    activeCars.forEach((activeItem: any) => {
+      const driverObj = activeItem.driver;
+      if (driverObj) {
+        const dId = typeof driverObj === 'object' ? driverObj.id : driverObj;
+        if (dId !== undefined && dId !== null) {
+          activeCarMap.set(String(dId), activeItem.car);
+        }
+      }
+    });
+    
+    // Use statistics from backend if available, otherwise fallback to local calculation
     return results.map(driver => {
-      // Find active trips for this driver
-      const activeTrips = trips.filter(trip => trip.driver?.id === driver.id);
-      
-      // Find historical trips for this driver
-      const historicalTrips = history.filter(h => 
-        h.driver?.id === driver.id || (h as any).driver_id === driver.id
-      );
-      
-      const totalRaysCount = activeTrips.length + historicalTrips.length;
-      
-      const totalIncome = 
-        activeTrips.reduce((sum, trip) => sum + (Number(trip.price) || 0), 0) +
-        historicalTrips.reduce((sum, h) => sum + (Number((h as any).price || h.total_price) || 0), 0);
-        
-      const totalSalary = 
-        activeTrips.reduce((sum, trip) => sum + (Number(trip.dp_price) || 0), 0) +
-        historicalTrips.reduce((sum, h) => sum + (Number(h.dp_price) || 0), 0);
-        
-      const totalKm = 
-        activeTrips.reduce((sum, trip) => sum + (Number(trip.kilometer) || 0), 0) +
-        historicalTrips.reduce((sum, h) => sum + (Number(h.kilometer) || 0), 0);
+      const activeCarObj = activeCarMap.get(String(driver.id));
 
       return {
         ...driver,
-        rays_count: totalRaysCount,
-        total_km: totalKm,
-        total_income: totalIncome,
-        total_rays_usd: totalSalary 
+        // Backend returns these fields now, we use them directly
+        rays_count: driver.rays_count !== undefined ? driver.rays_count : 0,
+        total_km: driver.total_km !== undefined ? driver.total_km : 0,
+        total_income: driver.total_income !== undefined ? driver.total_income : (driver.total_rays_usd || 0),
+        total_rays_usd: driver.total_rays_usd || 0,
+        car: activeCarObj,
       };
     });
-  }, [data, trips, history]);
+  }, [data, trips, history, activeCars]);
+
   const total = data?.count || 0;
 
   // Get drivers on road (active cars)
   const driversOnRoad = useMemo(() => {
-    if (!activeCars.length || !drivers.length) return [];
+    if (!activeCars.length) return [];
     
-    // Extract driver IDs from active cars
-    const driverIds = new Set(
-      activeCars.map((car: any) => 
-        typeof car.driver === 'object' ? car.driver.id : car.driver
-      )
-    );
+    // Map active cars to driver objects directly, so it doesn't depend on paginated 'drivers' list
+    const roadDrivers: any[] = [];
+    const seenIds = new Set();
+
+    activeCars.forEach((car: any) => {
+      const driver = car.driver;
+      if (driver && typeof driver === 'object' && driver.id && !seenIds.has(driver.id)) {
+        // Use the driver object from car-active response
+        roadDrivers.push({
+          ...driver,
+          fullname: driver.fullname || driver.username || `${driver.first_name || ''} ${driver.last_name || ''}`.trim(),
+          phone_number: driver.phone_number || driver.phone || '',
+          photo: driver.photo || driver.photo_front || null,
+          rays_id: car.rays_id,
+          car: car.car, // Include car object
+          clients: car.clients || [],
+          is_on_road: true
+        });
+        seenIds.add(driver.id);
+      } else if (driver && typeof driver !== 'object' && !seenIds.has(driver)) {
+        // If it's just an ID, we try to find it in the current page (fallback)
+        const d = drivers.find(d => d.id === driver);
+        if (d) {
+          roadDrivers.push({ 
+            ...d, 
+            is_on_road: true,
+            rays_id: car.rays_id,
+            clients: car.clients || [] 
+          });
+          seenIds.add(driver);
+        }
+      }
+    });
     
-    // Return drivers that are in active cars
-    return drivers.filter(driver => driverIds.has(driver.id));
+    return roadDrivers;
   }, [drivers, activeCars]);
   
   // Get waiting drivers
@@ -119,24 +140,32 @@ export const useCEODrivers = () => {
     );
   }, [drivers, activeCars]);
 
+  // Fetch summary statistics from backend
+  const { data: summaryData, isLoading: isLoadingSummary } = useQuery({
+    queryKey: ['ceo-drivers-summary'],
+    queryFn: async () => {
+      const response = await axiosInstance.get('/customusers/summary/');
+      return response.data;
+    },
+    staleTime: 1 * 60 * 1000,
+  });
+
   // Get active drivers count
-  const activeDrivers = drivers.filter((driver: DriverType) => 
-    driver.status === 'active' || driver.status === 'driver'
-  );
-  const activeDriversCount = activeDrivers.length;
+  const activeDriversCount = summaryData?.active || 0;
+  const totalDriversCount = summaryData?.total || 0;
   
   // Get inactive drivers count
-  const inactiveDriversCount = total - activeDriversCount;
+  const inactiveDriversCount = summaryData?.inactive || 0;
   
   // Calculate active drivers percentage
-  const activeDriversPercentage = total > 0 ? (activeDriversCount / total) * 100 : 0;
+  const activeDriversPercentage = totalDriversCount > 0 ? (activeDriversCount / totalDriversCount) * 100 : 0;
   
   // Calculate on-road drivers percentage
-  const driversOnRoadCount = driversOnRoad.length;
+  const driversOnRoadCount = summaryData?.on_road || 0;
   const driversOnRoadPercentage = activeDriversCount > 0 ? (driversOnRoadCount / activeDriversCount) * 100 : 0;
   
   // Calculate waiting drivers
-  const waitingDriversCount = waitingDrivers.length;
+  const waitingDriversCount = summaryData?.waiting || 0;
   const waitingDriversPercentage = activeDriversCount > 0 ? (waitingDriversCount / activeDriversCount) * 100 : 0;
 
   // Update filters
@@ -194,6 +223,7 @@ export const useCEODrivers = () => {
     isLoadingCars,
     error,
     activeDriversCount,
+    totalDriversCount,
     inactiveDriversCount,
     activeDriversPercentage,
     driversOnRoadCount,

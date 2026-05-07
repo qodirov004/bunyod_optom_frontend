@@ -704,7 +704,7 @@ const DriverHistoryPage: React.FC<DriverHistoryPageProps> = ({ id }) => {
                       <strong>Reys #{trip.id}</strong> - {formatDate(trip.created_at)}
                     </div>
                     <div>
-                      <Tag color="blue">{trip.car?.name} ({trip.car?.number})</Tag>
+                      <Tag color="blue">{trip.car?.name} ({trip.car?.car_number || trip.car?.number || 'n/a'})</Tag>
                       <Tag color="green">{formatCurrency(trip.dr_price)}</Tag>
                       <Tag color="orange">{trip.kilometer} km</Tag>
                     </div>
@@ -723,7 +723,7 @@ const DriverHistoryPage: React.FC<DriverHistoryPageProps> = ({ id }) => {
                         {trip.car && (
                           <div className="driver-info-item">
                             <CarOutlined className="driver-info-icon" />
-                            <span>Transport: <Text strong>{trip.car.name} ({trip.car.number})</Text></span>
+                            <span>Transport: <Text strong>{trip.car.name} ({trip.car.car_number || trip.car.number || 'n/a'})</Text></span>
                           </div>
                         )}
 

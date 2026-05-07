@@ -22,6 +22,7 @@ import {
   DownOutlined
 } from '@ant-design/icons';
 import { DriverType } from '../../../types/driver';
+import { useCars } from '../../../hooks/useCars';
 import axiosInstance from '@/api/axiosInstance';
 import dayjs from 'dayjs';
 import { getDriverPhotoUrl } from '../photoUtils';
@@ -37,6 +38,12 @@ interface DriversOnRoadProps {
 interface ActiveCar {
   car_id: number;
   car_name: string;
+  car?: {
+    id: number;
+    car_number: string;
+    car_name: string;
+    number: string;
+  };
   driver: {
     id: number;
     username: string;
@@ -94,6 +101,31 @@ const DriversOnRoad: React.FC<DriversOnRoadProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [searchText, setSearchText] = useState('');
   const [expandedRows, setExpandedRows] = useState<number[]>([]);
+  const { cars } = useCars();
+
+  const enrichedActiveCars = React.useMemo(() => {
+    return activeCars.map(activeCar => {
+      // If car object already has car_number, keep it
+      if (activeCar.car?.car_number) return activeCar;
+      
+      // Try to find the car in the full cars list by ID or name
+      const foundCar = cars.find(c => c.id === activeCar.car_id || c.name === activeCar.car_name);
+      
+      if (foundCar) {
+        return {
+          ...activeCar,
+          car: {
+            ...activeCar.car,
+            car_number: foundCar.car_number,
+            number: foundCar.number,
+            car_name: foundCar.name,
+            id: foundCar.id
+          }
+        } as ActiveCar;
+      }
+      return activeCar;
+    });
+  }, [activeCars, cars]);
   
   useEffect(() => {
     if (propActiveCars) {
@@ -120,13 +152,15 @@ const DriversOnRoad: React.FC<DriversOnRoadProps> = ({
 
   // Handle search filtering
   const getFilteredData = () => {
-    if (!searchText) return activeCars;
+    if (!searchText) return enrichedActiveCars;
     
     const lowercasedSearch = searchText.toLowerCase();
-    return activeCars.filter(item => 
+    return enrichedActiveCars.filter(item => 
       item.driver.fullname.toLowerCase().includes(lowercasedSearch) ||
       item.driver.phone_number.includes(searchText) ||
-      item.car_name.toLowerCase().includes(lowercasedSearch)
+      item.car_name.toLowerCase().includes(lowercasedSearch) ||
+      item.car?.car_number?.toLowerCase().includes(lowercasedSearch) ||
+      item.car?.number?.toLowerCase().includes(lowercasedSearch)
     );
   };
 
@@ -206,7 +240,7 @@ const DriversOnRoad: React.FC<DriversOnRoadProps> = ({
                   <Col span={12}>
                     <Statistic 
                       title="Transport" 
-                      value={record.car_name}
+                      value={record.car?.car_number || record.car?.number || record.car_name}
                       prefix={<CarOutlined />}
                       valueStyle={{ fontSize: 18 }}
                     />
@@ -465,9 +499,14 @@ const DriversOnRoad: React.FC<DriversOnRoadProps> = ({
       key: 'car',
       width: 180,
       render: (_: any, record: ActiveCar) => (
-        <Tag color="blue" icon={<CarOutlined />} style={{ padding: '4px 8px' }}>
-          {record.car_name}
-        </Tag>
+        <div style={{ lineHeight: '1.2' }}>
+          <div style={{ fontWeight: 500, fontSize: '13px' }}>
+            {record.car?.car_number || record.car?.number || 'Davlat raqami yo\'q'}
+          </div>
+          <div style={{ fontSize: '11px', color: '#1890ff', fontWeight: 600 }}>
+            {record.car_name}
+          </div>
+        </div>
       ),
     },
     {

@@ -11,14 +11,19 @@ export const formatCurrency = (
   showSymbol: boolean = true
 ): string => {
   if (amount === undefined || amount === null) return "0";
-  
-  // Format as UZS always
-  const formatted = (amount || 0).toLocaleString('uz-UZ', {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0
+
+  const formatted = (amount || 0).toLocaleString('en-US', {
+    minimumFractionDigits: currencyType === 'USD' ? 2 : 0,
+    maximumFractionDigits: currencyType === 'USD' ? 2 : 0
   });
-  
-  return `${formatted}${showSymbol ? ' so\'m' : ''}`;
+
+  if (!showSymbol) return formatted;
+
+  if (currencyType === 'USD') {
+    return `${formatted} $`;
+  }
+
+  return `${formatted} so'm`;
 };
 
 /**
@@ -48,10 +53,10 @@ export const formatPrice = (
   currencyType?: string | null
 ): string => {
   if (amount === undefined || amount === null) return "0";
-  
+
   // Always use UZS
   let currency = 'UZS';
-  
+
   return formatCurrency(amount, currency);
 };
 

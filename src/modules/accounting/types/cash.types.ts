@@ -83,6 +83,7 @@ export interface CashOverview {
         dp_price_uzs?: number;
         salaries_usd: number;
         salaries_uzs?: number;
+        driver_expenses_uzs?: number;
         total_expenses_usd: number;
         total_expenses_uzs?: number;
     };

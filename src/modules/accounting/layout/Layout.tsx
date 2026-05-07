@@ -38,41 +38,37 @@ const ClientHistoryPage = dynamic(
 );
 
 const ROUTES: RouteComponents = {
-    '/accounting': Dashboard,
-    '/accounting/transactions': DriversPage,
-    '/accounting/clients': ClientsPage,
-    '/accounting/cars': CarsPage,
-    '/accounting/cars/allpage': AllCarsPage,
-    '/accounting/cars/roadcars': RoadCars,
-    '/accounting/cars/availablecars': AvailableCars,
-    '/accounting/cars/:id/history': CarHistoryPage,
-    '/accounting/maintenance': MaintenancePage,
-    '/accounting/furgon': FurgonPage,
-    '/accounting/freight': FreightDeliveryPage,
-    '/accounting/triphistory': TripHistoryPage,
-    '/accounting/clients/:id/history': ClientHistoryPage,
-    '/accounting/kassa': KassaPage,
-    '/accounting/driversalary': DriverSalaryPage,
-    // '/accounting/drivers/:id/history': DriverHistoryPage,
+    '/modules/accounting': Dashboard,
+    '/modules/accounting/transactions': DriversPage,
+    '/modules/accounting/clients': ClientsPage,
+    '/modules/accounting/cars': CarsPage,
+    '/modules/accounting/cars/allpage': AllCarsPage,
+    '/modules/accounting/cars/roadcars': RoadCars,
+    '/modules/accounting/cars/availablecars': AvailableCars,
+    '/modules/accounting/cars/:id/history': CarHistoryPage,
+    '/modules/accounting/maintenance': MaintenancePage,
+    '/modules/accounting/furgon': FurgonPage,
+    '/modules/accounting/freight': FreightDeliveryPage,
+    '/modules/accounting/triphistory': TripHistoryPage,
+    '/modules/accounting/clients/:id/history': ClientHistoryPage,
+    '/modules/accounting/kassa': KassaPage,
+    '/modules/accounting/driversalary': DriverSalaryPage,
 };
 
 export function AccountingLayout() {
     const pathname = usePathname();
     const { theme, sidebarCollapsed } = useSelector((state: RootState) => state.settings);
 
-    // Optimize component selection with useMemo
     const currentComponent = useMemo(() => {
-        const path = pathname.replace('/modules', '');
-
-        if (path.match(/^\/accounting\/clients\/\d+\/history$/)) {
+        if (pathname.match(/^\/modules\/accounting\/clients\/\d+\/history$/)) {
             return <ClientHistoryPage />;
         }
 
-        if (path.match(/^\/accounting\/cars\/\d+\/history$/)) {
+        if (pathname.match(/^\/modules\/accounting\/cars\/\d+\/history$/)) {
             return <CarHistoryPage />;
         }
 
-        const Component = ROUTES[path] || Dashboard;
+        const Component = ROUTES[pathname] || Dashboard;
         return <Component />;
     }, [pathname]);
 

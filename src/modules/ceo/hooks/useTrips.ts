@@ -27,6 +27,7 @@ export interface TripData {
   price: number;
   dr_price: number;
   dp_price: number;
+  driver_expense: number;
   is_completed: boolean;
   cargo_name: string;
   cargo_weight: number;

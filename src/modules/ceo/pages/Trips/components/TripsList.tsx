@@ -49,19 +49,29 @@ const TripsList: React.FC<TripsListProps> = ({
     {
       title: 'Mijoz',
       key: 'client',
-      render: (_, record: TripData) => (
-        record.client && record.client.length > 0
-          ? `${record.client[0]?.first_name || ''} ${record.client[0]?.last_name || ''}`
-          : 'Mijoz kiritilmagan'
-      ),
+      render: (_, record: TripData) => {
+        if (!record.client || record.client.length === 0) return 'Mijoz kiritilmagan';
+        const client = record.client[0] as any;
+        return client.company ? client.company : `${client.first_name || ''} ${client.last_name || ''}`.trim();
+      },
     },
     {
       title: 'Transport',
       key: 'vehicle',
       render: (_, record: TripData) => (
-        <Space>
-          <CarOutlined />
-          {record.car ? `${record.car.name} (${record.car.number})` : 'Noma\'lum'}
+        <Space direction="vertical" size={0}>
+          <Space>
+            <CarOutlined />
+            <span style={{ fontWeight: 500 }}>{record.car?.name || 'Noma\'lum model'}</span>
+          </Space>
+          <div style={{ fontSize: '11px', color: '#1890ff', fontWeight: 600, paddingLeft: '24px' }}>
+            {record.car?.car_number || record.car?.number || 'Davlat raqami yo\'q'}
+          </div>
+          {record.fourgon && (
+            <div style={{ fontSize: '11px', color: '#52c41a', paddingLeft: '24px' }}>
+              Furgon: {record.fourgon?.number || 'Noma\'lum'}
+            </div>
+          )}
         </Space>
       ),
     },
@@ -96,10 +106,19 @@ const TripsList: React.FC<TripsListProps> = ({
       render: (_, record: TripData) => `${record.price?.toLocaleString() || 0} so'm`,
     },
     {
+      title: 'Haydovchi xarajati',
+      key: 'driver_expense',
+      render: (_, record: TripData) => (
+        <Tag color="red">
+          {(record.driver_expense || 0).toLocaleString()} so'm
+        </Tag>
+      ),
+    },
+    {
       title: 'Foyda',
       key: 'profit',
       render: (_, record: TripData) => {
-        const profit = (record.price || 0) - (record.dr_price || 0) - (record.dp_price || 0);
+        const profit = (record.price || 0) - (record.dr_price || 0) - (record.dp_price || 0) - (record.driver_expense || 0);
         return (
           <Tag color={profit > 0 ? 'success' : 'error'}>
             {profit.toLocaleString()} so'm

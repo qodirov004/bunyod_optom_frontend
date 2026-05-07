@@ -18,6 +18,25 @@ const ClientPayment: React.FC<ClientPaymentProps> = ({ raysId, open, onClose, in
   const { loading, createTransaction, raysClientsMap } = useCash(messageApi);
   const [clients, setClients] = useState<any[]>([]);
   const [selectedClient, setSelectedClient] = useState<number | null>(null);
+  const [uzsId, setUzsId] = useState<number>(2); // Default to 2
+
+  // Fetch currencies to find UZS ID
+  useEffect(() => {
+    const fetchCurrencies = async () => {
+      try {
+        const response = await axiosInstance.get('/currency/');
+        const data = response.data.results || response.data || [];
+        const currencies = Array.isArray(data) ? data : [];
+        const uzs = currencies.find((c: any) => c.currency === 'UZS');
+        if (uzs) {
+          setUzsId(uzs.id);
+        }
+      } catch (error) {
+        console.error('Error fetching currencies:', error);
+      }
+    };
+    fetchCurrencies();
+  }, []);
 
   useEffect(() => {
     if (open && raysId) {
@@ -37,7 +56,7 @@ const ClientPayment: React.FC<ClientPaymentProps> = ({ raysId, open, onClose, in
         rays: Number(raysId),
         rays_id: Number(raysId),
         amount: Math.round(Number(values.amount)),
-        currency: 4, // UZS
+        currency: uzsId, // Dynamic UZS ID
         payment_way: values.payment_way,
         comment: values.comment || '',
         is_debt: !!values.is_debt,
@@ -46,7 +65,7 @@ const ClientPayment: React.FC<ClientPaymentProps> = ({ raysId, open, onClose, in
         move_type: 'cash',
         date: new Date().toISOString().split('T')[0] // YYYY-MM-DD
       };
-
+// ... rest of the function remains the same ...
       try {
         await createTransaction(transactionData);
       } catch (firstError: any) {
@@ -117,7 +136,7 @@ const ClientPayment: React.FC<ClientPaymentProps> = ({ raysId, open, onClose, in
           layout="vertical"
           onFinish={handleSubmit}
           initialValues={{
-            currency: 4,
+            currency: uzsId,
             payment_way: 1,
             is_debt: false,
             is_via_driver: false,

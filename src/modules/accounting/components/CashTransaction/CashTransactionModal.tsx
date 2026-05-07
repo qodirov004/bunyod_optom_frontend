@@ -14,6 +14,7 @@ import {
 } from 'antd';
 import { CashCreate, RaysClientsMap } from '../../types/cash.types';
 import { cashApi } from '../../api/cash/cashApi';
+import { useCurrencies } from '../../hooks/useCurrencies';
 import dayjs from 'dayjs';
 
 const { Option } = Select;
@@ -51,6 +52,10 @@ const CashTransactionModal: React.FC<CashTransactionModalProps> = ({
   const [raysData, setRaysData] = useState<RaysClientsMap[]>([]);
   const [isDebtRepayment, setIsDebtRepayment] = useState(false);
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
+  const { currencies } = useCurrencies();
+
+  // Helper to find UZS currency ID
+  const uzsId = currencies?.find(c => c.currency === 'UZS')?.id || 2;
 
   const isDebt = Form.useWatch('is_debt', form);
   const totalExpectedAmount = Form.useWatch('total_expected_amount', form);
@@ -104,7 +109,7 @@ const CashTransactionModal: React.FC<CashTransactionModalProps> = ({
           is_debt: isRepayment ? false : (editingTransaction.is_debt || false),
           is_via_driver: editingTransaction.is_via_driver || false,
           is_delivered_to_cashier: editingTransaction.is_delivered_to_cashier || false,
-          currency: 4 // Standardize to UZS
+          currency: uzsId // Standardize to UZS
         });
         
         if (editingTransaction.rays) {
@@ -114,7 +119,7 @@ const CashTransactionModal: React.FC<CashTransactionModalProps> = ({
       } else {
         form.setFieldsValue({
           date: dayjs(),
-          currency: 4, // UZS
+          currency: uzsId, // UZS
           is_debt: false,
           is_via_driver: false,
           is_delivered_to_cashier: true,
@@ -198,7 +203,7 @@ const CashTransactionModal: React.FC<CashTransactionModalProps> = ({
         ...(values.driver && { driver: values.driver }),
         ...(values.product && { product: values.product }),
         amount: amount,
-        currency: 4, // Always UZS
+        currency: uzsId, // Always UZS
         payment_way: values.payment_way, 
         comment: values.comment || (isDebtRepayment ? "Qarz to'lovi" : ''),
         is_debt: !!values.is_debt,
@@ -258,7 +263,7 @@ const CashTransactionModal: React.FC<CashTransactionModalProps> = ({
         layout="vertical"
         initialValues={{
           date: dayjs(),
-          currency: 4,
+          currency: uzsId,
           is_via_driver: false,
           is_delivered_to_cashier: true,
           payment_way: 1, 

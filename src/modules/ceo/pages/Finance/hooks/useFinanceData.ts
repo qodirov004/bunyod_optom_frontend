@@ -22,13 +22,15 @@ export interface DashboardStats {
   yearlyExpenses: number;
   profitMargin: number;
   totalInUZS: number;
+  cashPayments: number;
+  bankPayments: number;
 }
 
 export const useFinanceData = () => {
   // Use React Query to fetch cash overview data
-  const { 
+  const {
     data: cashOverview,
-    isLoading: isLoadingCash, 
+    isLoading: isLoadingCash,
     error: cashError,
     refetch: refetchCash
   } = useQuery<CashOverview>({
@@ -140,10 +142,10 @@ export const useFinanceData = () => {
 
   const totalVehicles = Array.isArray(cars) ? cars.length : 0;
   const activeVehicles = Array.isArray(cars) ? cars.filter((c: any) => c.status === 'in_rays' || c.holat === 'reysta').length : 0;
-  
+
   const totalDriversNum = Array.isArray(drivers) ? drivers.length : 0;
   const activeDrivers = Array.isArray(drivers) ? drivers.filter((d: any) => d.status === 'in_rays' || d.is_active).length : 0;
-  
+
   const totalClientsNum = Array.isArray(clients) ? clients.length : 0;
 
   // Revenue & Expenses aggregation (UZS)
@@ -153,24 +155,30 @@ export const useFinanceData = () => {
 
   // Helper to get UZS value from a record with smart detection
   const getUZSValue = (record: any, field: string) => {
-    // Some fields like 'summ' or 'amount' are likely already in UZS
     const value = Number(record[field]) || 0;
     if (value === 0) return 0;
 
-    // Smart detection: If value is > 10,000,000, it's almost certainly already in UZS
-    // No one is paying 10 million USD for a single trip or salary.
-    if (value > 10000000) return value;
-
-    // Check currency object or field
+    // Detect currency
     const currencyRaw = record.currency?.currency || record.currency || (record.usd_value ? 'USD' : 'UZS');
     const currency = typeof currencyRaw === 'string' ? currencyRaw.toUpperCase() : (currencyRaw === 1 ? 'USD' : 'UZS');
-    
+
+    // If currency is explicitly UZS, return value
     if (currency === 'UZS' || currency === 'SO\'M' || currency === 'SOM') return value;
+    
+    // If currency is RUB, convert using fixed rate (approximate)
     if (currency === 'RUB') return value * 140;
+    
+    // If currency is USD, convert using fixed rate
     if (currency === 'USD') return value * 12800;
 
-    // Last resort: if value is small, assume it's USD for standard trip prices
-    return value < 1000000 ? value * 12800 : value;
+    // Smart detection fallback if currency is unclear:
+    // 1. If value is very large (> 50,000), it's almost certainly UZS already.
+    // 2. If value is small (< 10,000), it's likely USD.
+    if (value > 50000) return value;
+    if (value < 10000) return value * 12800;
+
+    // Default: assume it's already in UZS to be safe (don't multiply by 12800 unless sure)
+    return value;
   };
 
   const monthlyRevenue = allTrips
@@ -200,14 +208,62 @@ export const useFinanceData = () => {
   // Revenue is based on 'price' and 'history'
   const totalRevenueAllTime = allTrips.reduce((sum, t) => sum + getUZSValue(t, 'price'), 0);
   const totalExpensesAllTime = allTrips.reduce((sum, t) => sum + getUZSValue(t, 'dr_price'), 0) +
-                              driverSalaries.reduce((sum: number, s: any) => sum + getUZSValue(s, 'amount'), 0) +
-                              outgoings.reduce((sum: number, o: any) => sum + getUZSValue(o, 'summ'), 0);
+    driverSalaries.reduce((sum: number, s: any) => sum + getUZSValue(s, 'amount'), 0) +
+    outgoings.reduce((sum: number, o: any) => sum + getUZSValue(o, 'summ'), 0);
 
   const manualTotalKassa = totalRevenueAllTime - totalExpensesAllTime;
-  const finalTotalInUZS = cashOverview?.cashbox?.total_in_uzs || 
-                          cashOverview?.cashbox?.UZS || 
-                          (cashOverview?.cashbox?.total_in_usd ? cashOverview.cashbox.total_in_usd * 12800 : 0) || 
-                          Math.max(0, manualTotalKassa);
+  const finalTotalInUZS = cashOverview?.cashbox?.total_in_uzs ||
+    cashOverview?.cashbox?.UZS ||
+    (cashOverview?.cashbox?.total_in_usd ? cashOverview.cashbox.total_in_usd * 12800 : 0) ||
+    Math.max(0, manualTotalKassa);
+
+  // Fetch all cash entries (active and history) for Naqt/Bank breakdown
+  const { data: cashEntries = [] } = useQuery({
+    queryKey: ['ceo-finance-cash-entries-combined'],
+    queryFn: async () => {
+      try {
+        // Fetch from both active and history endpoints
+        const [activeRes, historyRes] = await Promise.all([
+          axiosInstance.get('/casa/'),
+          axiosInstance.get('/casahistory/')
+        ]);
+        
+        const activeData = activeRes.data;
+        const historyData = historyRes.data;
+        
+        const activeList = Array.isArray(activeData) ? activeData : (activeData.results || []);
+        const historyList = Array.isArray(historyData) ? historyData : (historyData.results || []);
+        
+        return [...activeList, ...historyList];
+      } catch (error) {
+        console.error('Error fetching cash entries for CEO:', error);
+        return [];
+      }
+    }
+  });
+
+  // Calculate Cash vs Bank transfer totals
+  const cashPayments = Array.isArray(cashEntries) 
+    ? cashEntries
+        .filter((entry: any) => 
+          entry.payment_way === 1 || 
+          entry.payment_way === '1' ||
+          (entry.payment_way_name && entry.payment_way_name.toLowerCase().includes('naqd')) ||
+          (entry.payment_name && entry.payment_name.toLowerCase().includes('naqd'))
+        )
+        .reduce((sum: number, entry: any) => sum + getUZSValue(entry, 'amount'), 0)
+    : 0;
+
+  const bankPayments = Array.isArray(cashEntries)
+    ? cashEntries
+        .filter((entry: any) => 
+          entry.payment_way === 2 || 
+          entry.payment_way === '2' ||
+          (entry.payment_way_name && (entry.payment_way_name.toLowerCase().includes('bank') || entry.payment_way_name.toLowerCase().includes('o\'tkazma'))) ||
+          (entry.payment_name && (entry.payment_name.toLowerCase().includes('bank') || entry.payment_name.toLowerCase().includes('o\'tkazma')))
+        )
+        .reduce((sum: number, entry: any) => sum + getUZSValue(entry, 'amount'), 0)
+    : 0;
 
   const dashboardStats: DashboardStats = {
     totalTrips,
@@ -224,7 +280,9 @@ export const useFinanceData = () => {
     yearlyRevenue,
     yearlyExpenses,
     profitMargin,
-    totalInUZS: finalTotalInUZS
+    totalInUZS: finalTotalInUZS,
+    cashPayments,
+    bankPayments
   };
 
   // Set up last updated timestamp

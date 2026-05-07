@@ -46,8 +46,6 @@ const FinanceTabs: React.FC<FinanceTabsProps> = ({
         <Overview 
           fallbackData={{
             totalInUZS: dashboardStats.totalInUZS,
-            totalExpenses: dashboardStats.yearlyExpenses,
-            finalBalance: dashboardStats.totalInUZS - dashboardStats.yearlyExpenses,
             cashPayments: dashboardStats.cashPayments,
             bankPayments: dashboardStats.bankPayments
           }} 

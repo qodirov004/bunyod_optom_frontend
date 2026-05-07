@@ -77,7 +77,7 @@ const DriverPayments: React.FC = () => {
           ]}
           dataSource={record.clients || []}
           pagination={false}
-          rowKey={(clientRecord, index) => `client-${record.rays_id}-${index}`}
+          rowKey={(clientRecord, index) => `${record.rays_id}-${index}`}
           scroll={{ x: 'max-content' }}
         />
         

@@ -145,6 +145,7 @@ interface TripData {
   is_completed: boolean;
   price: number;
   dr_price: number;
+  driver_expense: number;
   dp_price: number;
   dp_currency: string;
   dp_information: string;
@@ -158,7 +159,7 @@ interface TripData {
 // Move formatCurrency to be accessible in all components
 const formatCurrency = (price: number | undefined, currency: string) => {
   if (price === undefined) return '0';
-  return `${price.toLocaleString()} ${currency}`;
+  return `${Math.round(price).toLocaleString('en-US')} ${currency}`;
 };
 
 const TripOverview: React.FC = () => {
@@ -167,7 +168,7 @@ const TripOverview: React.FC = () => {
 
   if (!tripData) return <Spin size="large" />;
 
-  const profit = tripData.price - (tripData.expenses?.total_usd || 0) - (tripData.dr_price || 0) - (tripData.dp_price || 0);
+  const profit = tripData.price - (tripData.expenses?.total_usd || 0) - (tripData.dr_price || 0) - (tripData.driver_expense || 0) - (tripData.dp_price || 0);
   const profitMargin = tripData.price ? Math.round((profit / tripData.price) * 100 * 100) / 100 : 0;
   const isProfitable = profit > 0;
 
@@ -228,7 +229,7 @@ const TripOverview: React.FC = () => {
                 <Statistic
                   title="Umumiy reys narxi"
                   value={tripData.price || 0}
-                  precision={2}
+                  precision={0}
                   valueStyle={{ color: '#3f8600' }}
                   prefix={<RiseOutlined />}
                   suffix="UZS"
@@ -237,8 +238,8 @@ const TripOverview: React.FC = () => {
               <Col xs={12} sm={12}>
                 <Statistic
                   title="Haydovchi xarajatlari"
-                  value={tripData.dr_price || 0}
-                  precision={2}
+                  value={tripData.driver_expense || 0}
+                  precision={0}
                   valueStyle={{ color: '#cf1322' }}
                   prefix={<FallOutlined />}
                   suffix="UZS"
@@ -246,22 +247,22 @@ const TripOverview: React.FC = () => {
               </Col>
               <Col xs={12} sm={12}>
                 <Statistic
-                  title="Haydovchiga to'lov"
-                  value={tripData.dp_price || 0}
-                  precision={2}
+                  title="Qo'shimcha xarajat"
+                  value={tripData.dr_price || 0}
+                  precision={0}
                   valueStyle={{ color: '#cf1322' }}
-                  prefix={<UserOutlined />}
-                  suffix={getCurrencyName(tripData.dp_currency || 'UZS')}
+                  prefix={<DashboardOutlined />}
+                  suffix="UZS"
                 />
               </Col>
               <Col xs={12} sm={12}>
                 <Statistic
-                  title="Boshqa xarajatlar"
-                  value={tripData.expenses?.total_usd || 0}
-                  precision={2}
+                  title="Haydovchiga to'lov"
+                  value={tripData.dp_price || 0}
+                  precision={0}
                   valueStyle={{ color: '#cf1322' }}
-                  prefix={<DollarOutlined />}
-                  suffix="UZS"
+                  prefix={<UserOutlined />}
+                  suffix={getCurrencyName(tripData.dp_currency || 'UZS')}
                 />
               </Col>
               <Col xs={24}>
@@ -382,8 +383,8 @@ const ExpensesTab: React.FC = () => {
       <Card className="expenses-summary-card">
         <Statistic
           title="Jami xarajatlar"
-          value={expenses.total_usd || 0}
-          precision={2}
+          value={(expenses.total_usd || 0) + (tripData.driver_expense || 0)}
+          precision={0}
           valueStyle={{ color: '#cf1322' }}
           prefix={<DollarOutlined />}
           suffix="UZS"
@@ -673,7 +674,7 @@ const FreightDetailPage = () => {
       key: 'expenses',
       label: (
         <span>
-          <DollarOutlined /> Xarajatlar {tripData?.expenses ? `(${tripData.expenses.total_usd?.toFixed(2) || 0} UZS)` : ''}
+          <DollarOutlined /> Xarajatlar {tripData ? `(${( (tripData.expenses?.total_usd || 0) + (tripData.driver_expense || 0) ).toFixed(2)} UZS)` : ''}
         </span>
       ),
       children: <ExpensesTab />

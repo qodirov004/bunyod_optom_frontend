@@ -74,7 +74,7 @@ const Drivers: React.FC = () => {
     status: 'all' as string,
     is_busy: undefined as boolean | undefined,
     page: 1,
-    pageSize: 10
+    pageSize: 50
   })
 
   // Use enhanced driver hook
@@ -87,6 +87,11 @@ const Drivers: React.FC = () => {
     deleteDriver,
     updateFilters,
     total,
+    activeDriversCount,
+    totalDriversCount,
+    inactiveDriversCount,
+    driversOnRoadCount,
+    waitingDriversCount,
   } = useCEODrivers()
 
   const router = useRouter()
@@ -197,6 +202,13 @@ const Drivers: React.FC = () => {
                   drivers={drivers} 
                   driversOnRoad={driversOnRoad} 
                   isLoading={isLoading} 
+                  summaryStats={activeDriversCount !== undefined ? {
+                    total: totalDriversCount,
+                    active: activeDriversCount,
+                    inactive: inactiveDriversCount,
+                    on_road: driversOnRoadCount,
+                    waiting: waitingDriversCount
+                  } : undefined}
                   onTabChange={handleTabChange}
                 />
               ),
@@ -237,48 +249,68 @@ const Drivers: React.FC = () => {
               key: 'on-road',
               label: (<span><CarOutlined /> Yo`ldagi haydovchilar</span>),
               children: (
-                <Table
-                  dataSource={driversOnRoad}
-                  rowKey="id"
-                  loading={isLoading}
-                  onRow={(record) => ({
-                    onClick: (event: any) => {
-                      if (event.target.closest('.ant-btn')) return;
-                      handleShowInfo(record);
-                    },
-                    style: { cursor: 'pointer' }
-                  })}
-                  columns={[
-                    {
-                      title: 'Haydovchi',
-                      key: 'driver',
-                      render: (_, record) => (
-                        <Space>
-                          <Avatar src={formatImageUrl(record.photo)} icon={<UserOutlined />} />
-                          <div>
-                            <div style={{ fontWeight: 500 }}>{record.fullname}</div>
-                            <div style={{ fontSize: '12px', color: '#8c8c8c' }}>{record.phone_number}</div>
-                          </div>
-                        </Space>
-                      )
-                    },
-                    {
-                      title: 'Status',
-                      key: 'status',
-                      render: () => <Tag color="success">Yo'lda</Tag>
-                    },
-                    {
-                        title: 'Amallar',
-                        key: 'action',
-                        render: (_, record) => (
+                <div style={{ width: '100%', overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+                  <Table
+                    dataSource={driversOnRoad}
+                    rowKey="id"
+                    loading={isLoading}
+                    scroll={{ x: 900 }} 
+                    size="small" // Use small size on mobile
+                    className="road-drivers-table"
+                    pagination={{ pageSize: 10, size: 'small' }}
+                    onRow={(record) => ({
+                      onClick: (event: any) => {
+                        if (event.target.closest('.ant-btn')) return;
+                        handleShowInfo(record);
+                      },
+                      style: { cursor: 'pointer' }
+                    })}
+                    columns={[
+                      {
+                        title: 'Haydovchi',
+                        key: 'driver',
+                        width: 180,
+                        render: (_, record: any) => (
                           <Space>
-                            <Button size="small" icon={<EditOutlined />} onClick={() => handleEditDriver(record)} />
-                            <Button size="small" danger icon={<DeleteOutlined />} onClick={() => handleDeleteDriver(record)} />
+                            <Avatar size="small" src={formatImageUrl(record.photo)} icon={<UserOutlined />} />
+                            <div style={{ lineHeight: '1.2' }}>
+                              <div style={{ fontWeight: 500, fontSize: '12px', whiteSpace: 'nowrap' }}>{record.fullname}</div>
+                              <div style={{ fontSize: '10px', color: '#8c8c8c' }}>{record.phone_number}</div>
+                            </div>
                           </Space>
                         )
-                    }
-                  ]}
-                />
+                      },
+                      {
+                        title: 'Mashina raqami',
+                        key: 'car',
+                        width: 150,
+                        render: (_, record: any) => (
+                          <div style={{ lineHeight: '1.2' }}>
+                            <div style={{ fontWeight: 500, fontSize: '12px', whiteSpace: 'nowrap' }}>{record.car?.name || record.car?.model || 'Nomalum model'}</div>
+                            <div style={{ fontSize: '10px', color: '#1890ff', fontWeight: 600 }}>{record.car?.car_number || record.car?.number || 'Davlat raqami yo\'q'}</div>
+                          </div>
+                        )
+                      },
+                      {
+                        title: 'Status',
+                        key: 'status',
+                        width: 90,
+                        render: () => <Tag color="success" style={{ margin: 0, fontSize: '11px' }}>Yo'lda</Tag>
+                      },
+                      {
+                          title: 'Amallar',
+                          key: 'action',
+                          width: 100,
+                          render: (_, record) => (
+                            <Space size={4}>
+                              <Button size="small" type="text" icon={<EditOutlined />} onClick={() => handleEditDriver(record)} />
+                              <Button size="small" type="text" danger icon={<DeleteOutlined />} onClick={() => handleDeleteDriver(record)} />
+                            </Space>
+                          )
+                      }
+                    ]}
+                  />
+                </div>
               ),
             },
           ]}

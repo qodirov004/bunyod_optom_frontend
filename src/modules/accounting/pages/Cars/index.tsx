@@ -78,11 +78,14 @@ export const CarsPage: React.FC<{ basePath?: string }> = ({ basePath = '/modules
         car.car_number.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
+    const busyCarsCount = cars.filter(car => car.is_busy).length;
+    const displayInRaysCount = Math.max(inRaysCount || 0, busyCarsCount);
+
     const stats = {
         total: cars.length || 0,
         active: cars.filter(car => car.holat === 'foal').length || 0,
         waiting: cars.filter(car => car.holat === 'kutmoqda').length || 0,
-        inRays: inRaysCount || 0,
+        inRays: displayInRaysCount,
         available: availableCount || 0
     };
 
@@ -193,17 +196,29 @@ export const CarsPage: React.FC<{ basePath?: string }> = ({ basePath = '/modules
                     responsive: ['sm'] as Breakpoint[]
                 },
                 {
-                    title: 'Nomi',
-                    dataIndex: 'name',
-                    key: 'name',
+                    title: 'Transport',
+                    key: 'transport',
                     fixed: 'left' as const,
-                    width: 150
-                },
-                {
-                    title: 'Raqami',
-                    dataIndex: 'car_number',
-                    key: 'car_number',
-                    width: 120
+                    width: 200,
+                    render: (_: any, record: CarResponse) => (
+                        <div style={{ lineHeight: '1.2' }}>
+                            <div style={{ 
+                                background: '#f5f5f5', 
+                                padding: '2px 6px', 
+                                borderRadius: '4px', 
+                                display: 'inline-block',
+                                border: '1px solid #d9d9d9',
+                                marginBottom: '2px'
+                            }}>
+                                <Text strong style={{ fontSize: '14px', color: '#141414' }}>
+                                    {record.car_number || record.number}
+                                </Text>
+                            </div>
+                            <div>
+                                <Text type="secondary" style={{ fontSize: '12px' }}>{record.name}</Text>
+                            </div>
+                        </div>
+                    )
                 },
                 {
                     title: 'Kilometr',
@@ -364,12 +379,20 @@ export const CarsPage: React.FC<{ basePath?: string }> = ({ basePath = '/modules
                             ]}
                         >
                             <div className={styles.carMetaContent}>
-                                <Title level={5} className={styles.carTitle}>{car.name}</Title>
+                                <div style={{ 
+                                    background: '#f0f0f0', 
+                                    padding: '4px 10px', 
+                                    borderRadius: '6px', 
+                                    display: 'inline-block',
+                                    border: '1px solid #d9d9d9',
+                                    marginBottom: '8px'
+                                }}>
+                                    <Text strong style={{ fontSize: '16px', color: '#141414', letterSpacing: '1px' }}>
+                                        {car.car_number || car.number}
+                                    </Text>
+                                </div>
+                                <Title level={5} className={styles.carTitle} style={{ marginTop: 0 }}>{car.name}</Title>
                                 <Space direction="vertical" size="small" className={styles.carDetails}>
-                                    <div className={styles.detailItem}>
-                                        <Text type="secondary"><CarOutlined /> Raqami:</Text>
-                                        <Text strong>{car.car_number}</Text>
-                                    </div>
                                     <div className={styles.detailItem}>
                                         <Text type="secondary"><DashboardOutlined /> Kilometr:</Text>
                                         <Text>{car.mileage} km</Text>

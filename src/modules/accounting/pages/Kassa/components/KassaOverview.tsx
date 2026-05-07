@@ -1,8 +1,8 @@
 'use client';
 import React, { useState, useRef } from 'react';
 import { Row, Col, Card, Typography, Statistic, Select, Button, Spin, Divider, Tooltip, DatePicker, Dropdown, Menu, Space } from 'antd';
-import { 
-  WalletOutlined, 
+import {
+  WalletOutlined,
   DollarOutlined,
   ReloadOutlined,
   ArrowDownOutlined,
@@ -49,7 +49,7 @@ const KassaOverview: React.FC = () => {
   // Miqdorni formatlash
   const formatCurrency = (amount: number, currency: string = selectedCurrency): string => {
     if (amount === undefined || amount === null) return '0';
-    
+
     return new Intl.NumberFormat('uz-UZ', {
       style: 'currency',
       currency,
@@ -79,11 +79,11 @@ const KassaOverview: React.FC = () => {
     label: {
       type: 'outer',
       content: '{name}: {percentage}',
-      },
+    },
     interactions: [
       {
         type: 'element-active',
-    },
+      },
     ],
     legend: {
       layout: 'horizontal',
@@ -101,7 +101,7 @@ const KassaOverview: React.FC = () => {
     if (!dateRange) {
       return new Date().toLocaleDateString();
     }
-    
+
     const [start, end] = dateRange;
     return `${start.format('DD.MM.YYYY')} - ${end.format('DD.MM.YYYY')}`;
   };
@@ -111,10 +111,31 @@ const KassaOverview: React.FC = () => {
     window.print();
   };
 
-  // Excel formatida export qilish (simulyatsiya)
-  const handleExportExcel = () => {
-    alert('Excel formatda yuklab olish funksiyasi ishga tushdi');
-    // Bu yerda haqiqiy export funksiyasini chaqirish kerak
+  // Excel formatida export qilish
+  const handleExportExcel = async () => {
+    try {
+      const params = new URLSearchParams();
+      if (dateRange && dateRange[0] && dateRange[1]) {
+        params.append('start_date', dateRange[0].format('YYYY-MM-DD'));
+        params.append('end_date', dateRange[1].format('YYYY-MM-DD'));
+      }
+      
+      const response = await axiosInstance.get(`/casa/export-overview/?${params.toString()}`, {
+        responseType: 'blob'
+      });
+      
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `kassa_hisoboti_${dayjs().format('YYYY-MM-DD')}.xlsx`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error exporting Excel:', error);
+      alert('Excel exportda xatolik yuz berdi');
+    }
   };
 
   // PDF formatida export qilish (simulyatsiya)
@@ -154,19 +175,19 @@ const KassaOverview: React.FC = () => {
             <Text type="secondary">Umumiy hisobot - {getDateRangeText()}</Text>
           </div>
           <div className="dashboard-actions non-printable">
-                <RangePicker 
+            <RangePicker
               onChange={handleDateRangeChange}
               style={{ marginRight: 16 }}
               placeholder={['Boshlanish', 'Tugash']}
               allowClear={true}
-                  format="DD.MM.YYYY"
+              format="DD.MM.YYYY"
             />
-                <Select
+            <Select
               defaultValue="USD"
               style={{ width: 120, marginRight: 16 }}
               onChange={(value) => setSelectedCurrency(value)}
               loading={currenciesLoading}
-                >
+            >
               {currencies.length > 0 ? (
                 currencies.map(currency => (
                   <Option key={currency.id} value={currency.currency}>
@@ -181,9 +202,9 @@ const KassaOverview: React.FC = () => {
                   <Option value="EUR">EUR</Option>
                 </>
               )}
-                </Select>
+            </Select>
             <Dropdown menu={{ items: exportMenuItems }} placement="bottomRight">
-              <Button 
+              <Button
                 style={{ marginRight: 16 }}
                 icon={<DownloadOutlined />}>
                 Yuklab olish
@@ -368,8 +389,8 @@ const KassaOverview: React.FC = () => {
         {/* Xarajatlar */}
         <Row gutter={[24, 24]} className="expenses-breakdown">
           <Col xs={24} md={12}>
-            <Card 
-              title="Haydovchilar maoshi" 
+            <Card
+              title="Haydovchilar maoshi"
               className="expense-detail-card"
               extra={<span className="expense-date">Joriy davr</span>}
             >
@@ -389,10 +410,10 @@ const KassaOverview: React.FC = () => {
                 </div>
               </div>
             </Card>
-                </Col>
+          </Col>
           <Col xs={24} md={12}>
-            <Card 
-              title="Servis xarajatlari" 
+            <Card
+              title="Servis xarajatlari"
               className="expense-detail-card"
               extra={<span className="expense-date">Joriy davr</span>}
             >

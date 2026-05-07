@@ -55,11 +55,11 @@ export const RevenueChart: React.FC<RevenueChartProps> = ({ data, isLoading = fa
     seriesField: 'category',
     yAxis: {
       title: {
-        text: 'Revenue (USD)',
+        text: 'Daromad (so\'m)',
       },
       label: {
         formatter: (v: number) => {
-          return `$${(v / 1000).toFixed(0)}k`;
+          return `${(v / 1000000).toFixed(1)}M`;
         },
       },
     },
@@ -76,7 +76,7 @@ export const RevenueChart: React.FC<RevenueChartProps> = ({ data, isLoading = fa
     },
     tooltip: {
       formatter: (datum: DataPoint) => {
-        return { name: datum.category, value: `$${datum.value.toLocaleString()}` };
+        return { name: datum.category, value: `${datum.value.toLocaleString()} so'm` };
       },
     },
   };

@@ -18,9 +18,12 @@ const { Title } = Typography;
 const { Option } = Select;
 
 interface ClientDebt {
+  id: number; // Transaction History ID
   client_id: number;
   fullname: string;
   client_company: string;
+  trip_id: number;
+  date: string;
   expected_usd: number;
   paid_usd: number;
   remaining_usd: number;
@@ -101,6 +104,26 @@ const ClientAccounts: React.FC = () => {
     }
   };
 
+  const [uzsId, setUzsId] = useState<number>(2); // Default to 2
+
+  // Fetch currencies to find UZS ID
+  useEffect(() => {
+    const fetchCurrencies = async () => {
+      try {
+        const response = await axiosInstance.get('/currency/');
+        const data = response.data.results || response.data || [];
+        const currencies = Array.isArray(data) ? data : [];
+        const uzs = currencies.find((c: any) => c.currency === 'UZS');
+        if (uzs) {
+          setUzsId(uzs.id);
+        }
+      } catch (error) {
+        console.error('Error fetching currencies:', error);
+      }
+    };
+    fetchCurrencies();
+  }, []);
+
   // Powerful refresh function with cache busting
   const forceRefreshData = async () => {
     try {
@@ -112,19 +135,19 @@ const ClientAccounts: React.FC = () => {
       if (response.data && Array.isArray(response.data) && response.data.length > 0) {
         const debtsWithKey = response.data.map((debt: ClientDebt) => ({
           ...debt,
-          key: debt.client_id
+          key: debt.id
         }));
 
         setDebts(debtsWithKey);
         setFilteredDebts(debtsWithKey);
 
         // Statistikalarni hisoblash
-        const totalDebt = debtsWithKey.reduce((sum, debt) => sum + Math.max(0, debt.remaining_usd), 0);
-        const totalPaid = debtsWithKey.reduce((sum, debt) => sum + debt.paid_usd, 0);
+        const totalDebt = debtsWithKey.reduce((sum, debt) => sum + Math.max(0, debt.remaining_uzs || 0), 0);
+        const totalPaid = debtsWithKey.reduce((sum, debt) => sum + (debt.paid_uzs || 0), 0);
         const averageDebt = totalDebt / debtsWithKey.length;
         const topDebtors = [...debtsWithKey]
-          .sort((a, b) => b.remaining_usd - a.remaining_usd)
-          .filter(debt => debt.remaining_usd > 0)
+          .sort((a, b) => (b.remaining_uzs || 0) - (a.remaining_uzs || 0))
+          .filter(debt => (debt.remaining_uzs || 0) > 0)
           .slice(0, 3);
 
         setTotalStats({
@@ -180,19 +203,19 @@ const ClientAccounts: React.FC = () => {
       if (response.data && Array.isArray(response.data) && response.data.length > 0) {
         const debtsWithKey = response.data.map((debt: ClientDebt) => ({
           ...debt,
-          key: debt.client_id
+          key: debt.id
         }));
 
         setDebts(debtsWithKey);
         setFilteredDebts(debtsWithKey);
 
         // Statistikalarni hisoblash
-        const totalDebt = debtsWithKey.reduce((sum, debt) => sum + Math.max(0, debt.remaining_usd), 0);
-        const totalPaid = debtsWithKey.reduce((sum, debt) => sum + debt.paid_usd, 0);
+        const totalDebt = debtsWithKey.reduce((sum, debt) => sum + Math.max(0, debt.remaining_uzs), 0);
+        const totalPaid = debtsWithKey.reduce((sum, debt) => sum + debt.paid_uzs, 0);
         const averageDebt = totalDebt / debtsWithKey.length;
         const topDebtors = [...debtsWithKey]
-          .sort((a, b) => b.remaining_usd - a.remaining_usd)
-          .filter(debt => debt.remaining_usd > 0)
+          .sort((a, b) => b.remaining_uzs - a.remaining_uzs)
+          .filter(debt => debt.remaining_uzs > 0)
           .slice(0, 3);
 
         setTotalStats({
@@ -293,7 +316,7 @@ const ClientAccounts: React.FC = () => {
           {record.client_company && (
             <small>{record.client_company}</small>
           )}
-          {record.remaining_usd > 0 && (
+          {record.remaining_uzs > 0 && (
             <Tag color="red">Qarzdor</Tag>
           )}
         </Space>
@@ -302,34 +325,51 @@ const ClientAccounts: React.FC = () => {
         a.fullname.localeCompare(b.fullname),
     },
     {
+      title: 'Reys #',
+      dataIndex: 'trip_id',
+      key: 'trip_id',
+      render: (id: string | number) => (
+        <Tag color="orange">
+          {typeof id === 'number' || (!isNaN(Number(id)) && id !== 'Bog\'lanmagan') ? `#${id}` : id}
+        </Tag>
+      ),
+      sorter: (a: ClientDebt, b: ClientDebt) => a.trip_id - b.trip_id,
+    },
+    {
+      title: 'Sana',
+      dataIndex: 'date',
+      key: 'date',
+      sorter: (a: ClientDebt, b: ClientDebt) => new Date(a.date).getTime() - new Date(b.date).getTime(),
+    },
+    {
       title: 'Umumiy summa (so\'m)',
-      dataIndex: 'expected_usd',
-      key: 'expected_usd',
-      render: (amount: number) => formatCurrency(amount),
+      dataIndex: 'expected_uzs',
+      key: 'expected_uzs',
+      render: (amount: number) => formatCurrency(amount, 'UZS'),
       sorter: (a: ClientDebt, b: ClientDebt) =>
-        a.expected_usd - b.expected_usd,
+        a.expected_uzs - b.expected_uzs,
       responsive: ['md'] as Breakpoint[],
     },
     {
       title: 'To\'langan summa (so\'m)',
-      dataIndex: 'paid_usd',
-      key: 'paid_usd',
-      render: (amount: number) => formatCurrency(amount),
+      dataIndex: 'paid_uzs',
+      key: 'paid_uzs',
+      render: (amount: number) => formatCurrency(amount, 'UZS'),
       sorter: (a: ClientDebt, b: ClientDebt) =>
-        a.paid_usd - b.paid_usd,
+        a.paid_uzs - b.paid_uzs,
       responsive: ['md'] as Breakpoint[],
     },
     {
       title: 'Qolgan qarz (so\'m)',
-      dataIndex: 'remaining_usd',
-      key: 'remaining_usd',
+      dataIndex: 'remaining_uzs',
+      key: 'remaining_uzs',
       render: (debt: number) => (
         <Tag color={debt > 0 ? 'red' : 'green'} style={{ fontSize: '14px', padding: '4px 8px' }}>
-          {formatCurrency(debt)} {debt > 0 ? <ArrowUpOutlined /> : <ArrowDownOutlined />}
+          {formatCurrency(debt, 'UZS')} {debt > 0 ? <ArrowUpOutlined /> : <ArrowDownOutlined />}
         </Tag>
       ),
       sorter: (a: ClientDebt, b: ClientDebt) =>
-        a.remaining_usd - b.remaining_usd,
+        a.remaining_uzs - b.remaining_uzs,
       responsive: ['sm'] as Breakpoint[],
     },
     {
@@ -337,7 +377,7 @@ const ClientAccounts: React.FC = () => {
       key: 'actions',
       render: (_: unknown, record: ClientDebt) => (
         <Space>
-          {record.remaining_usd > 0 ? (
+          {record.remaining_uzs > 0 ? (
             <Tooltip title="Qarzni to'lash">
               <Button
                 type="primary"
@@ -388,18 +428,28 @@ const ClientAccounts: React.FC = () => {
 
   const historyColumns = [
     {
+      title: 'Kelishilgan summa (so\'m)',
+      dataIndex: 'expected_uzs',
+      key: 'expected_uzs',
+      render: (val: number) => <span style={{ fontWeight: 600 }}>{formatCurrency(val, 'UZS')}</span>
+    },
+    {
+      title: 'To\'langan (so\'m)',
+      dataIndex: 'paid_uzs',
+      key: 'paid_uzs',
+      render: (val: number) => <span style={{ color: '#52c41a' }}>{formatCurrency(val, 'UZS')}</span>
+    },
+    {
+      title: 'Qolgan qarz (so\'m)',
+      dataIndex: 'remaining_uzs',
+      key: 'remaining_uzs',
+      render: (val: number) => <span style={{ color: '#ff4d4f', fontWeight: 'bold' }}>{formatCurrency(val, 'UZS')}</span>
+    },
+    {
       title: 'Sana',
       dataIndex: 'created_at',
       key: 'created_at',
       render: (date: string) => new Date(date).toLocaleDateString(),
-    },
-    {
-      title: 'Summa',
-      dataIndex: 'amount',
-      key: 'amount',
-      render: (amount: number) => (
-        <span>{formatCurrency(amount)}</span>
-      ),
     },
     {
       title: 'To\'lov usuli',
@@ -519,27 +569,27 @@ const ClientAccounts: React.FC = () => {
               columns={columns}
               dataSource={filteredDebts}
               loading={loading}
-              rowKey="client_id"
+              rowKey="id"
               pagination={{
                 total: filteredDebts.length,
                 pageSize: 10,
                 showSizeChanger: true,
-                showTotal: (total) => `Jami: ${total} mijozlar`,
+                showTotal: (total) => `Jami: ${total} ta qarz yozuvi`,
               }}
               className="client-accounts-table"
               summary={(pageData) => {
-                const totalDebt = pageData.reduce((sum, record) => sum + Math.max(0, record.remaining_usd), 0);
-                const totalPaid = pageData.reduce((sum, record) => sum + record.paid_usd, 0);
+                const totalDebt = pageData.reduce((sum, record) => sum + Math.max(0, record.remaining_uzs || 0), 0);
+                const totalPaid = pageData.reduce((sum, record) => sum + (record.paid_uzs || 0), 0);
                 return (
                   <>
                     <Table.Summary.Row style={{ fontWeight: 'bold', background: '#fafafa' }}>
                       <Table.Summary.Cell index={0}>Jami</Table.Summary.Cell>
                       <Table.Summary.Cell index={1}></Table.Summary.Cell>
                       <Table.Summary.Cell index={2}></Table.Summary.Cell>
-                      <Table.Summary.Cell index={3}>{formatCurrency(totalPaid)}</Table.Summary.Cell>
+                      <Table.Summary.Cell index={3}>{formatCurrency(totalPaid, 'UZS')}</Table.Summary.Cell>
                       <Table.Summary.Cell index={4}>
                         <Tag color={totalDebt > 0 ? 'red' : 'green'} style={{ fontSize: '14px', padding: '4px 8px' }}>
-                          {formatCurrency(totalDebt)}
+                          {formatCurrency(totalDebt, 'UZS')}
                         </Tag>
                       </Table.Summary.Cell>
                       <Table.Summary.Cell index={5}></Table.Summary.Cell>
@@ -650,7 +700,7 @@ const ClientAccounts: React.FC = () => {
               const paymentData = {
                 client: selectedClient,
                 amount: values.amount,
-                currency: 4, // UZS
+                currency: uzsId, // Dynamic UZS ID
                 payment_way: values.payment_way,
                 comment: values.comment || "Qarz to'lovi",
                 is_debt: false,

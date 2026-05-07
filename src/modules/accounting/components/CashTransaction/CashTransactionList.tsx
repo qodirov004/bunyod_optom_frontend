@@ -287,24 +287,12 @@ const CashTransactionList: React.FC = () => {
     // Removed Client column as requested
     {
       title: 'Mijoz kompaniyasi',
-      key: 'company_name',
+      dataIndex: 'client_company',
+      key: 'client_company',
       responsive: ['md'] as Breakpoint[],
-      render: (_: any, record: Cash) => {
-        // 1. lookup from clientsLookup (using ID match)
-        const idLookup = clientsLookup[Number(record.client)] || clientsLookup[String(record.client) as any];
-        if (idLookup && idLookup !== '-') return <span style={{ fontWeight: 600, color: '#1890ff' }}>{idLookup}</span>;
-
-        // 2. lookup by Name (if ID lookup failed)
-        const nameLookupMap = (window as any).__clientsNameLookup || {};
-        const nameLookup = record.client_name ? nameLookupMap[record.client_name.toLowerCase()] : null;
-        if (nameLookup && nameLookup !== '-') return <span style={{ fontWeight: 600, color: '#1890ff' }}>{nameLookup}</span>;
-
-        // 3. Try fields from the record as last resort
-        const recordCompany = (record as any).company_name || (record as any).client_company || (record as any).company;
-        if (recordCompany && recordCompany !== '-') return <span style={{ fontWeight: 600, color: '#1890ff' }}>{recordCompany}</span>;
-
-        return <span style={{ color: '#bfbfbf' }}>-</span>;
-      }
+      render: (company: string) => (
+        <span style={{ fontWeight: 600, color: '#1890ff' }}>{company || '-'}</span>
+      )
     },
 
 
@@ -636,23 +624,11 @@ const CashTransactionList: React.FC = () => {
     // Removed Client column as requested
     {
       title: 'Mijoz kompaniyasi',
+      dataIndex: 'client_company',
       key: 'client_company',
-      render: (_: any, record: CashHistory) => {
-        // 1. lookup from clientsLookup (using ID match)
-        const idLookup = clientsLookup[Number(record.client)] || clientsLookup[String(record.client) as any];
-        if (idLookup && idLookup !== '-') return <span style={{ fontWeight: 600, color: '#1890ff' }}>{idLookup}</span>;
-
-        // 2. lookup by Name (if ID lookup failed)
-        const nameLookupMap = (window as any).__clientsNameLookup || {};
-        const nameLookup = record.client_name ? nameLookupMap[record.client_name.toLowerCase()] : null;
-        if (nameLookup && nameLookup !== '-') return <span style={{ fontWeight: 600, color: '#1890ff' }}>{nameLookup}</span>;
-
-        // 3. Try fields from the record as last resort
-        const recordCompany = (record as any).client_company || (record as any).company_name || (record as any).company;
-        if (recordCompany && recordCompany !== '-') return <span style={{ fontWeight: 600, color: '#1890ff' }}>{recordCompany}</span>;
-
-        return <span style={{ color: '#bfbfbf' }}>-</span>;
-      }
+      render: (company: string) => (
+        <span style={{ fontWeight: 600, color: '#1890ff' }}>{company || '-'}</span>
+      )
     },
 
     {
