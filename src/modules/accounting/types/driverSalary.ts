@@ -16,10 +16,7 @@ export interface DriverSalary {
 export interface DriverSalaryCreate {
     driver: number;
     amount: number;
-    currency?: string;
-    custom_rate_to_uzs?: number;
-    title?: string;
-    comment?: string;
+    currency?: number;
 }
 
 export interface DriverSalaryFilter {

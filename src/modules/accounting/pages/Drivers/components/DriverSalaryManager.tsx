@@ -102,10 +102,8 @@ const DriverSalaryManager: React.FC<DriverSalaryManagerProps> = ({ driverId }) =
       const values = await form.validateFields();
       const formattedValues: DriverSalaryCreate = {
         driver: values.driver,
-        amount: values.amount.toString(),
-        currency: values.currency,
-        title: values.title || 'To\'lov',
-        comment: values.comment || ''
+        amount: Number(values.amount),
+        currency: 4, // UZS FK id
       };
       
       await createDriverSalary(formattedValues);
@@ -358,27 +356,6 @@ const DriverSalaryManager: React.FC<DriverSalaryManagerProps> = ({ driverId }) =
             name="currency"
             label="Valyuta"
             initialValue="UZS"
-            rules={[{ required: true, message: 'Iltimos, valyutani tanlang' }]}
-          >
-            <Select placeholder="Valyutani tanlang">
-              <Option value="UZS">UZS</Option>
-              <Option value="USD">USD</Option>
-              <Option value="EUR">EUR</Option>
-            </Select>
-          </Form.Item>
-          <Form.Item
-            name="title"
-            label="To'lov nomi"
-            initialValue="To'lov"
-            hidden
-          >
-            <Input />
-          </Form.Item>
-
-          <Form.Item
-            name="comment"
-            label="Izoh"
-            initialValue=""
             hidden
           >
             <Input />

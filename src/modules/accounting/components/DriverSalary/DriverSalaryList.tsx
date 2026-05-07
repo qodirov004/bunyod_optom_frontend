@@ -131,7 +131,7 @@ const DriverSalaryList: React.FC = () => {
           </Space>
           <Table
             dataSource={filteredData}
-            rowKey={(record: any, index: number) => record.id?.toString() ?? `${record.driver_name}-${record.paid_at}-${index}`}
+            rowKey={(record: any) => record.id?.toString() ?? `${record.driver_name}-${record.paid_at}`}
             loading={loading}
             pagination={{
               pageSize: 10,

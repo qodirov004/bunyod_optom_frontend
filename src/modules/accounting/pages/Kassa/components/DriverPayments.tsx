@@ -328,10 +328,8 @@ const DriverPayments: React.FC = () => {
       // Create payment using the driverSalaryApi
       const paymentData = {
         driver: currentDriver.id,
-        amount: values.paymentAmount.toString(),
-        currency: 'UZS',
-        title: `To'lov ${dayjs(values.paymentDate).format('YYYY-MM-DD')}`,
-        comment: values.description || `Haydovchi ${currentDriver.name} uchun to'lov`
+        amount: Number(values.paymentAmount),
+        currency: 4, // UZS FK id
       };
       
       const result = await driverSalaryApi.createDriverSalary(paymentData);
