@@ -41,13 +41,18 @@ export const driverSalaryApi = {
 
     createDriverSalary: async (data: DriverSalaryCreate) => {
         try {
+            console.log('Creating driver salary with data:', JSON.stringify(data));
             const response = await axiosInstance.post<DriverSalary>(
                 '/driversalary/',
                 data
             );
             return response.data;
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error creating driver salary:', error);
+            if (error.response) {
+                console.error('Response status:', error.response.status);
+                console.error('Response data:', JSON.stringify(error.response.data));
+            }
             throw error;
         }
     },

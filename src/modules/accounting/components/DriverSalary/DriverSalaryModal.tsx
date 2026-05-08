@@ -65,7 +65,6 @@ const DriverSalaryModal: React.FC<DriverSalaryModalProps> = ({
       const salaryData = {
         driver: Number(values.driver),
         amount: Number(values.amount),
-        currency: 4, // Hardcoded UZS (FK id)
       };
 
       if (isEditMode && editingRecord) {

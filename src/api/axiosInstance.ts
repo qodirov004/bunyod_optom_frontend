@@ -94,6 +94,12 @@ axiosInstance.interceptors.response.use(
     },
     (error) => {
         if (process.env.NODE_ENV === 'development') {
+            // Network error (no response from server)
+            if (!error.response) {
+                console.warn('Network Error: Backend server is unreachable or request timed out.', error.message);
+                return Promise.reject(error);
+            }
+
             const isDriverSalary403 = error.response?.status === 403 && error.config?.url?.includes('driversalary');
             const isDriverHistory403 = error.response?.status === 403 && error.config?.url?.includes('driver-history');
             const isUtility404 = error.response?.status === 404 && (

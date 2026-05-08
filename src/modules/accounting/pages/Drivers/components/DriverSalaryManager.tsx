@@ -103,7 +103,6 @@ const DriverSalaryManager: React.FC<DriverSalaryManagerProps> = ({ driverId }) =
       const formattedValues: DriverSalaryCreate = {
         driver: values.driver,
         amount: Number(values.amount),
-        currency: 4, // UZS FK id
       };
       
       await createDriverSalary(formattedValues);
