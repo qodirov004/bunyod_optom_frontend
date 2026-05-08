@@ -519,7 +519,7 @@ const CashTransactionList: React.FC = () => {
       product: cash.product,
       driver: cash.driver,
       amount: cash.amount,
-      currency: 4, // Standardized to UZS
+      currency: cash.currency, // Use the existing currency from the record
       payment_way: cash.payment_way,
       comment: cash.comment,
       is_debt: cash.is_debt,

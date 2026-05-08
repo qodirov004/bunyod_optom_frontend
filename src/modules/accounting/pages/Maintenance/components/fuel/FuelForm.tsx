@@ -31,8 +31,6 @@ const FuelForm: React.FC<FuelFormProps> = ({ onFinish, onCancel, cars, loading, 
       ...values,
       liters: Number(values.liters),
       price: Number(values.price),
-      currency: 4, // UZS
-      custom_rate_to_uzs: 1
     };
     onFinish(processedValues);
   };

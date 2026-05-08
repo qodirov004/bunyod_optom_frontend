@@ -75,8 +75,6 @@ const BalonList: React.FC<BalonListProps> = ({
           service: { 
             ...selectedService, 
             ...values,
-            currency: 4, // Hardcoded UZS
-            custom_rate_to_uzs: 1 // 1 to 1 for UZS
           },
         });
       }

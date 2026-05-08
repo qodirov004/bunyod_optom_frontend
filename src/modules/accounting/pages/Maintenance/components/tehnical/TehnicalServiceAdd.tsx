@@ -41,33 +41,15 @@ const TehnicalServiceAdd: React.FC<TehnicalServiceAddProps> = ({ addTehnicalServ
   }, []);
 
   const onFinish = async (values: any) => {
-    try {
-      // Find UZS currency ID dynamically
-      const currencyRes = await axiosInstance.get('/currency/');
-      const uzsCurrency = currencyRes.data.find((c: any) => c.currency === 'UZS');
-      const uzsId = uzsCurrency ? uzsCurrency.id : (cars.length > 0 ? 4 : 4); // Fallback to 4 if not found
+    const newService: any = {
+      price: values.price,
+      kilometer: values.kilometer,
+      car: values.car,
+      service: values.service,
+    };
 
-      const newService: any = {
-        price: values.price,
-        kilometer: values.kilometer,
-        car: values.car,
-        service: values.service,
-        currency: uzsId,
-        custom_rate_to_uzs: 1.0,
-      };
-
-      addTehnicalService(newService);
-      form.resetFields();
-    } catch (error) {
-      console.error('Error finding currency or adding service:', error);
-      // Fallback submission if currency fetch fails
-      addTehnicalService({
-        ...values,
-        currency: 4,
-        custom_rate_to_uzs: 1.0
-      } as any);
-      form.resetFields();
-    }
+    addTehnicalService(newService);
+    form.resetFields();
   };
 
   return (

@@ -91,7 +91,6 @@ const TehnicalServiceList: React.FC<TehnicalServiceListProps> = ({
             service: values.service,
             kilometer: values.kilometer,
             price: values.price,
-            currency: 4,
           },
         });
       }

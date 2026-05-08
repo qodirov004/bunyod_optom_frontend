@@ -204,7 +204,6 @@ const FreightDeliveryPage: React.FC = () => {
       if (trip) {
         paymentForm.setFieldsValue({
           amount: trip.dp_price,
-          currency: 4,
           payment_date: dayjs(),
           payment_method: 'cash'
         });
@@ -266,7 +265,6 @@ const FreightDeliveryPage: React.FC = () => {
         driver: driverId,
         rays: selectedTripId,
         amount: values.amount.toString(),
-        currency: 4,
         comment: values.comments || ''
       };
       
