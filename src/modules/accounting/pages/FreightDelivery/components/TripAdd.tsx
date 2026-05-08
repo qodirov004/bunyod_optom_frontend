@@ -198,48 +198,10 @@ const TripAdd: React.FC<TripAddProps> = ({ onSuccess }) => {
     );
   };
 
-  // Load saved draft when component mounts
+  // Clear any saved draft when component mounts - always start fresh
   useEffect(() => {
-    const savedDraft = loadDraftFromStorage();
-    if (savedDraft && savedDraft.length > 0) {
-      // Filter out clients with no products
-      const validClients = savedDraft.filter(client => 
-        client.products && client.products.length > 0
-      );
-      
-      // Process each client to deduplicate products
-      const processedClients = validClients.map(client => {
-        // Filter out duplicate products
-        const uniqueProducts: ClientProduct[] = [];
-        client.products.forEach(product => {
-          // Check if this product is a duplicate of any existing product
-          const isDuplicate = uniqueProducts.some(existingProduct => 
-            isProductDuplicate(existingProduct, product)
-          );
-          
-          if (!isDuplicate) {
-            uniqueProducts.push(product);
-          }
-        });
-        
-        return {
-          ...client,
-          products: uniqueProducts
-        };
-      });
-      
-      // Only set state if there are valid clients with products
-      if (processedClients.length > 0) {
-        setSelectedClients(processedClients);
-        setCurrentClientId(processedClients[0].client.id);
-        setActiveTabKey("0");
-        // Trigger message in a timeout or separate effect to avoid render cycle issues
-        setTimeout(() => {
-          messageApi.info("Saqlangan ma'lumotlar yuklandi");
-        }, 100);
-      }
-    }
-  }, [messageApi]);
+    clearDraftFromStorage();
+  }, []);
 
   // Save draft when selectedClients changes, but with debounce
   useEffect(() => {

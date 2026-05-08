@@ -296,11 +296,7 @@ const FurgonList: React.FC = () => {
             dataSource={filteredFurgons}
             rowKey="id"
             scroll={{ x: 'max-content' }}
-            pagination={{
-              pageSize: 10,
-              showSizeChanger: true,
-              showTotal: (total) => `Jami ${total} ta furgon`,
-            }}
+            pagination={false}
           />
         ) : (
           renderFurgonCards()

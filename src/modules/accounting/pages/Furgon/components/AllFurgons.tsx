@@ -203,7 +203,7 @@ const AllFurgons: React.FC<AllFurgonsProps> = ({ onAddNew }) => {
             columns={columns}
             dataSource={filteredFurgons}
             rowKey="id"
-            pagination={{ pageSize: 10 }}
+            pagination={false}
             className={styles.furgonTable}
             scroll={{ x: 'max-content' }}
           />
