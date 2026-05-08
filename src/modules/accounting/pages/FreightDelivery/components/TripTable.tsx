@@ -250,10 +250,7 @@ const TripTable = ({
       title: 'Narxi',
       key: 'price',
       render: (_: any, record: RaysResponseType) => {
-        const rate = record.custom_rate_to_uzs ? parseFloat(record.custom_rate_to_uzs) : 1;
-        const isNotUZS = record.currency && record.currency !== 4;
-        const displayPrice = isNotUZS ? (record.price * rate) : record.price;
-        return formatCurrency(displayPrice);
+        return formatCurrency(record.price);
       },
     },
     {
@@ -268,20 +265,14 @@ const TripTable = ({
       title: "Qo'shimcha xarajat",
       key: 'dr_price',
       render: (_: any, record: RaysResponseType) => {
-        const rate = record.custom_rate_to_uzs ? parseFloat(record.custom_rate_to_uzs) : 1;
-        const isNotUZS = record.currency && record.currency !== 4;
-        const displayDrPrice = isNotUZS ? (record.dr_price * rate) : record.dr_price;
-        return formatCurrency(displayDrPrice);
+        return formatCurrency(record.dr_price);
       },
     },
     {
       title: "Haydovchiga to'lov",
       key: 'dp_price',
       render: (_: any, record: RaysResponseType) => {
-        const rate = record.custom_rate_to_uzs ? parseFloat(record.custom_rate_to_uzs) : 1;
-        const isNotUZS = record.dp_currency && record.dp_currency !== 4;
-        const displayDpPrice = isNotUZS ? (record.dp_price * rate) : record.dp_price;
-        return formatCurrency(displayDpPrice);
+        return formatCurrency(record.dp_price);
       },
     },
     {
@@ -594,24 +585,10 @@ const TripTable = ({
                 </div>
 
                 <div className="price-info">
-                  {(() => {
-                    const rate = trip.custom_rate_to_uzs ? parseFloat(trip.custom_rate_to_uzs) : 1;
-                    const isPriceNotUZS = trip.currency && trip.currency !== 4;
-                    const isDpNotUZS = trip.dp_currency && trip.dp_currency !== 4;
-
-                    const dPrice = isPriceNotUZS ? (trip.price * rate) : trip.price;
-                    const dDrPrice = isPriceNotUZS ? (trip.dr_price * rate) : trip.dr_price;
-                    const dDpPrice = isDpNotUZS ? (trip.dp_price * rate) : trip.dp_price;
-
-                    return (
-                      <>
-                        <p><DollarOutlined /> Narxi: <Text strong>{formatCurrency(dPrice)}</Text></p>
-                        <p>Haydovchining xarajatlari: {formatCurrency(trip.driver_expense || 0)}</p>
-                        <p>Qo'shimcha xarajat: {formatCurrency(dDrPrice)}</p>
-                        <p>Haydovchiga to`lov: {formatCurrency(dDpPrice)}</p>
-                      </>
-                    );
-                  })()}
+                  <p><DollarOutlined /> Narxi: <Text strong>{formatCurrency(trip.price)}</Text></p>
+                  <p>Haydovchining xarajatlari: {formatCurrency(trip.driver_expense || 0)}</p>
+                  <p>Qo'shimcha xarajat: {formatCurrency(trip.dr_price)}</p>
+                  <p>Haydovchiga to`lov: {formatCurrency(trip.dp_price)}</p>
                 </div>
 
                 <div className="trip-footer">

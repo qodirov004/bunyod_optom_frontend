@@ -172,7 +172,7 @@ export const useFinancialData = (dateRange: DateRange) => {
           (entry.payment_way_name && entry.payment_way_name.toLowerCase().includes('naqd')) ||
           (entry.payment_name && entry.payment_name.toLowerCase().includes('naqd'))
         )
-        .reduce((sum: number, entry: any) => sum + (Number(entry.amount) * (Number(entry.custom_rate_to_uzs) || 1)), 0)
+        .reduce((sum: number, entry: any) => sum + (Number(entry.amount) || 0), 0)
     : 0;
 
   const bankPayments = Array.isArray(cashEntries)
@@ -183,7 +183,7 @@ export const useFinancialData = (dateRange: DateRange) => {
           (entry.payment_way_name && (entry.payment_way_name.toLowerCase().includes('bank') || entry.payment_way_name.toLowerCase().includes('o\'tkazma'))) ||
           (entry.payment_name && (entry.payment_name.toLowerCase().includes('bank') || entry.payment_name.toLowerCase().includes('o\'tkazma')))
         )
-        .reduce((sum: number, entry: any) => sum + (Number(entry.amount) * (Number(entry.custom_rate_to_uzs) || 1)), 0)
+        .reduce((sum: number, entry: any) => sum + (Number(entry.amount) || 0), 0)
     : 0;
 
   // Build financial overview object

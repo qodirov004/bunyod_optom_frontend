@@ -431,7 +431,7 @@ export const freightApi = {
           name: '',
           number: ''
         },
-        dp_currency: data.dp_currency || 'USD',
+        dp_currency: data.dp_currency || 'UZS',
         is_completed: data.is_completed || false
       };
 

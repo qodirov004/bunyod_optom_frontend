@@ -452,26 +452,19 @@ const TripHistoryPage: React.FC = () => {
         // Map history data to match the UI expectations (mapping snapshot data to regular fields)
         const mapHistoryData = (data: any[]) => {
           return data.map((item: any) => {
-            // Convert main trip price if it's not UZS OR if it looks like USD (heuristic)
-            const mainRate = item.custom_rate_to_uzs ? parseFloat(item.custom_rate_to_uzs) : 12500;
-            const isMainNotUZS = item.currency && item.currency !== 4;
-            const looksLikeUSD = item.price > 0 && item.price < 50000 && !isMainNotUZS; // Heuristic for missing currency ID
-
-            const finalPrice = (isMainNotUZS || looksLikeUSD) ? (item.price * mainRate) : item.price;
-            const finalDrPrice = (isMainNotUZS || looksLikeUSD) ? (item.dr_price * mainRate) : item.dr_price;
-            const finalDpPrice = (item.dp_currency && item.dp_currency !== 4) ? (item.dp_price * mainRate) : item.dp_price;
+            // All prices are now in UZS, no conversion needed
+            const finalPrice = item.price;
+            const finalDrPrice = item.dr_price;
+            const finalDpPrice = item.dp_price;
             
             // Calculate total expenses for profit calculation
-            // Note: dr_price is often a budget that is then itemized in chiqimliks. 
-            // We use itemized expenses to avoid double counting the budget.
-            const expensesPriceTotal = (item.expenses?.texnics?.reduce((s: number, e: any) => s + (e.price * (e.custom_rate_to_uzs ? parseFloat(e.custom_rate_to_uzs) : 1)), 0) || 0) +
-                                      (item.expenses?.balons?.reduce((s: number, e: any) => s + (e.price * (e.custom_rate_to_uzs ? parseFloat(e.custom_rate_to_uzs) : 1)), 0) || 0) +
-                                      (item.expenses?.balon_furgons?.reduce((s: number, e: any) => s + (e.price * (e.custom_rate_to_uzs ? parseFloat(e.custom_rate_to_uzs) : 1)), 0) || 0) +
-                                      (item.expenses?.optols?.reduce((s: number, e: any) => s + (e.price * (e.custom_rate_to_uzs ? parseFloat(e.custom_rate_to_uzs) : 1)), 0) || 0) +
-                                      (item.expenses?.chiqimliks?.reduce((s: number, e: any) => s + (e.price * (e.custom_rate_to_uzs ? parseFloat(e.custom_rate_to_uzs) : 1)), 0) || 0);
+            const expensesPriceTotal = (item.expenses?.texnics?.reduce((s: number, e: any) => s + e.price, 0) || 0) +
+                                      (item.expenses?.balons?.reduce((s: number, e: any) => s + e.price, 0) || 0) +
+                                      (item.expenses?.balon_furgons?.reduce((s: number, e: any) => s + e.price, 0) || 0) +
+                                      (item.expenses?.optols?.reduce((s: number, e: any) => s + e.price, 0) || 0) +
+                                      (item.expenses?.chiqimliks?.reduce((s: number, e: any) => s + e.price, 0) || 0);
 
-            // New Profit Formula: Income - (Driver's payment + All truck-related expenses + driver_expense)
-            // We don't subtract dr_price separately if individual expenses are already being added.
+            // Profit = Income - (Driver's payment + All truck-related expenses + driver_expense)
             const tripProfit = finalPrice - finalDpPrice - expensesPriceTotal - (item.driver_expense || 0);
 
             return {
@@ -490,13 +483,10 @@ const TripHistoryPage: React.FC = () => {
                   company: clientObj.company || clientObj.client_company || '',
                   number: clientObj.number || clientObj.phone || '',
                   products: (clientObj.products || []).map((p: any, pIndex: number) => {
-                    // Convert product price if needed
-                    const rate = p.custom_rate_to_uzs ? parseFloat(p.custom_rate_to_uzs) : 1;
-                    const isNotUZS = p.currency && p.currency !== 4;
                     return {
                       ...p,
                       key: p.id || `prod-${index}-${pIndex}`,
-                      displayPrice: isNotUZS ? (p.price * rate) : p.price
+                      displayPrice: p.price
                     };
                   })
                 };

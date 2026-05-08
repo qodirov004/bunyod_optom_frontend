@@ -334,14 +334,12 @@ const RaysTulovlar: React.FC = () => {
                       <div style={{ marginTop: '10px', padding: '8px', background: '#f5f5f5', borderRadius: '4px' }}>
                         <div style={{ fontSize: '12px', fontWeight: 'bold', marginBottom: '4px' }}>Yuklar ro&apos;yxati:</div>
                         {client.products.map(product => {
-                          // Calculate UZS on the fly for the product if we need to, 
-                          // but for simplicity we'll just use the total logic above if possible.
-                          // However, we can also approximate it.
-                          const productPriceUzs = product.price_usd * 12800; // Approximation or we can just hide it if not needed
+                          // All prices are now in UZS, use directly
+                          const productPrice = product.price_usd || 0;
                           return (
                             <div key={`prod-${product.id}`} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
                               <span>• {product.name}</span>
-                              <span style={{ color: '#1890ff' }}>{formatCurrency(productPriceUzs, 'UZS')}</span>
+                              <span style={{ color: '#1890ff' }}>{formatCurrency(productPrice, 'UZS')}</span>
                             </div>
                           );
                         })}
