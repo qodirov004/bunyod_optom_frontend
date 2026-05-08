@@ -2,10 +2,10 @@ import axios from "axios";
 import { getToken, removeToken, syncTokenStatus } from "@/auth/authUtils";
 
 // DIRECT PRODUCTION CONNECTION (Bypassing proxy to avoid HTML 500/404 errors)
-export const baseURL = 'http://127.0.0.1:8000/';
+export const baseURL = "https://logistika.api.ardentsoft.uz/";
 
 // For images, we use the same base
-export const apiRootURL = 'http://127.0.0.1:8000/';
+export const apiRootURL = "https://logistika.api.ardentsoft.uz/";
 
 export const formatImageUrl = (url: string | null | undefined) => {
     if (!url || typeof url !== 'string' || url.trim() === '') return null;
