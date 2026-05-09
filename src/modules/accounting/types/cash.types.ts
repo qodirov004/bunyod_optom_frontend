@@ -77,6 +77,10 @@ export interface CashOverview {
         KZT: number;
         total_in_usd: number;
         total_in_uzs?: number;
+        client_income_uzs?: number;
+        naqd_uzs?: number;
+        bank_uzs?: number;
+        driver_returned_uzs?: number;
     };
     expenses: {
         dp_price_usd: number;
