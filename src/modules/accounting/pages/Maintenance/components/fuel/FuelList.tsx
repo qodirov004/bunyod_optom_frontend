@@ -35,10 +35,38 @@ const FuelList: React.FC<FuelListProps> = ({ fuelServices, updateFuelService, de
     }
   };
 
-  const getCarDisplay = (carId: number | null) => {
+  const getCarDisplay = (carData: any, record: any) => {
+    // Agar backenddan to'g'ridan to'g'ri car_number kelsa
+    if (record && record.car_number) {
+       return (
+         <Space direction="vertical" size={0}>
+           <span style={{ fontWeight: 500 }}>{record.car_name || 'Mashina'}</span>
+           <Tag color="blue" style={{ fontSize: '11px', margin: 0 }}>{record.car_number}</Tag>
+         </Space>
+       );
+    }
+    
+    if (!carData) return '-';
+    
+    // Extract car ID whether it's a direct ID or a nested object
+    const carId = typeof carData === 'object' ? carData.id : carData;
     if (!carId) return '-';
-    const car = cars.find((c: any) => c.id === carId);
-    if (!car) return `Mashina (${carId})`;
+
+    // Find car in loaded cars list
+    const car = cars.find((c: any) => String(c.id) === String(carId));
+    
+    if (!car) {
+      // Fallback if car is a nested object with name/car_number already included
+      if (typeof carData === 'object' && carData.name) {
+        return (
+          <Space direction="vertical" size={0}>
+            <span style={{ fontWeight: 500 }}>{carData.name}</span>
+            <Tag color="blue" style={{ fontSize: '11px', margin: 0 }}>{carData.car_number || carData.number || 'Raqamsiz'}</Tag>
+          </Space>
+        );
+      }
+      return `Mashina (${carId})`;
+    }
     
     return (
       <Space direction="vertical" size={0}>
@@ -68,9 +96,8 @@ const FuelList: React.FC<FuelListProps> = ({ fuelServices, updateFuelService, de
     },
     {
       title: 'Mashina',
-      dataIndex: 'car',
       key: 'car',
-      render: (carId: number | null) => getCarDisplay(carId),
+      render: (_: any, record: any) => getCarDisplay(record.car || record.car_id, record),
     },
     {
       title: 'Haydovchi',

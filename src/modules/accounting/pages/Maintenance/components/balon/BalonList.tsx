@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Space, Modal, Form, Card, Tooltip, InputNumber, Select } from 'antd';
+import { Table, Button, Space, Modal, Form, Card, Tooltip, InputNumber, Select, Tag } from 'antd';
 import { DeleteOutlined, EditOutlined, UnorderedListOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import '../../style/maintenance.css';
+import { useCars } from '@/modules/accounting/hooks/useCars';
 
 // Inline styles
 const styles = {
@@ -55,6 +56,47 @@ const BalonList: React.FC<BalonListProps> = ({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedService, setSelectedService] = useState<BalonServiceType | null>(null);
   const [form] = Form.useForm();
+  const { cars = [] } = useCars();
+  
+  const getCarDisplay = (carData: any, record: any) => {
+    // Agar backenddan to'g'ridan to'g'ri car_number kelsa
+    if (record && record.car_number) {
+       return (
+         <Space direction="vertical" size={0}>
+           <span style={{ fontWeight: 500 }}>{record.car_name || 'Mashina'}</span>
+           <Tag color="blue" style={{ fontSize: '11px', margin: 0 }}>{record.car_number}</Tag>
+         </Space>
+       );
+    }
+    
+    if (!carData) return '-';
+    
+    // Extract car ID whether it's a direct ID or a nested object
+    const carId = typeof carData === 'object' ? carData.id : carData;
+    if (!carId) return '-';
+
+    // Find car in loaded cars list
+    const car = cars.find((c: any) => String(c.id) === String(carId));
+    
+    if (!car) {
+      if (typeof carData === 'object' && carData.name) {
+        return (
+          <Space direction="vertical" size={0}>
+            <span style={{ fontWeight: 500 }}>{carData.name}</span>
+            <Tag color="blue" style={{ fontSize: '11px', margin: 0 }}>{carData.car_number || carData.number || 'Raqamsiz'}</Tag>
+          </Space>
+        );
+      }
+      return `Mashina (${carId})`;
+    }
+    
+    return (
+      <Space direction="vertical" size={0}>
+        <span style={{ fontWeight: 500 }}>{car.name}</span>
+        <Tag color="blue" style={{ fontSize: '11px', margin: 0 }}>{car.car_number || car.number}</Tag>
+      </Space>
+    );
+  };
   
   useEffect(() => {
     if (isModalOpen && selectedService) {
@@ -128,8 +170,8 @@ const BalonList: React.FC<BalonListProps> = ({
     },
     {
       title: 'Mashina',
-      dataIndex: 'car_number',
-      key: 'car_number',
+      key: 'car',
+      render: (_: any, record: any) => getCarDisplay(record.car || record.car_id, record),
     },
     {
       title: 'Sana',

@@ -97,10 +97,43 @@ const OptolList: React.FC<OptolListProps> = ({
     });
   };
 
-  const getCarName = (carId: number | null) => {
-    if (!carId) return 'Noma\'lum';
-    const car = cars.find(c => c.id === carId);
-    return car ? car.name : 'Noma\'lum';
+  const getCarDisplay = (carData: any, record: any) => {
+    if (record && record.car_number) {
+       return (
+         <Space direction="vertical" size={0}>
+           <span style={{ fontWeight: 500 }}>{record.car_name || 'Mashina'}</span>
+           <Tag color="blue" style={{ fontSize: '11px', margin: 0 }}>{record.car_number}</Tag>
+         </Space>
+       );
+    }
+    
+    if (!carData) return '-';
+    
+    // Extract car ID whether it's a direct ID or a nested object
+    const carId = typeof carData === 'object' ? carData.id : carData;
+    if (!carId) return '-';
+
+    // Find car in loaded cars list
+    const car = cars.find((c: any) => String(c.id) === String(carId));
+    
+    if (!car) {
+      if (typeof carData === 'object' && carData.name) {
+        return (
+          <Space direction="vertical" size={0}>
+            <span style={{ fontWeight: 500 }}>{carData.name}</span>
+            <Tag color="blue" style={{ fontSize: '11px', margin: 0 }}>{carData.car_number || carData.number || 'Raqamsiz'}</Tag>
+          </Space>
+        );
+      }
+      return `Mashina (${carId})`;
+    }
+    
+    return (
+      <Space direction="vertical" size={0}>
+        <span style={{ fontWeight: 500 }}>{car.name}</span>
+        <Tag color="blue" style={{ fontSize: '11px', margin: 0 }}>{car.car_number || car.number}</Tag>
+      </Space>
+    );
   };
 
   const getCurrencyName = (currencyId: number | null): string => {
@@ -136,9 +169,8 @@ const OptolList: React.FC<OptolListProps> = ({
     },
     {
       title: 'Mashina',
-      dataIndex: 'car_number',
-      key: 'car_number',
-      render: (car_number: string | null) => car_number,
+      key: 'car',
+      render: (_: any, record: any) => getCarDisplay(record.car || record.car_id, record),
     },
     {
       title: 'Sana',
