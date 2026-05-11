@@ -90,7 +90,7 @@ const DriverInfoModal: React.FC<DriverInfoModalProps> = ({ visible, driver, onCl
                             <Col xs={24} sm={12}>
                                 <Card styles={{ body: { padding: '20px', textAlign: 'center', backgroundColor: '#f9f9f9', borderRadius: '12px' } }}>
                                     <Text type="secondary">Topgan summasi</Text>
-                                    <Title level={3} style={{ margin: '8px 0 0 0', color: '#52c41a' }}>{(Number(driver.total_rays_usd || 0) * 12800).toLocaleString()}</Title>
+                                    <Title level={3} style={{ margin: '8px 0 0 0', color: '#52c41a' }}>{(Number(driver.total_rays_usd || 0)).toLocaleString('uz-UZ')}</Title>
                                     <Text style={{ fontSize: '12px' }}>so'm</Text>
                                 </Card>
                             </Col>

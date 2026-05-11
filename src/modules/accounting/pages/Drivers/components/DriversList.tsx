@@ -128,10 +128,10 @@ const DriversList: React.FC<DriversListProps> = ({
       key: 'total_rays_usd',
       width: 180,
       render: (total_usd: number | undefined) => {
-        const totalUZS = (Number(total_usd) || 0) * 12800;
+        const totalUZS = Number(total_usd) || 0;
         return (
           <Tag color="green" style={{ fontWeight: 500 }}>
-            {totalUZS.toLocaleString()} so'm
+            {totalUZS.toLocaleString('uz-UZ')} so'm
           </Tag>
         );
       },
