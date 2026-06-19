@@ -427,7 +427,7 @@ const TripAdd: React.FC<TripAddProps> = ({ onSuccess }) => {
     }
 
     // Mahsulot ma'lumotlarini tekshirish
-    if (!values.name || !values.price || !values.count) {
+    if (!values.name || values.price === "" || values.price === null || values.price === undefined || !values.count) {
       messageApi.error("Mahsulot ma'lumotlarini to'liq kiriting");
       return;
     }
