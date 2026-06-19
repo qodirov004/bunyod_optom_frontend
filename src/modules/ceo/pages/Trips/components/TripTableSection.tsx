@@ -82,7 +82,7 @@ export const TripTableSection: React.FC<TripTableSectionProps> = ({
         clients && clients.length > 0 ? (
           <Space>
             <UserOutlined />
-            {`${clients[0].first_name} ${clients[0].last_name}`}
+            {clients[0].company || `${clients[0].first_name || ''} ${clients[0].last_name || ''}`.trim()}
           </Space>
         ) : 'Mijoz kiritilmagan'
       ),

@@ -23,7 +23,7 @@ export const useTripData = () => {
       driverName: trip.driver?.fullname || 'Unknown Driver',
       driverId: trip.driver?.id || 0,
       clientName: trip.client && trip.client.length > 0 
-        ? trip.client[0]?.first_name 
+        ? (trip.client[0]?.company || `${trip.client[0]?.first_name || ''} ${trip.client[0]?.last_name || ''}`.trim()) 
         : 'Mijoz kiritilmagan',
       clientId: trip.client && trip.client.length > 0 ? trip.client[0]?.id : 0,
       vehicleId: trip.car?.id || 0,

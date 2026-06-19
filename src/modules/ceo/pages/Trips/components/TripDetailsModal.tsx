@@ -37,6 +37,7 @@ interface Client {
   first_name: string;
   last_name?: string;
   number?: string;
+  company?: string;
   products?: Array<{
     id: number;
     name: string;
@@ -234,7 +235,7 @@ const TripDetailsModal: React.FC<TripDetailsModalProps> = ({
             <Col xs={24} sm={24} md={8}>
               <Descriptions column={1} size="small" variant="borderless">
                 <Descriptions.Item label="Mijoz">
-                  <Text strong>{trip.client[0].first_name} {trip.client[0].last_name}</Text>
+                  <Text strong>{trip.client[0].company || `${trip.client[0].first_name || ''} ${trip.client[0].last_name || ''}`.trim()}</Text>
                 </Descriptions.Item>
                 <Descriptions.Item label="Telefon">
                   {trip.client[0].number}
