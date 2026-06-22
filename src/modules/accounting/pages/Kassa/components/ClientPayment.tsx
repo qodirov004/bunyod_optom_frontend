@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Form, Input, Select, Button, Modal, message, Table, Space } from 'antd';
 import { useCash } from '../../../hooks/useCash';
 import { CashTransaction } from '../../../api/cashTransaction';
+import axiosInstance from '@/api/axiosInstance';
 
 interface ClientPaymentProps {
   raysId: number;
