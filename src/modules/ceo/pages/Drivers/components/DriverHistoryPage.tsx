@@ -434,7 +434,7 @@ const DriverHistoryPage: React.FC<DriverHistoryPageProps> = ({ id }) => {
 
     const totalTrips = history.length;
     const totalKm = history.reduce((sum, trip) => sum + (trip.kilometer || 0), 0);
-    const totalEarnings = history.reduce((sum, trip) => sum + (trip.dr_price || 0), 0);
+    const totalEarnings = history.reduce((sum, trip) => sum + (trip.price || 0), 0);
     const avgKmPerTrip = totalTrips > 0 ? totalKm / totalTrips : 0;
     const completedTrips = history.filter(trip => trip.status === 'completed').length;
     const ongoingTrips = history.filter(trip => trip.status === 'in_progress').length;
@@ -705,7 +705,7 @@ const DriverHistoryPage: React.FC<DriverHistoryPageProps> = ({ id }) => {
                     </div>
                     <div>
                       <Tag color="blue">{trip.car?.name} ({trip.car?.car_number || trip.car?.number || 'n/a'})</Tag>
-                      <Tag color="green">{formatCurrency(trip.dr_price)}</Tag>
+                      <Tag color="green">{formatCurrency(trip.price)}</Tag>
                       <Tag color="orange">{trip.kilometer} km</Tag>
                     </div>
                   </div>

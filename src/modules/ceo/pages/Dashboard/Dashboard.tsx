@@ -2,7 +2,6 @@
 
 import React, { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { DateRangeSelector } from '../../components/DateRangeSelector';
 import { DateRange } from '../../types';
 import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import './styles/Dashboard.css';
@@ -15,10 +14,8 @@ import { useTrips } from '../../../accounting/hooks/useTrips';
 import { useCEODrivers } from '../../hooks/useCEODrivers';
 import { usePopularRoutes } from '../../hooks/usePopularRoutes';
 import { useHistory } from '../../../accounting/hooks/useHistory';
-import { useExpenseTotals } from '../../hooks/useExpenseTotals';
 
 // Import components
-import FinancialSummary from './components/financial/FinancialSummary';
 import MonthlyIncomeChart from './components/financial/MonthlyIncomeChart';
 import CashboxSummary from './components/financial/CashboxSummary';
 import ExpensesSummary from './components/financial/ExpensesSummary';
@@ -52,7 +49,8 @@ const Dashboard = ({ hideLayout = false }: { hideLayout?: boolean }) => {
     isLoading: isLoadingFinancials,
     totalRevenue,
     totalExpenses,
-    netProfit
+    netProfit,
+    expensesBreakdown
   } = useFinancialData(dateRange);
   
   const { clientPaymentData, isLoading: isLoadingPayments } = useClientPaymentData();
@@ -81,9 +79,6 @@ const Dashboard = ({ hideLayout = false }: { hideLayout?: boolean }) => {
       .slice(0, 5);
   }, [allDrivers]);
 
-  // Expenses data
-  const { data: expenseTotalsData, isLoading: isLoadingExpenseTotals } = useExpenseTotals();
-
   // Optimized statistics calculation with useMemo
   const fleetStats = useMemo(() => {
     const carsInMaintenance = cars.filter(car => car.holat === 'tamirda').length || 0;
@@ -111,15 +106,15 @@ const Dashboard = ({ hideLayout = false }: { hideLayout?: boolean }) => {
 
   const expensesDataResult = useMemo(() => {
     const colors = ['#6c5ce7', '#2ed573', '#ff9f43', '#00d2d3', '#ef5da8', '#4834d4', '#13c2c2', '#eb2f96'];
-    const items = expenseTotalsData ? 
-      Object.entries(expenseTotalsData).map(([key, value], index) => ({
+    const items = expensesBreakdown ? 
+      Object.entries(expensesBreakdown).map(([key, value], index) => ({
         name: key,
         value: typeof value === 'number' ? value : 0,
         color: colors[index % colors.length]
       })) : [];
     const total = items.reduce((sum, item) => sum + item.value, 0);
     return { items, total };
-  }, [expenseTotalsData]);
+  }, [expensesBreakdown]);
 
   // Event handlers
   const handleDateRangeChange = (newRange: DateRange) => {
@@ -132,25 +127,7 @@ const Dashboard = ({ hideLayout = false }: { hideLayout?: boolean }) => {
 
   const dashboardContent = (
     <div className="dashboard-container" style={{ padding: hideLayout ? '0' : '8px' }}>
-        {/* Date Range Selector */}
-        <div className="date-range-container">
-          <DateRangeSelector
-            dateRange={dateRange}
-            onDateRangeChange={handleDateRangeChange}
-          />
-        </div>
-
-        {/* Financial Overview Section */}
-        <FinancialSummary
-          financialOverview={financialOverview}
-          monthlyIncome={monthlyIncome}
-          totalRevenue={totalRevenue}
-          totalExpenses={totalExpenses}
-          netProfit={netProfit}
-          dateRange={dateRange}
-          isLoading={isLoadingFinancials}
-        />
-
+        {/* Monthly Income Chart */}
         <MonthlyIncomeChart 
           monthlyData={monthlyIncome}
           isLoading={isLoadingFinancials}
@@ -175,7 +152,7 @@ const Dashboard = ({ hideLayout = false }: { hideLayout?: boolean }) => {
         <ExpensesBreakdownSection
           expensesData={expensesDataResult.items}
           realTotalExpenses={expensesDataResult.total}
-          isLoading={isLoadingExpenseTotals}
+          isLoading={isLoadingFinancials}
         />
 
         {/* Client Payments Section */}

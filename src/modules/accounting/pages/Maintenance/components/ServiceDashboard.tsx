@@ -177,9 +177,9 @@ const ServiceDashboard: React.FC = () => {
   // Enrich totals with fuel and manual service sum
   const totals = baseTotals ? {
     ...baseTotals,
-    texnic: manualServiceTotal, // Override with manual sum
+    texnic: (baseTotals.texnic || 0) + manualServiceTotal, // Include backend's texnic sum
     fuel: fuelTotal,
-    total: manualServiceTotal + (baseTotals.optol || 0) + (baseTotals.balon || 0) + (baseTotals.chiqimlik || 0) + fuelTotal
+    total: (baseTotals.texnic || 0) + manualServiceTotal + (baseTotals.optol || 0) + (baseTotals.balon || 0) + (baseTotals.chiqimlik || 0) + fuelTotal
   } : null;
   
   // Calculate statistics

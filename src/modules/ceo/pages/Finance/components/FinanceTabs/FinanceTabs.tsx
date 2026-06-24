@@ -1,5 +1,5 @@
 import React from 'react';
-import { Tabs, Card, Badge } from 'antd';
+import { Tabs, Card } from 'antd';
 import { 
   DollarCircleOutlined, 
   UserOutlined, 
@@ -36,18 +36,20 @@ const FinanceTabs: React.FC<FinanceTabsProps> = ({
   const tabItems = [
     {
       key: 'overview',
-      label: (
-        <Badge count={Math.round(cashboxTotal) || 0} overflowCount={999999999999}>
-          <span>Umumiy ko&apos;rinish</span>
-        </Badge>
-      ),
+      label: 'Umumiy ko\'rinish',
       icon: <DollarCircleOutlined />,
       children: (
         <Overview 
+          overrideData={true}
           fallbackData={{
             totalInUZS: dashboardStats.totalInUZS,
             cashPayments: dashboardStats.cashPayments,
-            bankPayments: dashboardStats.bankPayments
+            bankPayments: dashboardStats.bankPayments,
+            serviceExpenses: dashboardStats.serviceExpenses,
+            salariesExpenses: dashboardStats.salariesExpenses,
+            driverExpenses: dashboardStats.driverExpenses,
+            totalExpenses: dashboardStats.totalExpenses,
+            finalBalance: dashboardStats.finalBalance
           }} 
         />
       )

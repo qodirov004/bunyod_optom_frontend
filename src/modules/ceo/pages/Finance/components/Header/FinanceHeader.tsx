@@ -14,10 +14,10 @@ interface FinanceHeaderProps {
 const FinanceHeader: React.FC<FinanceHeaderProps> = ({ 
   onRefresh, 
   onPrint, 
-  isLoading 
+  isLoading,
 }) => {
   return (
-    <Row gutter={[16, 16]} align="middle" className="finance-header-responsive">
+    <Row gutter={[16, 16]} align="middle" className="finance-header-responsive" style={{ marginBottom: 16 }}>
       <Col xs={24} sm={24} md="auto" style={{ flex: '1 0 auto' }}>
         <Title level={2} style={{ marginBottom: 0 }}>
           <BankOutlined /> Moliya va Buxgalteriya

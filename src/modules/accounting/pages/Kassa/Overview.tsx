@@ -14,6 +14,7 @@ import {
 import { cashApi } from '../../api/cash/cashApi';
 import { CashOverview as ICashOverview } from '../../types/cash.types';
 import { formatCurrency } from '@/utils/formatCurrency';
+import axiosInstance from '@/api/axiosInstance';
 import './styles-clean.css';
 
 const { Title, Text } = Typography;
@@ -27,17 +28,37 @@ interface OverviewProps {
     salariesExpenses?: number;
     cashPayments?: number;
     bankPayments?: number;
+    driverExpenses?: number;
   };
+  overrideData?: boolean;
 }
 
-const Overview: React.FC<OverviewProps> = ({ fallbackData }) => {
+const Overview: React.FC<OverviewProps> = ({ fallbackData, overrideData = false }) => {
   const [overview, setOverview] = useState<ICashOverview | null>(null);
   const [loading, setLoading] = useState(false);
 
   const fetchOverview = async () => {
+    if (overrideData) return; // Skip fetching if override is enabled
     try {
       setLoading(true);
-      const data = await cashApi.getCashOverview();
+      const [data, fuelResponse] = await Promise.all([
+        cashApi.getCashOverview(),
+        axiosInstance.get('/fuel/').catch(() => ({ data: [] }))
+      ]);
+
+      let fuelTotal = 0;
+      if (fuelResponse && Array.isArray(fuelResponse.data)) {
+        fuelTotal = fuelResponse.data.reduce((sum: number, f: any) => sum + (Number(f.price) || 0), 0);
+      }
+
+      if (data && data.expenses) {
+        data.expenses.dp_price_uzs = (data.expenses.dp_price_uzs || 0) + fuelTotal;
+        data.expenses.total_expenses_uzs = (data.expenses.total_expenses_uzs || 0) + fuelTotal;
+        // The backend's final_balance_uzs does not have fuel subtracted from it!
+        // We must subtract fuelTotal to show the TRUE remaining cash balance.
+        data.final_balance_uzs = (data.final_balance_uzs || 0) - fuelTotal;
+      }
+
       setOverview(data);
     } catch (error) {
       console.error('Error fetching overview:', error);
@@ -48,7 +69,7 @@ const Overview: React.FC<OverviewProps> = ({ fallbackData }) => {
 
   useEffect(() => {
     fetchOverview();
-  }, []);
+  }, [overrideData]);
 
   if (loading) {
     return (
@@ -59,7 +80,7 @@ const Overview: React.FC<OverviewProps> = ({ fallbackData }) => {
     );
   }
 
-  if (!overview) {
+  if (!overview && !overrideData) {
     return (
       <Alert
         type="info"
@@ -74,28 +95,46 @@ const Overview: React.FC<OverviewProps> = ({ fallbackData }) => {
     );
   }
 
-  // Use UZS values directly or fallback to provided fallbackData
-  const totalInUZS = overview?.cashbox?.total_in_uzs || 
-                     overview?.cashbox?.UZS || 
-                     fallbackData?.totalInUZS || 0;
+  // Use override data if flag is set, otherwise use API response, falling back to fallbackData
+  const source = overrideData ? null : overview;
+
+  const totalInUZS = overrideData 
+    ? fallbackData?.totalInUZS || 0 
+    : source?.cashbox?.total_in_uzs || source?.cashbox?.UZS || fallbackData?.totalInUZS || 0;
   
-  const dpPayments = overview?.expenses?.dp_price_uzs || fallbackData?.serviceExpenses || 0;
-  const salariesExp = overview?.expenses?.salaries_uzs || fallbackData?.salariesExpenses || 0;
+  const dpPayments = overrideData 
+    ? fallbackData?.serviceExpenses || 0 
+    : source?.expenses?.dp_price_uzs || fallbackData?.serviceExpenses || 0;
+
+  const salariesExp = overrideData 
+    ? fallbackData?.salariesExpenses || 0 
+    : source?.expenses?.salaries_uzs || fallbackData?.salariesExpenses || 0;
   
-  const driverExp = overview?.expenses?.driver_expenses_uzs || 0;
-  const cashPayments = overview?.cashbox?.naqd_uzs || fallbackData?.cashPayments || 0;
-  const bankPayments = overview?.cashbox?.bank_uzs || fallbackData?.bankPayments || 0;
-  const driverReturned = overview?.cashbox?.driver_returned_uzs || 0;
+  const driverExp = overrideData 
+    ? fallbackData?.driverExpenses || 0 
+    : source?.expenses?.driver_expenses_uzs || fallbackData?.driverExpenses || 0;
+
+  const cashPayments = overrideData 
+    ? fallbackData?.cashPayments || 0 
+    : source?.cashbox?.naqd_uzs || fallbackData?.cashPayments || 0;
+
+  const bankPayments = overrideData 
+    ? fallbackData?.bankPayments || 0 
+    : source?.cashbox?.bank_uzs || fallbackData?.bankPayments || 0;
+
+  const driverReturned = overrideData
+    ? 0 
+    : source?.cashbox?.driver_returned_uzs || 0;
 
   // Total expenses in UZS
-  const totalExpenses = overview?.expenses?.total_expenses_uzs || 
-                        fallbackData?.totalExpenses || 
-                        (dpPayments + salariesExp);
+  const totalExpenses = overrideData 
+    ? fallbackData?.totalExpenses || (dpPayments + salariesExp)
+    : source?.expenses?.total_expenses_uzs || fallbackData?.totalExpenses || (dpPayments + salariesExp);
 
   // Final Balance in UZS
-  const finalBalance = overview?.final_balance_uzs || 
-                       (totalInUZS - totalExpenses) || 
-                       fallbackData?.finalBalance || 0;
+  const finalBalance = overrideData 
+    ? fallbackData?.finalBalance || (totalInUZS - totalExpenses)
+    : source?.final_balance_uzs || (totalInUZS - totalExpenses) || fallbackData?.finalBalance || 0;
   
   const expenseRatio = Math.min(Math.round((totalExpenses / (totalInUZS + 0.01)) * 100), 100);
 

@@ -119,7 +119,7 @@ export const Clients = () => {
     const fetchTrips = async () => {
       try {
         setTripsData([]);
-        const response = await tripApi.getAllTrips();
+        const response = await tripApi.getAllTrips({ page: 1, pageSize: 1000 });
         setTripsData(response.data || []);
       } catch (error) {
         console.error('Error fetching trips:', error);
@@ -229,10 +229,10 @@ export const Clients = () => {
         totalSpent,
         lastTripDate,
         status: clientTrips.some(trip => trip.status !== 'completed') ? 'active' : 'inactive',
-        expectedAmount: (debtInfo?.expected_usd || 0) * 12800,
-        paidAmount: (debtInfo?.paid_usd || 0) * 12800,
-        remainingAmount: (debtInfo?.remaining_usd || 0) * 12800,
-        hasDebt: debtInfo ? debtInfo.remaining_usd > 0 : false
+        expectedAmount: (debtInfo as any)?.expected_uzs || 0,
+        paidAmount: (debtInfo as any)?.paid_uzs || 0,
+        remainingAmount: (debtInfo as any)?.remaining_uzs || 0,
+        hasDebt: debtInfo ? ((debtInfo as any)?.remaining_uzs || 0) > 0 : false
       };
     });
   }, [clientsData, tripsData, clientDebts.data]);
@@ -443,10 +443,10 @@ export const Clients = () => {
       };
     }
 
-    const totalExpected = (clientDebts.data.reduce((sum, debt) => sum + (debt.expected_usd || 0), 0)) * 12800;
-    const totalPaid = (clientDebts.data.reduce((sum, debt) => sum + (debt.paid_usd || 0), 0)) * 12800;
-    const totalDebt = (clientDebts.data.reduce((sum, debt) => sum + (debt.remaining_usd || 0), 0)) * 12800;
-    const clientsWithDebt = clientDebts.data.filter(debt => debt.remaining_usd > 0).length;
+    const totalExpected = clientDebts.data.reduce((sum, debt) => sum + ((debt as any).expected_uzs || 0), 0);
+    const totalPaid = clientDebts.data.reduce((sum, debt) => sum + ((debt as any).paid_uzs || 0), 0);
+    const totalDebt = clientDebts.data.reduce((sum, debt) => sum + ((debt as any).remaining_uzs || 0), 0);
+    const clientsWithDebt = clientDebts.data.filter(debt => ((debt as any).remaining_uzs || 0) > 0).length;
 
     return {
       totalDebt,
@@ -543,8 +543,8 @@ export const Clients = () => {
             ) : (
               <Table 
                 dataSource={clientDebts.data
-                  .filter(client => client.remaining_usd > 0)
-                  .sort((a, b) => b.remaining_usd - a.remaining_usd)
+                  .filter(client => ((client as any).remaining_uzs || 0) > 0)
+                  .sort((a, b) => ((b as any).remaining_uzs || 0) - ((a as any).remaining_uzs || 0))
                   .slice(0, 5)
                 }
                 rowKey="client_id"
@@ -566,24 +566,24 @@ export const Clients = () => {
                   },
                   {
                     title: 'Kutilgan summa',
-                    dataIndex: 'expected_usd',
-                    key: 'expected_usd',
+                    dataIndex: 'expected_uzs',
+                    key: 'expected_uzs',
                     align: 'right' as const,
-                    render: (amount: number) => `${formatCurrency(amount * 12800)} so'm`
+                    render: (amount: number) => `${formatCurrency(amount)} so'm`
                   },
                   {
                     title: "To'langan",
-                    dataIndex: 'paid_usd',
-                    key: 'paid_usd',
+                    dataIndex: 'paid_uzs',
+                    key: 'paid_uzs',
                     align: 'right' as const,
-                    render: (amount: number) => `${formatCurrency(amount * 12800)} so'm`
+                    render: (amount: number) => `${formatCurrency(amount)} so'm`
                   },
                   {
                     title: 'Qolgan summa',
-                    dataIndex: 'remaining_usd',
-                    key: 'remaining_usd',
+                    dataIndex: 'remaining_uzs',
+                    key: 'remaining_uzs',
                     align: 'right' as const,
-                    render: (amount: number) => <span style={{ color: '#cf1322', fontWeight: 'bold' }}>{formatCurrency(amount * 12800)} so'm</span>
+                    render: (amount: number) => <span style={{ color: '#cf1322', fontWeight: 'bold' }}>{formatCurrency(amount)} so'm</span>
                   },
                   {
                     title: 'Harakatlar',

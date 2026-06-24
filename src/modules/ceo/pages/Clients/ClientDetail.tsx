@@ -173,10 +173,10 @@ const ClientDetail = () => {
                 </div>
               </div>
               
-              {clientDebt && clientDebt.remaining_usd > 0 && (
+              {clientDebt && ((clientDebt as any).remaining_uzs || 0) > 0 && (
                 <Alert
                   message="Qarzdorlik mavjud"
-                  description={`${formatCurrency(clientDebt.remaining_usd * 12800)} so'm miqdorida to'lov amalga oshirilishi kerak.`}
+                  description={`${formatCurrency((clientDebt as any).remaining_uzs || 0)} so'm miqdorida to'lov amalga oshirilishi kerak.`}
                   type="warning"
                   showIcon
                   style={{ margin: '16px 0' }}
@@ -223,29 +223,29 @@ const ClientDetail = () => {
                 >
                   <div className="payment-stat-item">
                     <Text>Kutilgan summa:</Text>
-                    <Text strong>{formatCurrency(clientDebt.expected_usd * 12800)} so'm</Text>
+                    <Text strong>{formatCurrency((clientDebt as any).expected_uzs || 0)} so'm</Text>
                   </div>
                   <div className="payment-stat-item">
                     <Text>To'langan summa:</Text>
                     <Text 
                       style={{ color: '#3f8600' }}
-                    >{formatCurrency(clientDebt.paid_usd * 12800)} so'm</Text>
+                    >{formatCurrency((clientDebt as any).paid_uzs || 0)} so'm</Text>
                   </div>
                   <div className="payment-stat-item">
                     <Text>Qolgan summa:</Text>
                     <Text 
                       strong 
                       style={{ 
-                        color: clientDebt.remaining_usd > 0 ? '#cf1322' : '#3f8600'
+                        color: ((clientDebt as any).remaining_uzs || 0) > 0 ? '#cf1322' : '#3f8600'
                       }}
-                    >{formatCurrency(clientDebt.remaining_usd * 12800)} so'm</Text>
+                    >{formatCurrency((clientDebt as any).remaining_uzs || 0)} so'm</Text>
                   </div>
                   <div className="payment-status">
                     <Tag 
-                      color={clientDebt.remaining_usd > 0 ? 'red' : 'green'}
+                      color={((clientDebt as any).remaining_uzs || 0) > 0 ? 'red' : 'green'}
                       style={{ margin: '12px 0 0', fontSize: '14px', padding: '4px 8px' }}
                     >
-                      {clientDebt.remaining_usd > 0 ? 'To\'lov kutilmoqda' : 'To\'lov to\'liq amalga oshirilgan'}
+                      {((clientDebt as any).remaining_uzs || 0) > 0 ? 'To\'lov kutilmoqda' : 'To\'lov to\'liq amalga oshirilgan'}
                     </Tag>
                   </div>
                 </Card>

@@ -14,7 +14,7 @@ const ExpensesSummary = ({ expenses, isLoading }) => {
         <Col span={12}>
           <Statistic 
             title="Service Xarajatlar" 
-            value={formatCurrency(expenses?.dp_price_uzs || 0)} 
+            value={formatCurrency(expenses?.service_uzs || 0)} 
             loading={isLoading}
             valueStyle={{ color: '#cf1322' }}
           />

@@ -152,17 +152,28 @@ export const deleteTransaction = async (id: number) => {
 
 export const getExpenseTotals = async () => {
     try {
-        const response = await axiosInstance.get('/service/totals/');
+        const [serviceResponse, fuelResponse] = await Promise.all([
+            axiosInstance.get('/service/totals/'),
+            axiosInstance.get('/fuel/')
+        ]);
+        
+        let totalFuel = 0;
+        if (fuelResponse.data) {
+            const fuelData = fuelResponse.data;
+            const items = Array.isArray(fuelData) ? fuelData : (Array.isArray(fuelData.results) ? fuelData.results : []);
+            totalFuel = items.reduce((sum: number, item: any) => sum + (Number(item.price) || 0), 0);
+        }
         
         // Transform the data to a more usable format for the chart
-        if (response.data && response.data.totals) {
-            const { totals } = response.data;
+        if (serviceResponse.data && serviceResponse.data.totals) {
+            const { totals } = serviceResponse.data;
             return {
                 "Texnik xizmat": totals.texnic || 0,
                 "Ballon xarajatlari": totals.balon || 0,
                 "Furgon ballonlari": totals.balonfurgon || 0,
                 "Kundalik xarajatlar": totals.chiqimlik || 0,
                 "Optol to'lovlari": totals.optol || 0,
+                "Yoqilg'i xarajatlari": totalFuel || totals.fuel || totals.yoqilgi || 0,
                 "Haydovchilar ish haqi": totals.driversalary || 0,
                 "Boshqa xarajatlar": totals.other || 0
             };
@@ -178,6 +189,7 @@ export const getExpenseTotals = async () => {
             "Furgon ballonlari": 600,
             "Kundalik xarajatlar": 1200,
             "Optol to'lovlari": 400,
+            "Yoqilg'i xarajatlari": 1000,
             "Haydovchilar ish haqi": 2500,
             "Boshqa xarajatlar": 300
         };
