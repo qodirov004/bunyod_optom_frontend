@@ -21,16 +21,6 @@ export const useClientPaymentData = () => {
     staleTime: 5 * 60 * 1000,
   });
 
-  const { data: historyTrips = [], isLoading: isHistoryLoading } = useQuery({
-    queryKey: ['ceo-client-history-trips'],
-    queryFn: async () => {
-      const response = await axiosInstance.get('/rayshistory/');
-      const data = response.data;
-      return Array.isArray(data) ? data : (data.results || []);
-    },
-    staleTime: 5 * 60 * 1000,
-  });
-
   // Fetch true total clients count directly from the API
   const { data: clientsData = {}, isLoading: isClientsLoading } = useQuery({
     queryKey: ['ceo-clients-payment-total'],
@@ -41,7 +31,7 @@ export const useClientPaymentData = () => {
     staleTime: 5 * 60 * 1000,
   });
 
-  const isLoading = isActiveLoading || isHistoryLoading || isClientsLoading;
+  const isLoading = isActiveLoading || isClientsLoading;
 
   // Total clients registered in the system
   const total_clients = clientsData?.count || (Array.isArray(clientsData) ? clientsData.length : 0);

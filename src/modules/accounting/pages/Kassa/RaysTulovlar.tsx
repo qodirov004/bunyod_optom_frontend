@@ -31,6 +31,7 @@ import {
 } from '@ant-design/icons';
 import axiosInstance from '@/api/axiosInstance';
 import { formatCurrency } from '@/utils/formatCurrency';
+import { useQueryClient } from '@tanstack/react-query';
 
 const { Option } = Select;
 
@@ -103,6 +104,7 @@ interface PaymentCategory {
 }
 
 const RaysTulovlar: React.FC = () => {
+  const queryClient = useQueryClient();
   const [raysData, setRaysData] = useState<RaysClientsMap[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [searchText, setSearchText] = useState<string>('');
@@ -251,6 +253,8 @@ const RaysTulovlar: React.FC = () => {
       setIsPaymentModalVisible(false);
       // Refresh data
       fetchActiveRaysPayments();
+      fetchRaysClientsMap();
+      queryClient.invalidateQueries();
     } catch (error: any) {
       console.error('Error creating payment:', error);
       let errorMessage = 'To\'lov qo\'shishda xatolik yuz berdi';

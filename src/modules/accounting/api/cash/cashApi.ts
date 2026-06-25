@@ -61,9 +61,7 @@ export const cashApi = {
 
     confirmCashEntry: async (id: number) => {
         try {
-            const response = await axiosInstance.patch(`/casa/${id}/`, {
-                is_confirmed_by_cashier: true
-            });
+            const response = await axiosInstance.patch(`/casa/${id}/confirm/`, {});
             return response.data;
         } catch (error) {
             console.error('Error confirming cash entry:', error);

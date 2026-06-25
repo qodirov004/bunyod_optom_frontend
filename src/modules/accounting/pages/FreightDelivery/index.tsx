@@ -48,6 +48,7 @@ import LocationManagement from './components/LocationManagement'
 import CountryManagement from './components/CountryManagement'
 import { useTrips } from '@/modules/accounting/hooks/useTrips'
 import { useTripsHistory } from '@/modules/accounting/hooks/useTripsHistory'
+import { useQueryClient } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import './style/style.css'
 import axiosInstance from '@/api/axiosInstance'
@@ -95,6 +96,8 @@ const FreightDeliveryPage: React.FC = () => {
   const [paymentLoading, setPaymentLoading] = useState(false)
   const [returnLoading, setReturnLoading] = useState(false)
   const [messageApi, contextHolder] = message.useMessage()
+  const [activeTab, setActiveTab] = useState<string>('dashboard')
+  const queryClient = useQueryClient()
   
   // Fetch triphistory count on component mount
   useEffect(() => {
@@ -277,6 +280,7 @@ const FreightDeliveryPage: React.FC = () => {
       paymentForm.resetFields();
       setIsDriverPaymentModalVisible(false);
       setSelectedTripId(null);
+      queryClient.invalidateQueries();
       refetch();
     } catch (error: any) {
       console.error('Error making payment:', error);
@@ -316,6 +320,7 @@ const FreightDeliveryPage: React.FC = () => {
       messageApi.success('Mablag` muvaffaqiyatli qaytarildi va kassaga kirim qilindi');
       setIsReturnAdvanceModalVisible(false);
       returnForm.resetFields();
+      queryClient.invalidateQueries();
       refetch();
     } catch (error: any) {
       console.error('Error returning advance:', error);
@@ -661,7 +666,15 @@ const FreightDeliveryPage: React.FC = () => {
           <PlusOutlined /> Yangi reys qo`shish
         </span>
       ),
-      children: <TripAdd />
+      children: (
+        <TripAdd 
+          onSuccess={() => {
+            queryClient.invalidateQueries();
+            refetch();
+            setActiveTab("in-progress");
+          }} 
+        />
+      )
     },
     {
       key: "locations",
@@ -686,7 +699,7 @@ const FreightDeliveryPage: React.FC = () => {
   return (
     <div className="freight-delivery-page">
       {contextHolder}
-      <Tabs defaultActiveKey="dashboard" items={tabItems} />
+      <Tabs activeKey={activeTab} onChange={setActiveTab} items={tabItems} />
       
       <Modal
         title="Haydovchiga to'lov"

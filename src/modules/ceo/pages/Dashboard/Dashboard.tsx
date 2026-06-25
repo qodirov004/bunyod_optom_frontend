@@ -13,7 +13,7 @@ import { useFurgons, useFurgonStatus } from '../../../accounting/hooks/useFurgon
 import { useTrips } from '../../../accounting/hooks/useTrips';
 import { useCEODrivers } from '../../hooks/useCEODrivers';
 import { usePopularRoutes } from '../../hooks/usePopularRoutes';
-import { useHistory } from '../../../accounting/hooks/useHistory';
+import { useTripsOverview } from '../../hooks/useTripsOverview';
 
 // Import components
 import MonthlyIncomeChart from './components/financial/MonthlyIncomeChart';
@@ -63,7 +63,7 @@ const Dashboard = ({ hideLayout = false }: { hideLayout?: boolean }) => {
   
   // Trip statistics
   const { data: trips = [], isLoading: isLoadingTrips } = useTrips();
-  const { data: historyData = [], isLoading: isLoadingHistory } = useHistory();
+  const { data: overviewData, isLoading: isLoadingOverview } = useTripsOverview();
   
   // Driver and route statistics
   const { drivers: allDrivers = [], isLoading: isLoadingDrivers } = useCEODrivers();
@@ -96,13 +96,13 @@ const Dashboard = ({ hideLayout = false }: { hideLayout?: boolean }) => {
   
   const tripStats = useMemo(() => {
     const activeTripsCount = trips.filter(trip => !trip.is_completed).length;
-    const completedTripsCount = Array.isArray(historyData) ? historyData.length : 0;
+    const completedTripsCount = overviewData?.rays_count || 0;
     return { 
       activeTripsCount, 
       completedTripsCount, 
       totalTripsCount: activeTripsCount + completedTripsCount 
     };
-  }, [trips, historyData]);
+  }, [trips, overviewData]);
 
   const expensesDataResult = useMemo(() => {
     const colors = ['#6c5ce7', '#2ed573', '#ff9f43', '#00d2d3', '#ef5da8', '#4834d4', '#13c2c2', '#eb2f96'];
@@ -181,7 +181,7 @@ const Dashboard = ({ hideLayout = false }: { hideLayout?: boolean }) => {
 
         <TopDriversSection
           topDriversData={processedTopDrivers}
-          isLoading={isLoadingDrivers || isLoadingTrips || isLoadingHistory}
+          isLoading={isLoadingDrivers || isLoadingTrips || isLoadingOverview}
           viewAll={viewAll}
         />
 

@@ -664,11 +664,6 @@ const TripAdd: React.FC<TripAddProps> = ({ onSuccess }) => {
         setSelectedClients([]);
         setCompletedClientIds([]);
         setCurrentClientId(null);
-        
-        // Call onSuccess callback if provided
-        if (onSuccess) {
-          onSuccess();
-        }
       } catch (apiError: any) {
         console.error('API Error:', apiError.response?.status, apiError.response?.data);
         // Show specific error from API if available

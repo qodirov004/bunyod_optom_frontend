@@ -8,6 +8,7 @@ import { formatCurrency } from '@/utils/formatCurrency'
 import axiosInstance from '@/api/axiosInstance'
 import { API_URLS } from '@/api/apiConfig'
 import dayjs from 'dayjs'
+import { useQueryClient } from '@tanstack/react-query'
 
 const { Text, Paragraph, Title } = Typography;
 
@@ -79,6 +80,7 @@ const TripTable = ({
   onReturnAdvance?: (tripId: number) => void
 }) => {
   const { mutate: updateStatus } = useUpdateTripStatus()
+  const queryClient = useQueryClient()
   const [completingTripId, setCompletingTripId] = useState<number | null>(null)
   const [errorModalVisible, setErrorModalVisible] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
@@ -108,6 +110,7 @@ const TripTable = ({
     try {
       await completeRaceWithAllClients(id);
       setCompletedTripId(id);
+      queryClient.invalidateQueries();
       setSuccessModalVisible(true);
     } catch (error: any) {
       console.error('Reysni yakunlashda xatolik:', error);
@@ -131,6 +134,7 @@ const TripTable = ({
   // Close success modal
   const handleCloseSuccessModal = () => {
     setSuccessModalVisible(false);
+    queryClient.invalidateQueries();
   };
 
   const tripColumns = [
@@ -662,30 +666,7 @@ const TripTable = ({
         </div>
 
         <div style={{ padding: '24px' }}>
-          <div style={{
-            background: '#fff',
-            border: '1px solid #ffa39e',
-            borderRadius: '8px',
-            padding: '16px',
-            marginBottom: '20px',
-            position: 'relative',
-            overflow: 'hidden'
-          }}>
-            <div style={{
-              position: 'absolute',
-              left: 0,
-              top: 0,
-              bottom: 0,
-              width: '4px',
-              background: '#ff4d4f'
-            }} />
-            <Text strong style={{ display: 'block', marginBottom: '4px', color: '#ff4d4f' }}>
-              Xatolik sababi:
-            </Text>
-            <Text style={{ fontSize: '15px', color: '#434343', lineHeight: '1.5' }}>
-              {errorMessage.replace(/❌|Reysni yakunlab bo'lmaydi:|\[ErrorDetail\(string="|", code='invalid'\)\]/g, '').trim()}
-            </Text>
-          </div>
+
 
           <div style={{ marginBottom: '24px' }}>
             <Text strong style={{ display: 'block', marginBottom: '8px', color: '#52c41a' }}>
@@ -727,19 +708,7 @@ const TripTable = ({
         open={successModalVisible}
         onCancel={handleCloseSuccessModal}
         footer={[
-          <Button
-            key="goToDetails"
-            type="primary"
-            onClick={() => {
-              handleCloseSuccessModal();
-              if (completedTripId) {
-                window.location.href = `/modules/accounting/freight/${completedTripId}`;
-              }
-            }}
-          >
-            Batafsil ko`rish
-          </Button>,
-          <Button key="close" onClick={handleCloseSuccessModal}>
+          <Button key="close" type="primary" onClick={handleCloseSuccessModal}>
             Yopish
           </Button>
         ]}

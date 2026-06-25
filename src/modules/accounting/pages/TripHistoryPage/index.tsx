@@ -39,6 +39,7 @@ import {
 import dayjs, { Dayjs } from 'dayjs';
 import isBetween from 'dayjs/plugin/isBetween';
 import axiosInstance from '@/api/axiosInstance';
+import { useQueryClient } from '@tanstack/react-query';
 
 dayjs.extend(isBetween);
 
@@ -296,6 +297,7 @@ interface Trip {
 
 // Trip tarixi sahifasi
 const TripHistoryPage: React.FC = () => {
+  const queryClient = useQueryClient();
   const [trips, setTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -618,6 +620,7 @@ const TripHistoryPage: React.FC = () => {
       await axiosInstance.post(`/rayshistory-actions/${tripId}/restore/`);
       
       message.success('Reys muvaffaqiyatli qaytarildi');
+      queryClient.invalidateQueries();
       fetchTrips();
       setDetailsVisible(false);
       

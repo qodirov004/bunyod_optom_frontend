@@ -487,15 +487,31 @@ const FreightDetailPage = () => {
     try {
       setLoading(true);
       console.log(`Fetching trip details for ID: ${id}`);
-      // To'g'ri URL - faqat nisbiy yo'l ishlatilmoqda
-      const response = await axiosInstance.get(`rays/${id}/`, {
-        signal: controller.signal,
-        // Add cache control headers
-        headers: {
-          'Cache-Control': 'no-cache',
-          'Pragma': 'no-cache'
+      let response;
+      try {
+        // First try fetching from active trips
+        response = await axiosInstance.get(`rays/${id}/`, {
+          signal: controller.signal,
+          headers: {
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache'
+          }
+        });
+      } catch (firstErr: any) {
+        // If not found in active, fallback to history
+        if (firstErr.response?.status === 404) {
+          console.log(`Active trip not found, trying history for ID: ${id}`);
+          response = await axiosInstance.get(`rayshistory/${id}/`, {
+            signal: controller.signal,
+            headers: {
+              'Cache-Control': 'no-cache',
+              'Pragma': 'no-cache'
+            }
+          });
+        } else {
+          throw firstErr;
         }
-      });
+      }
 
       // Basic validation of response data
       if (!response.data || typeof response.data !== 'object') {

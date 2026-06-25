@@ -30,9 +30,16 @@ export const useFinancialData = (dateRange: DateRange) => {
   });
 
   const { data: historyTrips = [], isLoading: isLoadingHistory } = useQuery({
-    queryKey: ['ceo-financial-history-trips'],
+    queryKey: ['ceo-financial-history-trips', dateRange],
     queryFn: async () => {
-      const response = await axiosInstance.get('/rayshistory/');
+      const params: Record<string, string> = { page_size: '10000' };
+      if (dateRange.startDate) {
+        params.from_date = new Date(dateRange.startDate).toISOString().split('T')[0];
+      }
+      if (dateRange.endDate) {
+        params.to_date = new Date(dateRange.endDate).toISOString().split('T')[0];
+      }
+      const response = await axiosInstance.get('/rayshistory/', { params });
       const data = response.data;
       return Array.isArray(data) ? data : (data.results || []);
     },
@@ -41,9 +48,16 @@ export const useFinancialData = (dateRange: DateRange) => {
 
   // Fetch driver salaries
   const { data: driverSalaries = [], isLoading: isLoadingSalaries } = useQuery({
-    queryKey: ['ceo-financial-salaries'],
+    queryKey: ['ceo-financial-salaries', dateRange],
     queryFn: async () => {
-      const response = await axiosInstance.get('/driversalary/');
+      const params: Record<string, string> = { page_size: '10000' };
+      if (dateRange.startDate) {
+        params.from_date = new Date(dateRange.startDate).toISOString().split('T')[0];
+      }
+      if (dateRange.endDate) {
+        params.to_date = new Date(dateRange.endDate).toISOString().split('T')[0];
+      }
+      const response = await axiosInstance.get('/driversalary/', { params });
       const data = response.data;
       return Array.isArray(data) ? data : (data.results || []);
     },
@@ -52,9 +66,16 @@ export const useFinancialData = (dateRange: DateRange) => {
 
   // Fetch general outgoings
   const { data: outgoings = [], isLoading: isLoadingOutgoings } = useQuery({
-    queryKey: ['ceo-financial-outgoings'],
+    queryKey: ['ceo-financial-outgoings', dateRange],
     queryFn: async () => {
-      const response = await axiosInstance.get('/chiqimlik/');
+      const params: Record<string, string> = { page_size: '10000' };
+      if (dateRange.startDate) {
+        params.from_date = new Date(dateRange.startDate).toISOString().split('T')[0];
+      }
+      if (dateRange.endDate) {
+        params.to_date = new Date(dateRange.endDate).toISOString().split('T')[0];
+      }
+      const response = await axiosInstance.get('/chiqimlik/', { params });
       const data = response.data;
       return Array.isArray(data) ? data : (data.results || []);
     },
@@ -79,9 +100,16 @@ export const useFinancialData = (dateRange: DateRange) => {
 
   // Fetch fuel expenses
   const { data: fuelData = [], isLoading: isLoadingFuel } = useQuery({
-    queryKey: ['ceo-financial-fuel'],
+    queryKey: ['ceo-financial-fuel', dateRange],
     queryFn: async () => {
-      const response = await axiosInstance.get('/fuel/');
+      const params: Record<string, string> = { page_size: '10000' };
+      if (dateRange.startDate) {
+        params.from_date = new Date(dateRange.startDate).toISOString().split('T')[0];
+      }
+      if (dateRange.endDate) {
+        params.to_date = new Date(dateRange.endDate).toISOString().split('T')[0];
+      }
+      const response = await axiosInstance.get('/fuel/', { params });
       const data = response.data;
       return Array.isArray(data) ? data : (data.results || []);
     },

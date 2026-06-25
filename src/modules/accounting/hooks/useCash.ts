@@ -329,11 +329,8 @@ export const useCash = (messageApi?: any) => {
   });
 
   const invalidateRelatedQueries = () => {
-    queryClient.invalidateQueries({ queryKey: ['cash'] });
-    queryClient.invalidateQueries({ queryKey: ['cash', 'summary'] });
-    queryClient.invalidateQueries({ queryKey: ['cash', 'client-debts'] });
-    queryClient.invalidateQueries({ queryKey: ['cash', 'overview'] });
-    queryClient.invalidateQueries({ queryKey: ['cash', 'history'] });
+    // Invalidate everything to keep all dashboards, tables, and cash metrics in sync
+    queryClient.invalidateQueries();
   };
 
   const setFilter = (key: keyof CashFilter, value: any) => {
@@ -380,7 +377,12 @@ export const useCash = (messageApi?: any) => {
       if (messageApi) {
         messageApi.success('Transaction created successfully');
       }
-      await fetchTransactions(); // Refresh the list
+      invalidateRelatedQueries();
+      await Promise.all([
+        fetchTransactions(),
+        fetchRaysClientsMap(),
+        fetchCashOverview()
+      ]);
       return response;
     } catch (error) {
       if (messageApi) {

@@ -16,7 +16,7 @@ export const useCreateRays = () => {
     mutationFn: createRays,
     onSuccess: (data) => {
       message.success('Reys muvaffaqiyatli yaratildi')
-      queryClient.invalidateQueries({ queryKey: ['rays'] })
+      queryClient.invalidateQueries()
       console.log('🎉 Successfully created rays:', data)
     },
     onError: (error) => {
@@ -50,8 +50,7 @@ export const useCompleteRace = () => {
     mutationFn: completeRace,
     onSuccess: () => {
       message.success('Reys muvaffaqiyatli yakunlandi')
-      queryClient.invalidateQueries({ queryKey: ['rays'] })
-      queryClient.invalidateQueries({ queryKey: ['rays-history'] })
+      queryClient.invalidateQueries()
     },
     onError: (error) => {
       message.error('Reysni yakunlashda xatolik yuz berdi')
@@ -67,8 +66,7 @@ export const useReturnTripFromHistory = () => {
     mutationFn: returnTripFromHistory,
     onSuccess: () => {
       message.success('Reys muvaffaqiyatli faollashtirildi')
-      queryClient.invalidateQueries({ queryKey: ['rays'] })
-      queryClient.invalidateQueries({ queryKey: ['rays-history'] })
+      queryClient.invalidateQueries()
     },
     onError: (error) => {
       message.error('Reysni qaytarishda xatolik yuz berdi')

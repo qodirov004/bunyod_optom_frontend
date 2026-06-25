@@ -3,7 +3,6 @@ import { Card, Table, Avatar, Tag, Spin, Button, Empty, Modal, Descriptions, Spa
 import { UserOutlined, TrophyOutlined, EyeOutlined, PhoneOutlined, CarOutlined, DollarOutlined, HistoryOutlined } from '@ant-design/icons';
 import { useTopDrivers } from '../../../hooks/useTopDrivers';
 import { useTrips } from '../../../hooks/useTrips';
-import { useHistory } from '../../../hooks/useHistory';
 import { formatCurrency } from '@/utils/formatCurrency';
 import type { ColumnsType } from 'antd/es/table';
 
@@ -26,7 +25,6 @@ interface DriverData {
 const TopDriversSection = () => {
     const { data: drivers = [], isLoading: isDriversLoading, error: driversError } = useTopDrivers();
     const { data: trips = [], isLoading: isTripsLoading } = useTrips();
-    const { data: history = [], isLoading: isHistoryLoading } = useHistory();
     const [selectedDriver, setSelectedDriver] = useState<DriverData | null>(null);
     const [isModalVisible, setIsModalVisible] = useState(false);
 
@@ -48,7 +46,7 @@ const TopDriversSection = () => {
                 total_rays_usd: Number(driver.total_rays_usd) || 0
             };
         });
-    }, [drivers, trips, history]);
+    }, [drivers, trips]);
 
     const showDetails = (driver: DriverData) => {
         setSelectedDriver(driver);
@@ -116,7 +114,7 @@ const TopDriversSection = () => {
     ];
 
     const renderContent = () => {
-        if (isDriversLoading || isTripsLoading || isHistoryLoading) {
+        if (isDriversLoading || isTripsLoading) {
             return <div className="section-loading" style={{ textAlign: 'center', padding: '40px' }}><Spin size="large" /></div>;
         }
 

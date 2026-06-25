@@ -15,8 +15,7 @@ export const useUpdateTripStatus = () => {
   return useMutation<RaysResponseType, Error, { id: number, isCompleted: boolean }>({
     mutationFn: ({ id, isCompleted }) => updateRayStatus(id, isCompleted),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['trips'] })
-      queryClient.invalidateQueries({ queryKey: ['history'] })
+      queryClient.invalidateQueries()
     }
   })
 }

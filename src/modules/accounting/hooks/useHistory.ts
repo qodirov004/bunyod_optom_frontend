@@ -39,8 +39,7 @@ export const useHistory = () => {
     mutationFn: returnTripFromHistory,
     onSuccess: () => {
       message.success('Reys muvaffaqiyatli faol reyslar ro\'yxatiga qaytarildi')
-      queryClient.invalidateQueries({ queryKey: ['history'] })
-      queryClient.invalidateQueries({ queryKey: ['trips'] })
+      queryClient.invalidateQueries()
     },
     onError: (error) => {
       message.error('Reysni qaytarishda xatolik yuz berdi')

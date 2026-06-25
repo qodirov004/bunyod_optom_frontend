@@ -5,8 +5,7 @@ import { getAllDrivers, getDriver, createDriverWithPhoto as createDriver, update
 import { DriverType, DriverFilter } from '../../accounting/types/driver';
 import { AxiosError } from 'axios';
 import axiosInstance from '@/api/axiosInstance';
-import { useTrips } from '../../accounting/hooks/useTrips';
-import { useHistory } from '../../accounting/hooks/useHistory';
+
 export const useCEODrivers = () => {
   const queryClient = useQueryClient();
   const [filters, setFilters] = useState<DriverFilter>({
@@ -42,8 +41,6 @@ export const useCEODrivers = () => {
   });
   
   const activeCars = activeCarsData || [];
-  const { data: trips = [] } = useTrips();
-  const { data: history = [] } = useHistory();
 
   // Process data the same way as accounting module
   const drivers = useMemo(() => {
@@ -75,7 +72,7 @@ export const useCEODrivers = () => {
         car: activeCarObj,
       };
     });
-  }, [data, trips, history, activeCars]);
+  }, [data, activeCars]);
 
   const total = data?.count || 0;
 
