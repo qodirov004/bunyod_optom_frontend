@@ -391,8 +391,10 @@ const TripHistoryPage: React.FC = () => {
       if (typeof window !== 'undefined') {
         (window as any).__clientsNameLookup = { ...(window as any).__clientsNameLookup, ...nLookup };
       }
-    } catch (error) {
-      console.error('Error fetching clients for lookup in TripHistory:', error);
+    } catch (error: any) {
+      if (error.response?.status !== 401) {
+        console.error('Error fetching clients for lookup in TripHistory:', error);
+      }
     }
   };
 
@@ -546,10 +548,12 @@ const TripHistoryPage: React.FC = () => {
           setError('Server ma\'lumotlari noto\'g\'ri formatda');
         }
       }
-    } catch (err) {
-      console.error('Reyslarni yuklashda xatolik:', err);
-      setError('Reyslarni yuklashda xatolik yuz berdi');
-      setTrips([]);
+    } catch (err: any) {
+      if (err.response?.status !== 401) {
+        console.error('Reyslarni yuklashda xatolik:', err);
+        setError('Reyslarni yuklashda xatolik yuz berdi');
+        setTrips([]);
+      }
     } finally {
       setLoading(false);
     }
@@ -568,9 +572,11 @@ const TripHistoryPage: React.FC = () => {
         console.error('Statistika API xato javob qaytardi:', response.data);
         // Keep default values if API returns invalid data
       }
-    } catch (err) {
-      console.error('Statistikani yuklashda xatolik:', err);
-      message.error('Statistika ma\'lumotlarini yuklashda xatolik yuz berdi');
+    } catch (err: any) {
+      if (err.response?.status !== 401) {
+        console.error('Statistikani yuklashda xatolik:', err);
+        message.error('Statistika ma\'lumotlarini yuklashda xatolik yuz berdi');
+      }
     } finally {
       setStatsLoading(false);
     }
@@ -688,9 +694,11 @@ const TripHistoryPage: React.FC = () => {
       document.body.removeChild(link);
       
       message.success('Excel fayli muvaffaqiyatli yuklandi');
-    } catch (err) {
-      console.error('Excel faylini yuklashda xatolik:', err);
-      message.error('Excel faylini yuklashda xatolik yuz berdi');
+    } catch (err: any) {
+      if (err.response?.status !== 401) {
+        console.error('Mijozlar ma`lumotini yuklashda xatolik:', err);
+        message.error('Mijozlar ro`yxatini yuklashda xatolik yuz berdi');
+      }
     } finally {
       setIsExporting(false);
     }

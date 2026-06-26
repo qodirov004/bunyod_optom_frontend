@@ -10,6 +10,7 @@ const inter = Inter({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
   display: "swap",
+  preload: false,
 });
 
 const spaceGrotesk = Space_Grotesk({
@@ -17,6 +18,7 @@ const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
   weight: ["500", "700"],
   display: "swap",
+  preload: false,
 });
 
 const robotoMono = Roboto_Mono({
@@ -24,6 +26,7 @@ const robotoMono = Roboto_Mono({
   subsets: ["latin"],
   weight: ["400", "500", "700"],
   display: "swap",
+  preload: false,
 });
 
 export const metadata: Metadata = {

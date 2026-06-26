@@ -156,73 +156,38 @@ export const fetchAllRays = async (): Promise<ApiRaysResponseType[]> => {
 export const updateRayStatus = async (
   id: number,
   isCompleted: boolean,
-): Promise<ApiRaysResponseType> => {
+): Promise<ApiRaysResponseType | any> => {
   try {
-    console.log(`🚀 Updating ray ${id} status to ${isCompleted ? 'completed' : 'in progress'}...`)
+    if (isCompleted) {
+      console.log(`🚀 Moving ray ${id} to history via complete-race endpoint...`)
+      // Calling completeRace will use the backend endpoint to validate payment 
+      // and move the trip to history. If it fails, it will throw an error 
+      // and NOT hide the trip from the active list.
+      const result = await completeRace(id)
+      return result as any
+    }
+
+    console.log(`🚀 Updating ray ${id} status to in progress...`)
     const response = await axiosInstance.patch<ApiRaysResponseType>(
       `${API_URLS.rays}${id}/`,
       {
         is_completed: isCompleted,
       },
     )
-    console.log(
-      `✅ Updated ray ${id} status to ${isCompleted ? 'completed' : 'in progress'}:`,
-      response.data,
-    )
-    if (isCompleted) {
-      try {
-        console.log(`🚀 Moving ray ${id} to history...`)
-        await completeRace(id)
-        console.log(`✅ Ray ${id} moved to history successfully`)
-      } catch (completeError: unknown) {
-        const completeErrorAxios = completeError as ApiError;
-        console.error(`⚠️ Failed to move ray ${id} to history:`, completeErrorAxios.message)
-      }
-    }
-
     return response.data
   } catch (error: any) {
     if (error.response?.status !== 401) {
       console.error(`❌ Error updating ray ${id}:`, error.response?.data || error.message);
     }
-    const errorDetail = error.response?.data?.detail || error.response?.data?.message || error.message || 'Reysni yangilashda xatolik yuz berdi';
+    const errorDetail = error.response?.data?.error || error.response?.data?.detail || error.response?.data?.message || error.message || 'Reys holatini o\'zgartirishda xatolik yuz berdi';
     throw new Error(errorDetail);
   }
 }
 
 export const completeRace = async (id: number): Promise<HistoryResponseData> => {
   try {
-    const response = await axiosInstance.get<ApiRaysResponseType>(`${API_URLS.rays}${id}/`)
-    const ray = response.data
-
-    console.log(`🚀 Creating history record for ray ${id}...`)
-    const historyData = {
-      driver_data: {
-        fullname: ray.driver ? ray.driver.fullname : "Unknown Driver",
-        phone_number: (ray.driver as any)?.phone || (ray.driver as any)?.phone_number || "Unknown Phone"
-      },
-      car_data: {
-        name: ray.car ? (ray.car.name || ray.car.model || "Unknown Car") : "Unknown Car",
-        number: ray.car ? ray.car.number : "Unknown"
-      },
-      fourgon_data: {
-        name: ray.fourgon ? (ray.fourgon.name || ray.fourgon.type || "Unknown Furgon") : "Unknown Furgon",
-        number: ray.fourgon ? ray.fourgon.number : "Unknown"
-      },
-      client_data: ray.client,
-      price: ray.price,
-      dr_price: ray.dr_price,
-      dp_price: ray.dp_price,
-      from1: ray.from1,
-      to_go: ray.to_go,
-      kilometer: ray.kilometer,
-      dp_information: ray.dp_information,
-      created_at: ray.created_at,
-      count: ray.count,
-      country: ray.country || 0
-    }
-
-    const historyResponse = await axiosInstance.post(API_URLS.history, historyData)
+    console.log(`🚀 Creating history record for ray ${id} using complete-race endpoint...`)
+    const historyResponse = await axiosInstance.post(`${API_URLS.rays}${id}/complete-race/`)
     console.log(`✅ Ray ${id} completed and moved to history:`, historyResponse.data)
     return historyResponse.data
   } catch (error: any) {

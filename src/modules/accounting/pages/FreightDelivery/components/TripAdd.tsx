@@ -18,6 +18,7 @@ import {
   Empty,
   Tabs,
   Modal,
+  Checkbox,
 } from 'antd'
 import {
   PlusOutlined,
@@ -113,6 +114,8 @@ interface TripFormValues {
   dp_information?: string;
   count?: number;
   country?: number;
+  is_empty_outbound?: boolean;
+  is_empty_return?: boolean;
 }
 
 interface TripAddProps {
@@ -626,7 +629,9 @@ const TripAdd: React.FC<TripAddProps> = ({ onSuccess }) => {
         dp_information: values.dp_information || '',
         count: values.count || 0,
         is_completed: false,
-        client_completed: completedClientIds || []
+        client_completed: completedClientIds || [],
+        is_empty_outbound: values.is_empty_outbound || false,
+        is_empty_return: values.is_empty_return || false
       };
 
       if (values.country) {
@@ -915,7 +920,9 @@ const TripAdd: React.FC<TripAddProps> = ({ onSuccess }) => {
                 }}
                 initialValues={{
                   count: 0,
-                  is_completed: false
+                  is_completed: false,
+                  is_empty_outbound: false,
+                  is_empty_return: false
                 }}
               >
                 <Row gutter={[16, 16]}>
@@ -1069,6 +1076,19 @@ const TripAdd: React.FC<TripAddProps> = ({ onSuccess }) => {
                           ))}
                         </Select>
                       )}
+                    </Form.Item>
+                  </Col>
+                </Row>
+
+                <Row gutter={[16, 16]}>
+                  <Col span={12}>
+                    <Form.Item name="is_empty_outbound" valuePropName="checked">
+                      <Checkbox>Borishda bo'sh (pustoy)</Checkbox>
+                    </Form.Item>
+                  </Col>
+                  <Col span={12}>
+                    <Form.Item name="is_empty_return" valuePropName="checked">
+                      <Checkbox>Qaytishda bo'sh (pustoy)</Checkbox>
                     </Form.Item>
                   </Col>
                 </Row>

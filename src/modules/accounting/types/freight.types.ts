@@ -27,6 +27,8 @@ export interface RaysCreate {
   count?: number;
   is_completed?: boolean;
   country?: number;
+  is_empty_outbound?: boolean;
+  is_empty_return?: boolean;
 }
 
 export interface ProductCreate {

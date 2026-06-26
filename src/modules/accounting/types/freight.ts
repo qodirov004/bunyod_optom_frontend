@@ -63,6 +63,8 @@ export interface raysType {
   count: string | number;
   country?: string | number;
   client_completed: (string | number)[];
+  is_empty_outbound?: boolean;
+  is_empty_return?: boolean;
 }
 
 export interface RaysResponseType {
@@ -114,6 +116,8 @@ export interface RaysResponseType {
   kilometer: number;
   from1: string;
   to_go: string;
+  is_empty_outbound?: boolean;
+  is_empty_return?: boolean;
 }
 
 export interface PaginatedResponse<T> {
@@ -164,6 +168,8 @@ export interface TripFormValues {
   count: number;
   country?: number;
   completion_date?: string;
+  is_empty_outbound?: boolean;
+  is_empty_return?: boolean;
 }
 
 // Status info for statistics
