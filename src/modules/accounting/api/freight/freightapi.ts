@@ -94,6 +94,10 @@ export const createRays = async (data: raysType): Promise<ApiRaysResponseType> =
       payload.country = Number(data.country);
     }
 
+    if (data.created_at) {
+      payload.created_at = String(data.created_at);
+    }
+
     // Checking if selected vehicle is busy
     console.log('Creating new rays started', payload);
     if (payload?.car && typeof payload.car === 'object' && 'is_busy' in payload.car && payload.car.is_busy) {

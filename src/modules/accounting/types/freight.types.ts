@@ -29,6 +29,7 @@ export interface RaysCreate {
   country?: number;
   is_empty_outbound?: boolean;
   is_empty_return?: boolean;
+  created_at?: string;
 }
 
 export interface ProductCreate {

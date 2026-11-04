@@ -19,7 +19,9 @@ import {
   Tabs,
   Modal,
   Checkbox,
+  DatePicker,
 } from 'antd'
+import dayjs from 'dayjs'
 import {
   PlusOutlined,
   UserOutlined,
@@ -116,6 +118,7 @@ interface TripFormValues {
   country?: number;
   is_empty_outbound?: boolean;
   is_empty_return?: boolean;
+  created_at?: any;
 }
 
 interface TripAddProps {
@@ -634,6 +637,10 @@ const TripAdd: React.FC<TripAddProps> = ({ onSuccess }) => {
         is_empty_return: values.is_empty_return || false
       };
 
+      if (values.created_at) {
+        payload.created_at = dayjs(values.created_at).toISOString();
+      }
+
       if (values.country) {
         payload.country = values.country;
       }
@@ -1089,6 +1096,24 @@ const TripAdd: React.FC<TripAddProps> = ({ onSuccess }) => {
                   <Col span={12}>
                     <Form.Item name="is_empty_return" valuePropName="checked">
                       <Checkbox>Qaytishda bo'sh (pustoy)</Checkbox>
+                    </Form.Item>
+                  </Col>
+                </Row>
+
+                <Row gutter={[16, 16]}>
+                  <Col span={24} md={12}>
+                    <Form.Item
+                      name="created_at"
+                      label="Yaratish sanasi va vaqti (Ixtiyoriy)"
+                      tooltip="Agar bo'sh qoldirilsa, avtomatik joriy sana va vaqt saqlanadi"
+                    >
+                      <DatePicker
+                        showTime={{ format: 'HH:mm' }}
+                        format="YYYY-MM-DD HH:mm"
+                        placeholder="Sana va vaqtni tanlang (bo'sh = hozirgi vaqt)"
+                        style={{ width: '100%' }}
+                        allowClear
+                      />
                     </Form.Item>
                   </Col>
                 </Row>

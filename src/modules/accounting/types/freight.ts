@@ -65,6 +65,7 @@ export interface raysType {
   client_completed: (string | number)[];
   is_empty_outbound?: boolean;
   is_empty_return?: boolean;
+  created_at?: string;
 }
 
 export interface RaysResponseType {
@@ -118,6 +119,7 @@ export interface RaysResponseType {
   to_go: string;
   is_empty_outbound?: boolean;
   is_empty_return?: boolean;
+  created_at?: string;
 }
 
 export interface PaginatedResponse<T> {
@@ -170,6 +172,7 @@ export interface TripFormValues {
   completion_date?: string;
   is_empty_outbound?: boolean;
   is_empty_return?: boolean;
+  created_at?: string;
 }
 
 // Status info for statistics
