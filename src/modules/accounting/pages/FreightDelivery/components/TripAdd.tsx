@@ -875,21 +875,25 @@ const TripAdd: React.FC<TripAddProps> = ({
                     title: 'Narxi',
                     dataIndex: 'price',
                     key: 'price',
-                    render: (price) => `${Number(price).toLocaleString()} so'm`,
+                    render: (price) => <span style={{ whiteSpace: 'nowrap' }}>{Number(price).toLocaleString()} so'm</span>,
                   },
                   {
                     title: 'Kubi',
                     dataIndex: 'count',
                     key: 'count',
+                    width: 70,
+                    align: 'center',
                   },
                   {
                     title: 'Umumiy',
                     key: 'total',
-                    render: (_, record) => `${record.price.toLocaleString()} so'm`,
+                    render: (_, record) => <span style={{ whiteSpace: 'nowrap' }}>{Number(record.price).toLocaleString()} so'm</span>,
                   },
                   {
                     title: 'Amallar',
                     key: 'action',
+                    width: 80,
+                    align: 'center',
                     render: (_, record, productIndex) => (
                       <Button
                         type="text"
@@ -904,16 +908,22 @@ const TripAdd: React.FC<TripAddProps> = ({
                 ]}
                 pagination={false}
                 summary={(pageData) => {
-                  const totalPrice = pageData.reduce((sum, current) => sum + current.price, 0);
+                  const totalPrice = pageData.reduce((sum, current) => sum + (Number(current.price) || 0), 0);
+                  const totalCount = pageData.reduce((sum, current) => sum + (Number(current.count) || 0), 0);
                   return (
-                    <Table.Summary.Row>
+                    <Table.Summary.Row style={{ background: '#fafafa' }}>
                       <Table.Summary.Cell index={0} colSpan={2}>
                         <Text strong>Jami</Text>
                       </Table.Summary.Cell>
-                      <Table.Summary.Cell index={1}>
-                        <Text strong>{totalPrice.toLocaleString()} so'm</Text>
+                      <Table.Summary.Cell index={1} align="center">
+                        <Text strong>{totalCount}</Text>
                       </Table.Summary.Cell>
-                      <Table.Summary.Cell index={2} />
+                      <Table.Summary.Cell index={2}>
+                        <Text strong style={{ whiteSpace: 'nowrap', color: '#1677ff' }}>
+                          {totalPrice.toLocaleString()} so'm
+                        </Text>
+                      </Table.Summary.Cell>
+                      <Table.Summary.Cell index={3} />
                     </Table.Summary.Row>
                   );
                 }}
@@ -1275,22 +1285,25 @@ const TripAdd: React.FC<TripAddProps> = ({
                         title: 'Narxi',
                         dataIndex: 'price',
                         key: 'price',
-                        render: (price) => `${Number(price).toLocaleString()} so'm`,
+                        render: (price) => <span style={{ whiteSpace: 'nowrap' }}>{Number(price).toLocaleString()} so'm</span>,
                       },
-
                       {
                         title: 'Kubi',
                         dataIndex: 'count',
                         key: 'count',
+                        width: 70,
+                        align: 'center',
                       },
                       {
                         title: 'Umumiy',
                         key: 'total',
-                        render: (_, record) => `${record.price.toLocaleString()} so'm`,
+                        render: (_, record) => <span style={{ whiteSpace: 'nowrap' }}>{Number(record.price).toLocaleString()} so'm</span>,
                       },
                       {
                         title: 'Amallar',
                         key: 'action',
+                        width: 80,
+                        align: 'center',
                         render: (_, record, productIndex) => (
                           <Button
                             type="text"
@@ -1305,16 +1318,22 @@ const TripAdd: React.FC<TripAddProps> = ({
                     ]}
                     pagination={false}
                     summary={(pageData) => {
-                      const totalPrice = pageData.reduce((sum, item) => sum + item.price, 0);
+                      const totalPrice = pageData.reduce((sum, item) => sum + (Number(item.price) || 0), 0);
+                      const totalCount = pageData.reduce((sum, item) => sum + (Number(item.count) || 0), 0);
                       return (
-                        <Table.Summary.Row>
+                        <Table.Summary.Row style={{ background: '#fafafa' }}>
                           <Table.Summary.Cell index={0} colSpan={2}>
                             <Text strong>Jami</Text>
                           </Table.Summary.Cell>
-                          <Table.Summary.Cell index={1}>
-                            <Text strong>{totalPrice.toLocaleString()} so'm</Text>
+                          <Table.Summary.Cell index={1} align="center">
+                            <Text strong>{totalCount}</Text>
                           </Table.Summary.Cell>
-                          <Table.Summary.Cell index={2} />
+                          <Table.Summary.Cell index={2}>
+                            <Text strong style={{ whiteSpace: 'nowrap', color: '#1677ff' }}>
+                              {totalPrice.toLocaleString()} so'm
+                            </Text>
+                          </Table.Summary.Cell>
+                          <Table.Summary.Cell index={3} />
                         </Table.Summary.Row>
                       );
                     }}
