@@ -34,12 +34,15 @@ import {
   CalendarOutlined,
   EnvironmentOutlined,
   TeamOutlined,
-  DownOutlined
+  DownOutlined,
+  PlusOutlined,
+  HistoryOutlined
 } from '@ant-design/icons';
 import dayjs, { Dayjs } from 'dayjs';
 import isBetween from 'dayjs/plugin/isBetween';
 import axiosInstance from '@/api/axiosInstance';
 import { useQueryClient } from '@tanstack/react-query';
+import TripAdd from '../FreightDelivery/components/TripAdd';
 
 dayjs.extend(isBetween);
 
@@ -302,6 +305,7 @@ const TripHistoryPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [detailsVisible, setDetailsVisible] = useState(false);
+  const [createDrawerVisible, setCreateDrawerVisible] = useState(false);
   const [selectedTrip, setSelectedTrip] = useState<Trip | null>(null);
   const [searchText, setSearchText] = useState('');
   const [dateRange, setDateRange] = useState<[Dayjs, Dayjs] | null>(null);
@@ -1376,7 +1380,19 @@ const TripHistoryPage: React.FC = () => {
             <Title level={3} style={styles.title}>Reyslar tarixi</Title>
             <Text type="secondary">Bu yerda barcha yakunlangan reyslar ro`yxati ko`rsatilgan</Text>
           </div>
-          <div>
+          <Space>
+            <Button 
+              type="primary" 
+              icon={<PlusOutlined />} 
+              onClick={() => setCreateDrawerVisible(true)}
+              style={{ 
+                background: '#52c41a', 
+                borderColor: '#52c41a',
+                borderRadius: '4px',
+              }}
+            >
+              Eski reys qo'shish
+            </Button>
             <Dropdown menu={{
               items: [
                 {
@@ -1424,7 +1440,7 @@ const TripHistoryPage: React.FC = () => {
                 Eksport <DownOutlined />
               </Button>
             </Dropdown>
-          </div>
+          </Space>
         </div>
       </Card>
 
@@ -1523,6 +1539,30 @@ const TripHistoryPage: React.FC = () => {
       </Card>
 
       <TripDetailsDrawer />
+
+      <Drawer
+        title={
+          <Space>
+            <HistoryOutlined style={{ color: '#52c41a' }} />
+            <span>Eski reysni tarixga qo'shish</span>
+          </Space>
+        }
+        width={1000}
+        open={createDrawerVisible}
+        onClose={() => setCreateDrawerVisible(false)}
+        destroyOnClose
+      >
+        <TripAdd
+          title="Eski reys ma'lumotlarini kiritish"
+          autoCompleteToHistory={true}
+          onSuccess={() => {
+            setCreateDrawerVisible(false);
+            fetchTrips();
+            fetchOverviewStats();
+            queryClient.invalidateQueries();
+          }}
+        />
+      </Drawer>
     </div>
   );
 };

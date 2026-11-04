@@ -123,6 +123,8 @@ interface TripFormValues {
 
 interface TripAddProps {
   onSuccess?: () => void;
+  title?: string;
+  autoCompleteToHistory?: boolean;
 }
 
 // Helper function to generate a unique temporary ID
@@ -156,8 +158,8 @@ const loadDraftFromStorage = (): SelectedClientData[] | null => {
     return savedData ? JSON.parse(savedData) : null;
   } catch (error) {
     console.error('Error loading draft from localStorage:', error);
-    return null;
   }
+  return null;
 };
 
 const clearDraftFromStorage = () => {
@@ -172,7 +174,11 @@ const clearDraftFromStorage = () => {
   }
 };
 
-const TripAdd: React.FC<TripAddProps> = ({ onSuccess }) => {
+const TripAdd: React.FC<TripAddProps> = ({ 
+  onSuccess,
+  title = "Yangi reys qo'shish",
+  autoCompleteToHistory = false
+}) => {
   const [form] = Form.useForm()
   const [productForm] = Form.useForm()
   const [loading, setLoading] = useState(false)
@@ -661,11 +667,6 @@ const TripAdd: React.FC<TripAddProps> = ({ onSuccess }) => {
             ...sc.client,
             first_name: sc.client.company || sc.client.first_name || 'Mijoz'
         }));
-        setPaymentClients(clientsForPayment);
-
-        // Open payment modal for the newly created rays
-        setSelectedRaysId(raysResponse.id);
-        setShowPaymentModal(true);
 
         // Clear ALL data from localStorage after successful trip creation
         clearDraftFromStorage();
@@ -676,6 +677,24 @@ const TripAdd: React.FC<TripAddProps> = ({ onSuccess }) => {
         setSelectedClients([]);
         setCompletedClientIds([]);
         setCurrentClientId(null);
+
+        if (clientsForPayment.length > 0) {
+          setPaymentClients(clientsForPayment);
+          // Open payment modal for the newly created rays
+          setSelectedRaysId(raysResponse.id);
+          setShowPaymentModal(true);
+        } else {
+          if (autoCompleteToHistory && raysResponse.id) {
+            try {
+              await axiosInstance.post(`${API_URLS.rays}${raysResponse.id}/${API_URLS.RAYS.COMPLETE_RACE}`);
+              messageApi.success("Reys muvaffaqiyatli yakunlandi va tarixga qo'shildi!");
+            } catch (err: any) {
+              console.warn("Could not auto-complete trip:", err);
+              messageApi.info("Reys yaratildi.");
+            }
+          }
+          if (onSuccess) onSuccess();
+        }
       } catch (apiError: any) {
         console.error('API Error:', apiError.response?.status, apiError.response?.data);
         // Show specific error from API if available
@@ -910,7 +929,16 @@ const TripAdd: React.FC<TripAddProps> = ({ onSuccess }) => {
   return (
     <div className="trip-form-container">
       {contextHolder}
-      <Card title="Yangi reys qo'shish">
+      <Card title={title}>
+        {autoCompleteToHistory && (
+          <Alert
+            message="Eski reysni kiritish"
+            description="Ushbu reys yaratilgach, to'g'ridan-to'g'ri reyslar tarixiga qo'shiladi va yakunlanadi. Yaratish sanasi va vaqtini o'tmishdagi sana qilib kiritishingiz mumkin."
+            type="info"
+            showIcon
+            style={{ marginBottom: 16 }}
+          />
+        )}
         <Row gutter={[24, 16]}>
           <Col span={24} md={16}>
             <Card title="Asosiy ma'lumotlar" variant="borderless">
@@ -1139,8 +1167,9 @@ const TripAdd: React.FC<TripAddProps> = ({ onSuccess }) => {
                     icon={<PlusOutlined />}
                     loading={loading}
                     disabled={selectedClients.length === 0 || !selectedClients.some(c => c.products.length > 0)}
+                    style={autoCompleteToHistory ? { background: '#52c41a', borderColor: '#52c41a' } : {}}
                   >
-                    Reys qo`shish
+                    {autoCompleteToHistory ? "Eski reysni tarixga saqlash" : "Reys qo`shish"}
                   </Button>
                 </Form.Item>
               </Form>
@@ -1324,10 +1353,22 @@ const TripAdd: React.FC<TripAddProps> = ({ onSuccess }) => {
         raysId={selectedRaysId!}
         open={showPaymentModal}
         initialClients={paymentClients}
-        onClose={() => {
+        onClose={async () => {
+          const tripId = selectedRaysId;
           setShowPaymentModal(false);
           setSelectedRaysId(null);
           setPaymentClients([]);
+
+          if (autoCompleteToHistory && tripId) {
+            try {
+              await axiosInstance.post(`${API_URLS.rays}${tripId}/${API_URLS.RAYS.COMPLETE_RACE}`);
+              messageApi.success("Eski reys muvaffaqiyatli yakunlandi va tarixga qo'shildi!");
+            } catch (err: any) {
+              console.warn("Could not auto-complete trip:", err);
+              messageApi.info("Reys yaratildi. To'lov to'liq tasdiqlangach, uni reyslar bo'limidan yakunlashingiz mumkin.");
+            }
+          }
+
           if (onSuccess) onSuccess();
         }}
       />
