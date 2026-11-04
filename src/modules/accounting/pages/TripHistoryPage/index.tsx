@@ -1547,7 +1547,7 @@ const TripHistoryPage: React.FC = () => {
             <span>Eski reysni tarixga qo'shish</span>
           </Space>
         }
-        width={1000}
+        width="min(1300px, 95vw)"
         open={createDrawerVisible}
         onClose={() => setCreateDrawerVisible(false)}
         destroyOnClose

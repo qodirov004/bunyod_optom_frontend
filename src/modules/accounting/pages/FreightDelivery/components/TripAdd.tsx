@@ -754,23 +754,25 @@ const TripAdd: React.FC<TripAddProps> = ({
             </Space>
           </div>
 
-          <Card title="Mahsulot qo'shish" variant="borderless" style={{ marginBottom: 16 }}>
+          <Card title="Mahsulot qo'shish" size="small" variant="borderless" style={{ marginBottom: 16, background: '#fcfcfc', border: '1px solid #f0f0f0', borderRadius: 8 }}>
             <Form
               form={productForm}
               name="product-form"
               layout="vertical"
               onFinish={handleAddProduct}
             >
-              <Form.Item
-                name="name"
-                label="Mahsulot nomi"
-                rules={[{ required: true, message: 'Mahsulot nomini kiriting!' }]}
-              >
-                <Input placeholder="Mahsulot nomi" />
-              </Form.Item>
+              <Row gutter={[12, 12]}>
+                <Col span={24} sm={12}>
+                  <Form.Item
+                    name="name"
+                    label="Mahsulot nomi"
+                    rules={[{ required: true, message: 'Mahsulot nomini kiriting!' }]}
+                  >
+                    <Input placeholder="Mahsulot nomi" />
+                  </Form.Item>
+                </Col>
 
-              <Row gutter={[16, 16]}>
-                <Col span={12}>
+                <Col span={12} sm={6}>
                   <Form.Item
                     name="price"
                     label="Narxi (so'mda)"
@@ -786,14 +788,14 @@ const TripAdd: React.FC<TripAddProps> = ({
                   </Form.Item>
                 </Col>
 
-                <Col span={12}>
+                <Col span={12} sm={6}>
                   <Form.Item
                     name="count"
-                    label="kubi"
-                    rules={[{ required: true, message: 'Sonini kiriting!' }]}
+                    label="Kubi"
+                    rules={[{ required: true, message: 'Kubini kiriting!' }]}
                   >
                     <InputNumber
-                      placeholder="kubi"
+                      placeholder="Kubi"
                       min={1}
                       style={{ width: '100%' }}
                     />
@@ -801,8 +803,8 @@ const TripAdd: React.FC<TripAddProps> = ({
                 </Col>
               </Row>
 
-              <Row gutter={[16, 16]}>
-                <Col span={12}>
+              <Row gutter={[12, 12]}>
+                <Col span={24} sm={12}>
                   <Form.Item
                     name="from_location"
                     label="Qayerdan"
@@ -818,7 +820,7 @@ const TripAdd: React.FC<TripAddProps> = ({
                   </Form.Item>
                 </Col>
 
-                <Col span={12}>
+                <Col span={24} sm={12}>
                   <Form.Item
                     name="to_location"
                     label="Qayerga"
@@ -835,10 +837,8 @@ const TripAdd: React.FC<TripAddProps> = ({
                 </Col>
               </Row>
 
-
-
-              <Row gutter={[16, 16]}>
-                <Col span={12}>
+              <Row gutter={[12, 12]}>
+                <Col span={24}>
                   <Form.Item
                     name="description"
                     label="Izoh"
@@ -848,7 +848,7 @@ const TripAdd: React.FC<TripAddProps> = ({
                 </Col>
               </Row>
 
-              <Form.Item>
+              <Form.Item style={{ marginBottom: 0 }}>
                 <Button
                   type="primary"
                   htmlType="submit"
@@ -861,8 +861,10 @@ const TripAdd: React.FC<TripAddProps> = ({
           </Card>
 
           {clientData.products.length > 0 ? (
-            <Card title="Qo'shilgan mahsulotlar">
+            <Card title="Qo'shilgan mahsulotlar" size="small" style={{ marginTop: 12 }}>
               <Table
+                size="small"
+                scroll={{ x: 500 }}
                 dataSource={clientData.products}
                 rowKey={(record) => record.tempId}
                 columns={[
@@ -870,34 +872,42 @@ const TripAdd: React.FC<TripAddProps> = ({
                     title: 'Mahsulot nomi',
                     dataIndex: 'name',
                     key: 'name',
+                    ellipsis: true,
+                    render: (name) => <span style={{ fontWeight: 500 }}>{name}</span>,
                   },
                   {
                     title: 'Narxi',
                     dataIndex: 'price',
                     key: 'price',
+                    align: 'right',
+                    width: 120,
                     render: (price) => <span style={{ whiteSpace: 'nowrap' }}>{Number(price).toLocaleString()} so'm</span>,
                   },
                   {
                     title: 'Kubi',
                     dataIndex: 'count',
                     key: 'count',
-                    width: 70,
                     align: 'center',
+                    width: 80,
+                    render: (count) => <span style={{ whiteSpace: 'nowrap' }}>{count}</span>,
                   },
                   {
                     title: 'Umumiy',
                     key: 'total',
-                    render: (_, record) => <span style={{ whiteSpace: 'nowrap' }}>{Number(record.price).toLocaleString()} so'm</span>,
+                    align: 'right',
+                    width: 130,
+                    render: (_, record) => <span style={{ whiteSpace: 'nowrap', fontWeight: 600 }}>{Number(record.price).toLocaleString()} so'm</span>,
                   },
                   {
                     title: 'Amallar',
                     key: 'action',
-                    width: 80,
                     align: 'center',
+                    width: 75,
                     render: (_, record, productIndex) => (
                       <Button
                         type="text"
                         danger
+                        size="small"
                         icon={<DeleteOutlined />}
                         onClick={() => handleRemoveProduct(index, productIndex)}
                       >
@@ -911,26 +921,26 @@ const TripAdd: React.FC<TripAddProps> = ({
                   const totalPrice = pageData.reduce((sum, current) => sum + (Number(current.price) || 0), 0);
                   const totalCount = pageData.reduce((sum, current) => sum + (Number(current.count) || 0), 0);
                   return (
-                    <Table.Summary.Row style={{ background: '#fafafa' }}>
+                    <Table.Summary.Row style={{ background: '#fafafa', fontWeight: 600 }}>
                       <Table.Summary.Cell index={0} colSpan={2}>
-                        <Text strong>Jami</Text>
+                        <Text strong style={{ whiteSpace: 'nowrap' }}>Jami:</Text>
                       </Table.Summary.Cell>
-                      <Table.Summary.Cell index={1} align="center">
-                        <Text strong>{totalCount}</Text>
+                      <Table.Summary.Cell index={2} align="center">
+                        <Text strong style={{ whiteSpace: 'nowrap' }}>{totalCount}</Text>
                       </Table.Summary.Cell>
-                      <Table.Summary.Cell index={2}>
+                      <Table.Summary.Cell index={3} align="right">
                         <Text strong style={{ whiteSpace: 'nowrap', color: '#1677ff' }}>
                           {totalPrice.toLocaleString()} so'm
                         </Text>
                       </Table.Summary.Cell>
-                      <Table.Summary.Cell index={3} />
+                      <Table.Summary.Cell index={4} />
                     </Table.Summary.Row>
                   );
                 }}
               />
             </Card>
           ) : (
-            <Empty description="Hali mahsulot qo'shilmagan" />
+            <Empty description="Hali mahsulot qo'shilmagan" image={Empty.PRESENTED_IMAGE_SIMPLE} />
           )}
         </div>
       )
@@ -950,8 +960,8 @@ const TripAdd: React.FC<TripAddProps> = ({
             style={{ marginBottom: 16 }}
           />
         )}
-        <Row gutter={[24, 16]}>
-          <Col span={24} md={16}>
+        <Row gutter={[24, 24]}>
+          <Col span={24} lg={11} xl={10}>
             <Card title="Asosiy ma'lumotlar" variant="borderless">
               <Form
                 form={form}
@@ -971,8 +981,8 @@ const TripAdd: React.FC<TripAddProps> = ({
                   is_empty_return: false
                 }}
               >
-                <Row gutter={[16, 16]}>
-                  <Col span={8}>
+                <Row gutter={[12, 12]}>
+                  <Col span={24}>
                     <Form.Item
                       name="driver"
                       label="Haydovchi"
@@ -996,7 +1006,7 @@ const TripAdd: React.FC<TripAddProps> = ({
                     </Form.Item>
                   </Col>
 
-                  <Col span={8}>
+                  <Col span={12}>
                     <Form.Item
                       name="car"
                       label="Mashina"
@@ -1017,7 +1027,7 @@ const TripAdd: React.FC<TripAddProps> = ({
                     </Form.Item>
                   </Col>
 
-                  <Col span={8}>
+                  <Col span={12}>
                     <Form.Item
                       name="fourgon"
                       label="Furgon"
@@ -1039,7 +1049,7 @@ const TripAdd: React.FC<TripAddProps> = ({
                   </Col>
                 </Row>
 
-                <Row gutter={[16, 16]}>
+                <Row gutter={[12, 12]}>
                   <Col span={12}>
                     <Form.Item
                       name="dp_price"
@@ -1070,7 +1080,7 @@ const TripAdd: React.FC<TripAddProps> = ({
                   </Col>
                 </Row>
 
-                <Row gutter={[16, 16]}>
+                <Row gutter={[12, 12]}>
                   <Col span={8}>
                     <Form.Item
                       name="kilometer"
@@ -1085,7 +1095,7 @@ const TripAdd: React.FC<TripAddProps> = ({
                     </Form.Item>
                   </Col>
 
-                  <Col span={24} md={8}>
+                  <Col span={8}>
                     <Form.Item
                       name="count"
                       label="Soni"
@@ -1098,7 +1108,7 @@ const TripAdd: React.FC<TripAddProps> = ({
                     </Form.Item>
                   </Col>
 
-                  <Col span={24} md={8}>
+                  <Col span={8}>
                     <Form.Item
                       name="country"
                       label="Davlat"
@@ -1126,7 +1136,7 @@ const TripAdd: React.FC<TripAddProps> = ({
                   </Col>
                 </Row>
 
-                <Row gutter={[16, 16]}>
+                <Row gutter={[12, 12]}>
                   <Col span={12}>
                     <Form.Item name="is_empty_outbound" valuePropName="checked">
                       <Checkbox>Borishda bo'sh (pustoy)</Checkbox>
@@ -1139,8 +1149,8 @@ const TripAdd: React.FC<TripAddProps> = ({
                   </Col>
                 </Row>
 
-                <Row gutter={[16, 16]}>
-                  <Col span={24} md={12}>
+                <Row gutter={[12, 12]}>
+                  <Col span={24}>
                     <Form.Item
                       name="created_at"
                       label="Yaratish sanasi va vaqti (Ixtiyoriy)"
@@ -1157,7 +1167,7 @@ const TripAdd: React.FC<TripAddProps> = ({
                   </Col>
                 </Row>
 
-                <Row gutter={[16, 16]}>
+                <Row gutter={[12, 12]}>
                   <Col span={24}>
                     <Form.Item
                       name="dp_information"
@@ -1177,6 +1187,8 @@ const TripAdd: React.FC<TripAddProps> = ({
                     htmlType="submit"
                     icon={<PlusOutlined />}
                     loading={loading}
+                    block
+                    size="large"
                     disabled={selectedClients.length === 0 || !selectedClients.some(c => c.products.length > 0)}
                     style={autoCompleteToHistory ? { background: '#52c41a', borderColor: '#52c41a' } : {}}
                   >
@@ -1184,11 +1196,36 @@ const TripAdd: React.FC<TripAddProps> = ({
                   </Button>
                 </Form.Item>
               </Form>
+
+              <Card
+                title="Transport holati"
+                size="small"
+                style={{ marginTop: '16px', background: '#fafafa' }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                  <span>Mashinalar:</span>
+                  <div>
+                    <Tag color="green">{cars.filter(car => !car.is_busy).length} ta</Tag> mavjud
+                    {cars.filter(car => car.is_busy).length > 0 && (
+                      <>, <Tag color="red">{cars.filter(car => car.is_busy).length} ta</Tag> band</>
+                    )}
+                  </div>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span>Furgonlar:</span>
+                  <div>
+                    <Tag color="green">{fourgons.filter(furgon => !furgon.is_busy).length} ta</Tag> mavjud
+                    {fourgons.filter(furgon => furgon.is_busy).length > 0 && (
+                      <>, <Tag color="red">{fourgons.filter(furgon => furgon.is_busy).length} ta</Tag> band</>
+                    )}
+                  </div>
+                </div>
+              </Card>
             </Card>
           </Col>
 
-          <Col span={24} md={8}>
-            <Card title="Mijozlar" variant="borderless" style={{ marginBottom: 16 }}>
+          <Col span={24} lg={13} xl={14}>
+            <Card title="Mijozlar va Mahsulotlar" variant="borderless" style={{ marginBottom: 16 }}>
               <Form.Item
                 label="Mijoz qo'shish"
               >
@@ -1211,30 +1248,6 @@ const TripAdd: React.FC<TripAddProps> = ({
                   ))}
                 </Select>
               </Form.Item>
-              <Card
-                title="Transport holati"
-                size="small"
-                style={{ marginBottom: '16px' }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                  <span>Mashinalar:</span>
-                  <div>
-                    <Tag color="green">{cars.filter(car => !car.is_busy).length} ta</Tag> mavjud
-                    {cars.filter(car => car.is_busy).length > 0 && (
-                      <>, <Tag color="red">{cars.filter(car => car.is_busy).length} ta</Tag> band</>
-                    )}
-                  </div>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span>Furgonlar:</span>
-                  <div>
-                    <Tag color="green">{fourgons.filter(furgon => !furgon.is_busy).length} ta</Tag> mavjud
-                    {fourgons.filter(furgon => furgon.is_busy).length > 0 && (
-                      <>, <Tag color="red">{fourgons.filter(furgon => furgon.is_busy).length} ta</Tag> band</>
-                    )}
-                  </div>
-                </div>
-              </Card>
 
               {selectedClients.length > 0 ? (
                 <div className="client-tabs">
@@ -1248,7 +1261,7 @@ const TripAdd: React.FC<TripAddProps> = ({
                 </div>
               ) : (
                 <Empty
-                  description="Hali mijozlar qo'shilmagan"
+                  description="Hali mijozlar qo'shilmagan. Yuqoridagi ro'yxatdan mijoz tanlang."
                   image={Empty.PRESENTED_IMAGE_SIMPLE}
                 />
               )}
@@ -1273,6 +1286,8 @@ const TripAdd: React.FC<TripAddProps> = ({
 
                 {clientData.products.length > 0 ? (
                   <Table
+                    size="small"
+                    scroll={{ x: 500 }}
                     dataSource={clientData.products}
                     rowKey={(record) => record.tempId}
                     columns={[
@@ -1280,34 +1295,42 @@ const TripAdd: React.FC<TripAddProps> = ({
                         title: 'Mahsulot nomi',
                         dataIndex: 'name',
                         key: 'name',
+                        ellipsis: true,
+                        render: (name) => <span style={{ fontWeight: 500 }}>{name}</span>,
                       },
                       {
                         title: 'Narxi',
                         dataIndex: 'price',
                         key: 'price',
+                        align: 'right',
+                        width: 130,
                         render: (price) => <span style={{ whiteSpace: 'nowrap' }}>{Number(price).toLocaleString()} so'm</span>,
                       },
                       {
                         title: 'Kubi',
                         dataIndex: 'count',
                         key: 'count',
-                        width: 70,
                         align: 'center',
+                        width: 80,
+                        render: (count) => <span style={{ whiteSpace: 'nowrap' }}>{count}</span>,
                       },
                       {
                         title: 'Umumiy',
                         key: 'total',
-                        render: (_, record) => <span style={{ whiteSpace: 'nowrap' }}>{Number(record.price).toLocaleString()} so'm</span>,
+                        align: 'right',
+                        width: 140,
+                        render: (_, record) => <span style={{ whiteSpace: 'nowrap', fontWeight: 600 }}>{Number(record.price).toLocaleString()} so'm</span>,
                       },
                       {
                         title: 'Amallar',
                         key: 'action',
-                        width: 80,
                         align: 'center',
+                        width: 75,
                         render: (_, record, productIndex) => (
                           <Button
                             type="text"
                             danger
+                            size="small"
                             icon={<DeleteOutlined />}
                             onClick={() => handleRemoveProduct(selectedClients.findIndex(c => c.client.id === clientData.client.id), productIndex)}
                           >
@@ -1321,25 +1344,25 @@ const TripAdd: React.FC<TripAddProps> = ({
                       const totalPrice = pageData.reduce((sum, item) => sum + (Number(item.price) || 0), 0);
                       const totalCount = pageData.reduce((sum, item) => sum + (Number(item.count) || 0), 0);
                       return (
-                        <Table.Summary.Row style={{ background: '#fafafa' }}>
+                        <Table.Summary.Row style={{ background: '#fafafa', fontWeight: 600 }}>
                           <Table.Summary.Cell index={0} colSpan={2}>
-                            <Text strong>Jami</Text>
+                            <Text strong style={{ whiteSpace: 'nowrap' }}>Jami:</Text>
                           </Table.Summary.Cell>
-                          <Table.Summary.Cell index={1} align="center">
-                            <Text strong>{totalCount}</Text>
+                          <Table.Summary.Cell index={2} align="center">
+                            <Text strong style={{ whiteSpace: 'nowrap' }}>{totalCount}</Text>
                           </Table.Summary.Cell>
-                          <Table.Summary.Cell index={2}>
+                          <Table.Summary.Cell index={3} align="right">
                             <Text strong style={{ whiteSpace: 'nowrap', color: '#1677ff' }}>
                               {totalPrice.toLocaleString()} so'm
                             </Text>
                           </Table.Summary.Cell>
-                          <Table.Summary.Cell index={3} />
+                          <Table.Summary.Cell index={4} />
                         </Table.Summary.Row>
                       );
                     }}
                   />
                 ) : (
-                  <Empty description="Hali mahsulot qo'shilmagan" />
+                  <Empty description="Hali mahsulot qo'shilmagan" image={Empty.PRESENTED_IMAGE_SIMPLE} />
                 )}
               </div>
             ))}
