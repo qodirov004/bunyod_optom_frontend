@@ -121,9 +121,15 @@ export const TripsTable: React.FC<TripsTableProps> = ({
       title: 'Yo\'nalish',
       key: 'route',
       render: (_, record: TripData) => (
-        <Space direction="vertical" size={0}>
+        <Space direction="vertical" size={2}>
           <div><EnvironmentOutlined /> {record.endLocation}</div>
           <div>{record.distance} km</div>
+          {record.is_empty_outbound && (
+            <Tag color="orange" style={{ margin: 0, fontSize: '11px' }}>Borishda pustoy</Tag>
+          )}
+          {record.is_empty_return && (
+            <Tag color="purple" style={{ margin: 0, fontSize: '11px' }}>Qaytishda pustoy</Tag>
+          )}
         </Space>
       ),
     },

@@ -42,6 +42,8 @@ export const useTripData = () => {
       cargoWeight: trip.cargo_weight || 0,
       notes: trip.notes || null,
       country: trip.country?.name || '',
+      is_empty_outbound: trip.is_empty_outbound,
+      is_empty_return: trip.is_empty_return,
       rawData: trip  // Store the original data for details view
     }));
     

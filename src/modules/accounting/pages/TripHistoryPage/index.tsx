@@ -296,6 +296,8 @@ interface Trip {
   currency?: number;
   custom_rate_to_uzs?: string;
   hasJunkDistance?: boolean;
+  is_empty_outbound?: boolean;
+  is_empty_return?: boolean;
 }
 
 // Trip tarixi sahifasi
@@ -808,10 +810,22 @@ const TripHistoryPage: React.FC = () => {
         ),
       },
       {
-        title: 'Davlat',
+        title: 'Davlat / Yo\'nalish',
         key: 'country',
         render: (_: unknown, record: Trip) => (
-          <Text>{record.country?.name || '-'}</Text>
+          <Space direction="vertical" size={2}>
+            <Text>{record.country?.name || '-'}</Text>
+            {record.is_empty_outbound && (
+              <Tag color="orange" style={{ margin: 0, fontSize: '11px' }}>
+                Borishda pustoy
+              </Tag>
+            )}
+            {record.is_empty_return && (
+              <Tag color="purple" style={{ margin: 0, fontSize: '11px' }}>
+                Qaytishda pustoy
+              </Tag>
+            )}
+          </Space>
         ),
       },
       {
@@ -953,6 +967,13 @@ const TripHistoryPage: React.FC = () => {
               </Descriptions.Item>
               <Descriptions.Item label={<><EnvironmentOutlined /> Masofa</>}>
                 {selectedTrip.kilometer || 0} km
+              </Descriptions.Item>
+              <Descriptions.Item label={<><InfoCircleOutlined /> Yo'nalish holati</>}>
+                <Space wrap>
+                  {selectedTrip.is_empty_outbound && <Tag color="orange">Borishda bo'sh (pustoy)</Tag>}
+                  {selectedTrip.is_empty_return && <Tag color="purple">Qaytishda bo'sh (pustoy)</Tag>}
+                  {!selectedTrip.is_empty_outbound && !selectedTrip.is_empty_return && <Tag color="green">Yuk bilan (to'liq)</Tag>}
+                </Space>
               </Descriptions.Item>
               <Descriptions.Item label={<><InfoCircleOutlined /> Izoh</>}>
                 {selectedTrip.dp_information || "Ma'lumot kiritilmagan"}

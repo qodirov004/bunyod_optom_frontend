@@ -222,7 +222,14 @@ const TripDetailsModal: React.FC<TripDetailsModalProps> = ({
                 <Text>{trip.dr_price?.toLocaleString() || 0} so'm</Text>
               </Descriptions.Item>
               <Descriptions.Item label="Davlat">
-                <Text>{trip.country?.name}</Text>
+                <Text>{trip.country?.name || "Kiritilmagan"}</Text>
+              </Descriptions.Item>
+              <Descriptions.Item label="Yo'nalish holati">
+                <Space wrap>
+                  {trip.is_empty_outbound && <Tag color="orange">Borishda pustoy</Tag>}
+                  {trip.is_empty_return && <Tag color="purple">Qaytishda pustoy</Tag>}
+                  {!trip.is_empty_outbound && !trip.is_empty_return && <Tag color="green">Yuk bilan (to'liq)</Tag>}
+                </Space>
               </Descriptions.Item>
             </Descriptions>
           </Card>

@@ -182,7 +182,7 @@ const TripTable = ({
       ),
     },
     {
-      title: "Furgon",
+      title: "Furgon / Holat",
       key: 'fourgon',
       render: (_: any, record: RaysResponseType) => (
         <div>
@@ -191,6 +191,12 @@ const TripTable = ({
             <div style={{ fontSize: '12px', color: '#666' }}>
               <CarOutlined /> {record.fourgon.number}
             </div>
+          )}
+          {record.is_empty_outbound && (
+            <div><Tag color="orange" style={{ fontSize: '11px', marginTop: 4 }}>Borishda pustoy</Tag></div>
+          )}
+          {record.is_empty_return && (
+            <div><Tag color="purple" style={{ fontSize: '11px', marginTop: 4 }}>Qaytishda pustoy</Tag></div>
           )}
         </div>
       ),
@@ -468,6 +474,13 @@ const TripTable = ({
                       )}
                     </div>
                   </div>
+
+                  {(trip.is_empty_outbound || trip.is_empty_return) && (
+                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 4 }}>
+                      {trip.is_empty_outbound && <Tag color="orange" style={{ margin: 0, fontSize: '11px' }}>Borishda pustoy</Tag>}
+                      {trip.is_empty_return && <Tag color="purple" style={{ margin: 0, fontSize: '11px' }}>Qaytishda pustoy</Tag>}
+                    </div>
+                  )}
 
                   {/* Buttons Grid */}
                   <div style={{

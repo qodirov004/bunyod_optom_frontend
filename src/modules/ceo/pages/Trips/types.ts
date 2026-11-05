@@ -20,6 +20,8 @@ export interface TripData {
   cargoWeight: number;
   notes: string | null;
   country?: string;
+  is_empty_outbound?: boolean;
+  is_empty_return?: boolean;
   rawData?: any; // Original API data
 }
 

@@ -52,6 +52,8 @@ interface ApiTrip {
   from1?: string;
   to_go?: string;
   end_date?: string;
+  is_empty_outbound?: boolean;
+  is_empty_return?: boolean;
 }
 
 export const useTripData = () => {

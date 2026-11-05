@@ -153,6 +153,8 @@ interface TripData {
   count: number;
   country: number;
   country_name: string;
+  is_empty_outbound?: boolean;
+  is_empty_return?: boolean;
   expenses: Expenses;
 }
 
@@ -216,6 +218,16 @@ const TripOverview: React.FC = () => {
               </Descriptions.Item>
               <Descriptions.Item label="Mamlakat">
                 <Tag icon={<EnvironmentOutlined />} color="geekblue">{tripData.country_name || 'Ma\'lumot yo\'q'}</Tag>
+              </Descriptions.Item>
+              <Descriptions.Item label="Sana va vaqt">
+                <Tag color="cyan">{tripData.created_at ? dayjs(tripData.created_at).format('DD.MM.YYYY HH:mm') : 'Ma\'lumot yo\'q'}</Tag>
+              </Descriptions.Item>
+              <Descriptions.Item label="Yo'nalish holati">
+                <Space wrap>
+                  {tripData.is_empty_outbound && <Tag color="orange">Borishda pustoy</Tag>}
+                  {tripData.is_empty_return && <Tag color="purple">Qaytishda pustoy</Tag>}
+                  {!tripData.is_empty_outbound && !tripData.is_empty_return && <Tag color="green">Yuk bilan (to'liq)</Tag>}
+                </Space>
               </Descriptions.Item>
             </Descriptions>
           </Card>
