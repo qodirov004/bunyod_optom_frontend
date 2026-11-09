@@ -524,9 +524,15 @@ const CashTransactions: React.FC = () => {
                                         option?.children?.toString().toLowerCase().indexOf(input.toLowerCase()) >= 0
                                     }
                                 >
-                                    {clientsData?.data?.map(client => (
-                                        <Option key={client.id} value={client.id}>{client.first_name} {client.last_name}</Option>
-                                    ))}
+                                    {clientsData?.data?.map(client => {
+                                        const fullName = `${client.first_name || ''} ${client.last_name || ''}`.trim();
+                                        const label = client.company
+                                            ? `${client.company}${fullName && fullName !== client.company ? ` (${fullName})` : ''}`
+                                            : fullName;
+                                        return (
+                                            <Option key={client.id} value={client.id}>{label}</Option>
+                                        );
+                                    })}
                                 </Select>
                             </Form.Item>
                         </Col>

@@ -198,9 +198,20 @@ const ClientPayment: React.FC<ClientPaymentProps> = ({ raysId, open, onClose, in
 
   const columns = [
     {
-      title: 'Mijoz ismi',
-      dataIndex: 'first_name',
-      key: 'first_name',
+      title: 'Mijoz',
+      key: 'client',
+      render: (_: any, record: any) => {
+        const company = record.company?.trim();
+        const director = (record.director_name || `${record.first_name || ''} ${record.last_name || ''}`).trim();
+        const primary = company || director || '-';
+        const showDirector = company && director && company.toLowerCase() !== director.toLowerCase();
+        return (
+          <Space direction="vertical" size={0}>
+            <span style={{ fontWeight: 600 }}>{primary}</span>
+            {showDirector && <small style={{ color: '#8c8c8c' }}>{director}</small>}
+          </Space>
+        );
+      },
     },
     {
       title: 'Yuk summasi',

@@ -61,7 +61,7 @@ const CashierDashboard = () => {
   const cashbox = overview?.cashbox || {};
 
   const pendingColumns = [
-    { title: 'Mijoz', dataIndex: 'client_name', key: 'client_name', render: (_: any, r: any) => r.client?.first_name || 'N/A' },
+    { title: 'Mijoz', dataIndex: 'client_name', key: 'client_name', render: (_: any, r: any) => r.client?.company || r.client?.first_name || 'N/A' },
     { title: 'Haydovchi', dataIndex: 'driver_name', key: 'driver_name', render: (_: any, r: any) => r.driver?.fullname || '—' },
     { title: 'Summa', dataIndex: 'amount', key: 'amount', render: (v: number) => v?.toLocaleString() },
     { title: 'Valyuta', dataIndex: 'currency', key: 'currency', render: (_: any, r: any) => r.currency?.currency || 'UZS' },

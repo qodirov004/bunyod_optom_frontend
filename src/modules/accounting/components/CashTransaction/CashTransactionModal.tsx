@@ -377,7 +377,9 @@ const CashTransactionModal: React.FC<CashTransactionModalProps> = ({
           >
             {availableClients.map(client => (
               <Option key={`client-option-${client.id}`} value={client.id}>
-                {client.first_name}
+                {client.company
+                  ? `${client.company}${client.first_name && client.first_name !== client.company ? ` (${client.first_name})` : ''}`
+                  : client.first_name}
               </Option>
             ))}
           </Select>

@@ -594,17 +594,25 @@ export const Clients = () => {
                 columns={[
                   {
                     title: 'Mijoz',
-                    dataIndex: 'fullname',
-                    key: 'fullname',
-                    render: (text, record) => (
-                      <div>
-                        <Avatar icon={<UserOutlined />} style={{ marginRight: 8 }} />
-                        {text} 
+                    dataIndex: 'client_company',
+                    key: 'client_company',
+                    render: (_: any, record: any) => {
+                      const primary = record.client_company || record.fullname || '-';
+                      const sub = record.client_company && record.fullname && record.client_company !== record.fullname
+                        ? record.fullname
+                        : '';
+                      return (
                         <div>
-                          <small style={{ color: '#8c8c8c' }}>{record.client_company || ''}</small>
+                          <Avatar icon={<UserOutlined />} style={{ marginRight: 8 }} />
+                          {primary}
+                          {sub && (
+                            <div>
+                              <small style={{ color: '#8c8c8c' }}>{sub}</small>
+                            </div>
+                          )}
                         </div>
-                      </div>
-                    )
+                      );
+                    }
                   },
                   {
                     title: 'Kutilgan summa',

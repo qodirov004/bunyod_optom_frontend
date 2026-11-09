@@ -368,8 +368,10 @@ const RaysTulovlar: React.FC = () => {
                   <Card
                     title={
                       <Space direction="vertical" size={0}>
-                        <div style={{ fontWeight: 600 }}>{client.company}</div>
-                        <div style={{ fontSize: '12px', color: '#8c8c8c' }}>{client.first_name}</div>
+                        <div style={{ fontWeight: 600 }}>{client.company || client.first_name}</div>
+                        {client.company && client.first_name && client.company !== client.first_name && (
+                          <div style={{ fontSize: '12px', color: '#8c8c8c' }}>{client.first_name}</div>
+                        )}
                       </Space>
                     }
                     className="client-payment-card"
@@ -479,6 +481,18 @@ const RaysTulovlar: React.FC = () => {
                 dataIndex: 'client_name',
                 key: 'client_name',
                 responsive: ['sm'] as Breakpoint[],
+                render: (clientName: string, record: RaysPayment) => {
+                  const matchedClient = rays.clients.find(c => c.id === record.client);
+                  const company = matchedClient?.company?.trim();
+                  const primary = company || clientName || '-';
+                  const showSub = company && clientName && company.toLowerCase() !== clientName.trim().toLowerCase();
+                  return (
+                    <Space direction="vertical" size={0}>
+                      <span style={{ fontWeight: 500 }}>{primary}</span>
+                      {showSub && <small style={{ color: '#8c8c8c' }}>{clientName}</small>}
+                    </Space>
+                  );
+                },
               },
               {
                 title: 'Summa',
@@ -586,7 +600,9 @@ const RaysTulovlar: React.FC = () => {
                   </Badge>
                   <span>Mijozlar: </span>
                   {rays.clients.map(client => (
-                    <Tag key={`client-tag-${client.id}`} icon={<UserOutlined />} color="cyan">{client.company}</Tag>
+                    <Tag key={`client-tag-${client.id}`} icon={<UserOutlined />} color="cyan">
+                      {client.company || client.first_name}
+                    </Tag>
                   ))}
                 </Space>
               ),
@@ -603,7 +619,7 @@ const RaysTulovlar: React.FC = () => {
           )}
 
           <Modal
-            title={`${selectedClient?.first_name || ''} - To'lov qo'shish`}
+            title={`${selectedClient?.company || selectedClient?.first_name || ''} - To'lov qo'shish`}
             open={isPaymentModalVisible}
             onCancel={() => setIsPaymentModalVisible(false)}
             footer={null}
@@ -612,7 +628,15 @@ const RaysTulovlar: React.FC = () => {
             {selectedClient && (
               <div style={{ marginBottom: 16 }}>
                 <Space wrap>
-                  <span>Mijoz: <Tag icon={<UserOutlined />}>{selectedClient.first_name}</Tag></span>
+                  <span>
+                    Mijoz:{' '}
+                    <Tag icon={<UserOutlined />}>
+                      {selectedClient.company || selectedClient.first_name}
+                    </Tag>
+                    {selectedClient.company && selectedClient.first_name && selectedClient.company !== selectedClient.first_name && (
+                      <small style={{ color: '#8c8c8c' }}>({selectedClient.first_name})</small>
+                    )}
+                  </span>
                   <span>Reys ID: <Tag icon={<CarOutlined />} color="blue">#{selectedRays}</Tag></span>
                 </Space>
               </div>

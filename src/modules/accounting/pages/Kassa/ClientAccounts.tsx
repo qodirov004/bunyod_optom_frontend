@@ -73,6 +73,15 @@ const getPaid = (d?: Partial<ClientDebt> | null): number =>
 const getRemaining = (d?: Partial<ClientDebt> | null): number =>
   Number(d?.remaining_uzs ?? d?.remaining_usd ?? 0);
 
+const getClientPrimaryName = (d?: Partial<ClientDebt> | null): string =>
+  (d?.client_company && d.client_company.trim()) || d?.fullname || '-';
+
+const getClientDirectorSubname = (d?: Partial<ClientDebt> | null): string | null => {
+  const company = d?.client_company?.trim();
+  const full = d?.fullname?.trim();
+  return company && full && company.toLowerCase() !== full.toLowerCase() ? full : null;
+};
+
 const ClientAccounts: React.FC = () => {
   const queryClient = useQueryClient();
   const { data: clientsData, isLoading: isClientsLoading } = useClients();
@@ -300,7 +309,7 @@ const ClientAccounts: React.FC = () => {
 
   const openPayModal = (record: ClientDebt) => {
     setSelectedClient(record.client_id);
-    setSelectedClientName(record.fullname);
+    setSelectedClientName(getClientPrimaryName(record));
     setSelectedDebt(record);
     setModalVisible(true);
   };
@@ -308,15 +317,17 @@ const ClientAccounts: React.FC = () => {
   const columns = [
     {
       title: 'Mijoz',
-      dataIndex: 'fullname',
-      key: 'fullname',
-      render: (text: string, record: ClientDebt) => {
+      dataIndex: 'client_company',
+      key: 'client_company',
+      render: (_: unknown, record: ClientDebt) => {
         const rem = getRemaining(record);
+        const primaryName = getClientPrimaryName(record);
+        const directorName = getClientDirectorSubname(record);
         return (
           <Space direction="vertical" size="small">
-            <Tag color="blue" icon={<UserOutlined />}>{text}</Tag>
-            {record.client_company && (
-              <small>{record.client_company}</small>
+            <Tag color="blue" icon={<UserOutlined />}>{primaryName}</Tag>
+            {directorName && (
+              <small style={{ color: '#666' }}>{directorName}</small>
             )}
             {rem > 0 ? (
               <Tag color="red">Qarzdor</Tag>
@@ -327,7 +338,7 @@ const ClientAccounts: React.FC = () => {
         );
       },
       sorter: (a: ClientDebt, b: ClientDebt) =>
-        (a.fullname || '').localeCompare(b.fullname || ''),
+        getClientPrimaryName(a).localeCompare(getClientPrimaryName(b)),
     },
     {
       title: 'Reys #',
@@ -414,7 +425,7 @@ const ClientAccounts: React.FC = () => {
                 shape="circle"
                 size="small"
                 icon={<EyeOutlined />}
-                onClick={() => fetchClientHistory(record.client_id, record.fullname)}
+                onClick={() => fetchClientHistory(record.client_id, getClientPrimaryName(record))}
               />
             </Tooltip>
           </Space>
@@ -686,30 +697,34 @@ const ClientAccounts: React.FC = () => {
 
       {totalStats.topDebtors.length > 0 && (
         <Card title="Eng ko'p qarzdorlar" style={{ marginTop: 16 }}>
-          {totalStats.topDebtors.map((debtor, index) => (
-            <Card.Grid key={debtor.key || index} style={{ width: '33.33%', textAlign: 'center' }}>
-              <div style={{ padding: '10px 0' }}>
-                <UserOutlined style={{ fontSize: 24, marginBottom: 8 }} />
-                <div style={{ fontSize: 16, fontWeight: 'bold' }}>{debtor.fullname}</div>
-                {debtor.client_company && (
-                  <div style={{ fontSize: 12, color: '#666' }}>{debtor.client_company}</div>
-                )}
-                <Tag color="red" style={{ margin: '8px 0', padding: '0 8px' }}>
-                  {formatCurrency(getRemaining(debtor), 'UZS')}
-                </Tag>
-                <div>
-                  <Button
-                    type="primary"
-                    size="small"
-                    icon={<DollarOutlined />}
-                    onClick={() => openPayModal(debtor)}
-                  >
-                    To&apos;lov qo&apos;shish
-                  </Button>
+          {totalStats.topDebtors.map((debtor, index) => {
+            const primaryName = getClientPrimaryName(debtor);
+            const directorName = getClientDirectorSubname(debtor);
+            return (
+              <Card.Grid key={debtor.key || index} style={{ width: '33.33%', textAlign: 'center' }}>
+                <div style={{ padding: '10px 0' }}>
+                  <UserOutlined style={{ fontSize: 24, marginBottom: 8 }} />
+                  <div style={{ fontSize: 16, fontWeight: 'bold' }}>{primaryName}</div>
+                  {directorName && (
+                    <div style={{ fontSize: 12, color: '#666' }}>{directorName}</div>
+                  )}
+                  <Tag color="red" style={{ margin: '8px 0', padding: '0 8px' }}>
+                    {formatCurrency(getRemaining(debtor), 'UZS')}
+                  </Tag>
+                  <div>
+                    <Button
+                      type="primary"
+                      size="small"
+                      icon={<DollarOutlined />}
+                      onClick={() => openPayModal(debtor)}
+                    >
+                      To&apos;lov qo&apos;shish
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            </Card.Grid>
-          ))}
+              </Card.Grid>
+            );
+          })}
         </Card>
       )}
 

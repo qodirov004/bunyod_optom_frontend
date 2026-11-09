@@ -156,7 +156,18 @@ const ClientPaymentModal: React.FC<ClientPaymentModalProps> = ({
       title: 'Mijoz',
       dataIndex: 'first_name',
       key: 'first_name',
-      render: (text: string, record: any) => `${text || ''} ${record.last_name || ''}`.trim(),
+      render: (text: string, record: any) => {
+        const company = record.company?.trim();
+        const person = `${text || ''} ${record.last_name || ''}`.trim();
+        const primary = company || person || '-';
+        const showPerson = company && person && company.toLowerCase() !== person.toLowerCase();
+        return (
+          <Space direction="vertical" size={0}>
+            <span style={{ fontWeight: 600 }}>{primary}</span>
+            {showPerson && <small style={{ color: '#8c8c8c' }}>{person}</small>}
+          </Space>
+        );
+      },
     },
     {
       title: 'Yuk summasi',
@@ -216,7 +227,14 @@ const ClientPaymentModal: React.FC<ClientPaymentModalProps> = ({
           <div style={{ marginBottom: 16 }}>
             <Space>
               <Tag color="blue">Tanlangan mijoz:</Tag>
-              <span>{selectedClient.first_name} {selectedClient.last_name || ''}</span>
+              <span>
+                {selectedClient.company?.trim() || `${selectedClient.first_name || ''} ${selectedClient.last_name || ''}`.trim()}
+              </span>
+              {selectedClient.company && selectedClient.first_name && selectedClient.company.trim() !== selectedClient.first_name.trim() && (
+                <small style={{ color: '#8c8c8c' }}>
+                  ({selectedClient.first_name} {selectedClient.last_name || ''})
+                </small>
+              )}
             </Space>
           </div>
         )}

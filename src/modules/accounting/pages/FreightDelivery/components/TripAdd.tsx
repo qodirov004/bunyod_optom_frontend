@@ -672,6 +672,7 @@ const TripAdd: React.FC<TripAddProps> = ({
           return {
             ...sc.client,
             first_name: sc.client.company || sc.client.first_name || 'Mijoz',
+            director_name: `${sc.client.first_name || ''} ${sc.client.last_name || ''}`.trim(),
             total_expected_amount_uzs: clientExpectedTotal,
             total_expected_amount_usd: clientExpectedTotal,
             products: sc.products,

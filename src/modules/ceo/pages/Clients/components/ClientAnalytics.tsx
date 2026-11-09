@@ -336,7 +336,7 @@ const ClientAnalytics: React.FC<ClientAnalyticsProps> = ({ clientId }) => {
       {debtData && remainingAmountUzs > 0 && (
         <Alert
           message="To'lov eslatmasi"
-          description={`${debtData.fullname} uchun ${formatCurrency(remainingAmountUzs)} so'm miqdorida to'lov kutilmoqda.`}
+          description={`${debtData.client_company || debtData.fullname} uchun ${formatCurrency(remainingAmountUzs)} so'm miqdorida to'lov kutilmoqda.`}
           type="warning"
           showIcon
           style={{ marginTop: 24 }}
