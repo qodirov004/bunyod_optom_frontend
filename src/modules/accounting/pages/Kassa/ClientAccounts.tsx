@@ -2,28 +2,33 @@ import React, { useEffect, useState } from 'react';
 import {
   Table, Card, Button, Space, Tag, Tooltip, Modal, Form,
   Input, Row, Col, Statistic,
-  Typography, Empty, message, InputNumber, Select
+  Typography, Empty, message, InputNumber, Select, Alert
 } from 'antd';
-import type { Breakpoint } from 'antd';
 import {
   EyeOutlined, DollarOutlined, SearchOutlined, FilterOutlined,
   UserOutlined,
   FallOutlined, ArrowUpOutlined, ArrowDownOutlined, CheckCircleOutlined,
-  ClockCircleOutlined, ReloadOutlined
+  ClockCircleOutlined, ReloadOutlined, WarningOutlined
 } from '@ant-design/icons';
+import { useQueryClient } from '@tanstack/react-query';
 import axiosInstance from '@/api/axiosInstance';
 import { formatCurrency } from '@/utils/formatCurrency';
+import { useClients } from '../../hooks/useClients';
 
 const { Title } = Typography;
 const { Option } = Select;
 
 interface ClientDebt {
-  id: number; // Transaction History ID
+  key?: string;
+  id: string | number; // Trip or Transaction History ID
   client_id: number;
   fullname: string;
-  client_company: string;
-  trip_id: number;
+  client_company?: string | null;
+  trip_id: string | number;
   date: string;
+  expected_uzs?: number;
+  paid_uzs?: number;
+  remaining_uzs?: number;
   expected_usd: number;
   paid_usd: number;
   remaining_usd: number;
@@ -43,11 +48,14 @@ interface PaymentHistory {
   total_expected_amount: number;
   paid_amount: number;
   remaining_debt: number;
+  expected_uzs?: number;
+  paid_uzs?: number;
+  remaining_uzs?: number;
   is_debt: boolean;
   created_at: string;
   moved_at: string;
   client: number;
-  rays: number;
+  rays: number | null;
   rays_history: number | null;
   product: number | null;
   driver: number | null;
@@ -56,34 +64,39 @@ interface PaymentHistory {
   cashier: number | null;
 }
 
-interface Currency {
-  id: number;
-  currency: string;
-  rate_to_uzs: string;
-}
+const getExpected = (d?: Partial<ClientDebt> | null): number =>
+  Number(d?.expected_uzs ?? d?.expected_usd ?? 0);
 
-import { useClients } from '../../hooks/useClients';
+const getPaid = (d?: Partial<ClientDebt> | null): number =>
+  Number(d?.paid_uzs ?? d?.paid_usd ?? 0);
+
+const getRemaining = (d?: Partial<ClientDebt> | null): number =>
+  Number(d?.remaining_uzs ?? d?.remaining_usd ?? 0);
 
 const ClientAccounts: React.FC = () => {
+  const queryClient = useQueryClient();
   const { data: clientsData, isLoading: isClientsLoading } = useClients();
   const [debts, setDebts] = useState<ClientDebt[]>([]);
   const [filteredDebts, setFilteredDebts] = useState<ClientDebt[]>([]);
   const [loading, setLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedClient, setSelectedClient] = useState<number | null>(null);
+  const [selectedDebt, setSelectedDebt] = useState<ClientDebt | null>(null);
   const [form] = Form.useForm();
   const [historyModalVisible, setHistoryModalVisible] = useState(false);
   const [clientHistory, setClientHistory] = useState<PaymentHistory[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [selectedClientName, setSelectedClientName] = useState('');
-  const [paymentMethods, setPaymentMethods] = useState<{ id: number, name: string }[]>([]);
+  const [paymentMethods, setPaymentMethods] = useState<{ id: number; name: string }[]>([]);
 
   // Filter states
   const [searchValue, setSearchValue] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'debt' | 'paid'>('all');
 
   // Stats
   const [totalStats, setTotalStats] = useState({
     totalClients: 0,
+    debtorsCount: 0,
     totalDebt: 0,
     totalPaid: 0,
     averageDebt: 0,
@@ -98,7 +111,8 @@ const ClientAccounts: React.FC = () => {
   const fetchPaymentMethods = async () => {
     try {
       const response = await axiosInstance.get('/casacategory/');
-      setPaymentMethods(response.data);
+      const methodsData = Array.isArray(response.data) ? response.data : (response.data?.results || []);
+      setPaymentMethods(methodsData);
     } catch (error) {
       console.error('Error fetching payment methods:', error);
     }
@@ -124,64 +138,77 @@ const ClientAccounts: React.FC = () => {
     fetchCurrencies();
   }, []);
 
+  const processDebtsResponse = (rawData: any) => {
+    const rawList: ClientDebt[] = Array.isArray(rawData)
+      ? rawData
+      : (rawData?.results || []);
+
+    if (rawList.length === 0) {
+      return {
+        debtsWithKey: [] as ClientDebt[],
+        stats: {
+          totalClients: 0,
+          debtorsCount: 0,
+          totalDebt: 0,
+          totalPaid: 0,
+          averageDebt: 0,
+          topDebtors: [] as ClientDebt[],
+        }
+      };
+    }
+
+    const debtsWithKey = rawList.map((debt, idx) => ({
+      ...debt,
+      key: `${debt.client_id ?? 'c'}-${debt.trip_id ?? debt.id ?? 't'}-${idx}`,
+    }));
+
+    const activeDebtRows = debtsWithKey.filter(d => getRemaining(d) > 0);
+    const uniqueDebtorIds = new Set(activeDebtRows.map(d => d.client_id));
+    const uniqueAllClientIds = new Set(debtsWithKey.map(d => d.client_id));
+
+    const totalDebt = activeDebtRows.reduce((sum, debt) => sum + getRemaining(debt), 0);
+    const totalPaid = debtsWithKey.reduce((sum, debt) => sum + getPaid(debt), 0);
+    const averageDebt = uniqueDebtorIds.size > 0 ? totalDebt / uniqueDebtorIds.size : 0;
+    const topDebtors = [...activeDebtRows]
+      .sort((a, b) => getRemaining(b) - getRemaining(a))
+      .slice(0, 3);
+
+    return {
+      debtsWithKey,
+      stats: {
+        totalClients: uniqueAllClientIds.size || debtsWithKey.length,
+        debtorsCount: uniqueDebtorIds.size,
+        totalDebt,
+        totalPaid,
+        averageDebt,
+        topDebtors,
+      }
+    };
+  };
+
   // Powerful refresh function with cache busting
   const forceRefreshData = async () => {
     try {
       setRefreshing(true);
       const response = await axiosInstance.get(`/casa/all-debts/`);
+      const { debtsWithKey, stats } = processDebtsResponse(response.data);
 
-      console.log('API javob:', response.data);
+      setDebts(debtsWithKey);
+      setTotalStats(stats);
 
-      if (response.data && Array.isArray(response.data) && response.data.length > 0) {
-        const debtsWithKey = response.data.map((debt: ClientDebt) => ({
-          ...debt,
-          key: debt.id
-        }));
-
-        setDebts(debtsWithKey);
-        setFilteredDebts(debtsWithKey);
-
-        // Statistikalarni hisoblash
-        const totalDebt = debtsWithKey.reduce((sum, debt) => sum + Math.max(0, debt.remaining_uzs || 0), 0);
-        const totalPaid = debtsWithKey.reduce((sum, debt) => sum + (debt.paid_uzs || 0), 0);
-        const averageDebt = totalDebt / debtsWithKey.length;
-        const topDebtors = [...debtsWithKey]
-          .sort((a, b) => (b.remaining_uzs || 0) - (a.remaining_uzs || 0))
-          .filter(debt => (debt.remaining_uzs || 0) > 0)
-          .slice(0, 3);
-
-        setTotalStats({
-          totalClients: debtsWithKey.length,
-          totalDebt,
-          totalPaid,
-          averageDebt,
-          topDebtors
-        });
-
-        message.success('Ma\'lumotlar yangilandi');
+      if (debtsWithKey.length > 0) {
+        message.success("Ma'lumotlar yangilandi");
       } else {
-        // Agar API dan ma'lumot kelmasa, hammasini tozalash
-        console.log('API dan ma\'lumot yo\'q yoki bo\'sh array');
-        setDebts([]);
-        setFilteredDebts([]);
-        setTotalStats({
-          totalClients: 0,
-          totalDebt: 0,
-          totalPaid: 0,
-          averageDebt: 0,
-          topDebtors: []
-        });
-        message.info('Hozircha qarzdor mijozlar yo\'q');
+        message.info("Hozircha qarz yozuvlari yo'q");
       }
     } catch (error) {
       console.error('Error refreshing data:', error);
-      message.error('Ma\'lumotlarni yangilashda xatolik yuz berdi');
-
-      // Xatolik bo'lsa ham bo'sh holatga o'tkazish
+      message.error("Ma'lumotlarni yangilashda xatolik yuz berdi");
       setDebts([]);
       setFilteredDebts([]);
       setTotalStats({
         totalClients: 0,
+        debtorsCount: 0,
         totalDebt: 0,
         totalPaid: 0,
         averageDebt: 0,
@@ -197,56 +224,18 @@ const ClientAccounts: React.FC = () => {
       setLoading(true);
       await fetchPaymentMethods();
       const response = await axiosInstance.get(`/casa/all-debts/`);
+      const { debtsWithKey, stats } = processDebtsResponse(response.data);
 
-      console.log('Boshlang\'ich API javob:', response.data);
-
-      if (response.data && Array.isArray(response.data) && response.data.length > 0) {
-        const debtsWithKey = response.data.map((debt: ClientDebt) => ({
-          ...debt,
-          key: debt.id
-        }));
-
-        setDebts(debtsWithKey);
-        setFilteredDebts(debtsWithKey);
-
-        // Statistikalarni hisoblash
-        const totalDebt = debtsWithKey.reduce((sum, debt) => sum + Math.max(0, debt.remaining_uzs), 0);
-        const totalPaid = debtsWithKey.reduce((sum, debt) => sum + debt.paid_uzs, 0);
-        const averageDebt = totalDebt / debtsWithKey.length;
-        const topDebtors = [...debtsWithKey]
-          .sort((a, b) => b.remaining_uzs - a.remaining_uzs)
-          .filter(debt => debt.remaining_uzs > 0)
-          .slice(0, 3);
-
-        setTotalStats({
-          totalClients: debtsWithKey.length,
-          totalDebt,
-          totalPaid,
-          averageDebt,
-          topDebtors
-        });
-      } else {
-        // Agar API dan ma'lumot kelmasa, bo'sh holat
-        console.log('API dan ma\'lumot yo\'q');
-        setDebts([]);
-        setFilteredDebts([]);
-        setTotalStats({
-          totalClients: 0,
-          totalDebt: 0,
-          totalPaid: 0,
-          averageDebt: 0,
-          topDebtors: []
-        });
-      }
+      setDebts(debtsWithKey);
+      setTotalStats(stats);
     } catch (error) {
       console.error('Error fetching client debts:', error);
-      message.error('Ma\'lumotlarni yuklashda xatolik yuz berdi');
-
-      // Xatolik bo'lsa ham bo'sh holatga o'tkazish
+      message.error("Ma'lumotlarni yuklashda xatolik yuz berdi");
       setDebts([]);
       setFilteredDebts([]);
       setTotalStats({
         totalClients: 0,
+        debtorsCount: 0,
         totalDebt: 0,
         totalPaid: 0,
         averageDebt: 0,
@@ -261,24 +250,27 @@ const ClientAccounts: React.FC = () => {
     fetchDebts();
   }, []);
 
-  // Apply filters when search value changes
+  // Apply filters when search value, statusFilter, or debts changes
   useEffect(() => {
-    filterData();
-  }, [searchValue, debts]);
-
-  const filterData = () => {
     let filtered = [...debts];
 
-    // Apply search filter
-    if (searchValue) {
+    const q = searchValue.trim().toLowerCase();
+    if (q) {
       filtered = filtered.filter(debt =>
-        debt.fullname.toLowerCase().includes(searchValue.toLowerCase()) ||
-        debt.client_company.toLowerCase().includes(searchValue.toLowerCase())
+        (debt.fullname || '').toLowerCase().includes(q) ||
+        (debt.client_company || '').toLowerCase().includes(q) ||
+        String(debt.trip_id ?? '').toLowerCase().includes(q)
       );
     }
 
+    if (statusFilter === 'debt') {
+      filtered = filtered.filter(debt => getRemaining(debt) > 0);
+    } else if (statusFilter === 'paid') {
+      filtered = filtered.filter(debt => getRemaining(debt) <= 0);
+    }
+
     setFilteredDebts(filtered);
-  };
+  }, [searchValue, statusFilter, debts]);
 
   const handleSearch = (value: string) => {
     setSearchValue(value);
@@ -289,40 +281,53 @@ const ClientAccounts: React.FC = () => {
     setSelectedClientName(clientName);
     try {
       const response = await axiosInstance.get('/casahistory/');
-      const filteredHistory = response.data.filter((item: PaymentHistory) =>
-        item.client === clientId
-      );
+      const historyList: PaymentHistory[] = Array.isArray(response.data)
+        ? response.data
+        : (response.data?.results || []);
+      const filteredHistory = historyList
+        .filter((item) => item.client === clientId)
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
       setClientHistory(filteredHistory);
       setHistoryModalVisible(true);
     } catch (error) {
       console.error('Error fetching payment history:', error);
-      message.error('To\'lov tarixini yuklashda xatolik yuz berdi');
+      message.error("To'lov tarixini yuklashda xatolik yuz berdi");
     } finally {
       setHistoryLoading(false);
     }
   };
 
-
+  const openPayModal = (record: ClientDebt) => {
+    setSelectedClient(record.client_id);
+    setSelectedClientName(record.fullname);
+    setSelectedDebt(record);
+    setModalVisible(true);
+  };
 
   const columns = [
     {
       title: 'Mijoz',
       dataIndex: 'fullname',
       key: 'fullname',
-      render: (text: string, record: ClientDebt) => (
-        <Space direction="vertical" size="small">
-          <Tag color="blue" icon={<UserOutlined />}>{text}</Tag>
-          {record.client_company && (
-            <small>{record.client_company}</small>
-          )}
-          {record.remaining_uzs > 0 && (
-            <Tag color="red">Qarzdor</Tag>
-          )}
-        </Space>
-      ),
+      render: (text: string, record: ClientDebt) => {
+        const rem = getRemaining(record);
+        return (
+          <Space direction="vertical" size="small">
+            <Tag color="blue" icon={<UserOutlined />}>{text}</Tag>
+            {record.client_company && (
+              <small>{record.client_company}</small>
+            )}
+            {rem > 0 ? (
+              <Tag color="red">Qarzdor</Tag>
+            ) : (
+              <Tag color="green">To&apos;langan</Tag>
+            )}
+          </Space>
+        );
+      },
       sorter: (a: ClientDebt, b: ClientDebt) =>
-        a.fullname.localeCompare(b.fullname),
+        (a.fullname || '').localeCompare(b.fullname || ''),
     },
     {
       title: 'Reys #',
@@ -330,133 +335,181 @@ const ClientAccounts: React.FC = () => {
       key: 'trip_id',
       render: (id: string | number) => (
         <Tag color="orange">
-          {typeof id === 'number' || (!isNaN(Number(id)) && id !== 'Bog\'lanmagan') ? `#${id}` : id}
+          {typeof id === 'number' || (!isNaN(Number(id)) && id !== "Bog'lanmagan") ? `#${id}` : id}
         </Tag>
       ),
-      sorter: (a: ClientDebt, b: ClientDebt) => a.trip_id - b.trip_id,
+      sorter: (a: ClientDebt, b: ClientDebt) => {
+        const numA = Number(a.trip_id);
+        const numB = Number(b.trip_id);
+        if (!Number.isNaN(numA) && !Number.isNaN(numB)) return numA - numB;
+        return String(a.trip_id ?? '').localeCompare(String(b.trip_id ?? ''));
+      },
     },
     {
       title: 'Sana',
       dataIndex: 'date',
       key: 'date',
-      sorter: (a: ClientDebt, b: ClientDebt) => new Date(a.date).getTime() - new Date(b.date).getTime(),
+      sorter: (a: ClientDebt, b: ClientDebt) =>
+        (new Date(a.date).getTime() || 0) - (new Date(b.date).getTime() || 0),
     },
     {
-      title: 'Umumiy summa (so\'m)',
-      dataIndex: 'expected_uzs',
+      title: "Umumiy summa (so'm)",
       key: 'expected_uzs',
-      render: (amount: number) => formatCurrency(amount, 'UZS'),
-      sorter: (a: ClientDebt, b: ClientDebt) =>
-        a.expected_uzs - b.expected_uzs,
-      responsive: ['md'] as Breakpoint[],
+      align: 'right' as const,
+      render: (_: unknown, record: ClientDebt) => formatCurrency(getExpected(record), 'UZS'),
+      sorter: (a: ClientDebt, b: ClientDebt) => getExpected(a) - getExpected(b),
     },
     {
-      title: 'To\'langan summa (so\'m)',
-      dataIndex: 'paid_uzs',
+      title: "To'langan summa (so'm)",
       key: 'paid_uzs',
-      render: (amount: number) => formatCurrency(amount, 'UZS'),
-      sorter: (a: ClientDebt, b: ClientDebt) =>
-        a.paid_uzs - b.paid_uzs,
-      responsive: ['md'] as Breakpoint[],
+      align: 'right' as const,
+      render: (_: unknown, record: ClientDebt) => formatCurrency(getPaid(record), 'UZS'),
+      sorter: (a: ClientDebt, b: ClientDebt) => getPaid(a) - getPaid(b),
     },
     {
-      title: 'Qolgan qarz (so\'m)',
-      dataIndex: 'remaining_uzs',
+      title: "Qolgan qarz (so'm)",
       key: 'remaining_uzs',
-      render: (debt: number) => (
-        <Tag color={debt > 0 ? 'red' : 'green'} style={{ fontSize: '14px', padding: '4px 8px' }}>
-          {formatCurrency(debt, 'UZS')} {debt > 0 ? <ArrowUpOutlined /> : <ArrowDownOutlined />}
-        </Tag>
-      ),
-      sorter: (a: ClientDebt, b: ClientDebt) =>
-        a.remaining_uzs - b.remaining_uzs,
-      responsive: ['sm'] as Breakpoint[],
+      align: 'right' as const,
+      render: (_: unknown, record: ClientDebt) => {
+        const debt = getRemaining(record);
+        return (
+          <Tag color={debt > 0 ? 'red' : 'green'} style={{ fontSize: '14px', padding: '4px 8px' }}>
+            {formatCurrency(debt, 'UZS')} {debt > 0 ? <ArrowUpOutlined /> : <ArrowDownOutlined />}
+          </Tag>
+        );
+      },
+      sorter: (a: ClientDebt, b: ClientDebt) => getRemaining(a) - getRemaining(b),
     },
     {
       title: 'Amallar',
       key: 'actions',
-      render: (_: unknown, record: ClientDebt) => (
-        <Space>
-          {record.remaining_uzs > 0 ? (
-            <Tooltip title="Qarzni to'lash">
+      render: (_: unknown, record: ClientDebt) => {
+        const rem = getRemaining(record);
+        return (
+          <Space>
+            {rem > 0 ? (
+              <Tooltip title="Qarzni to'lash">
+                <Button
+                  type="primary"
+                  danger
+                  shape="circle"
+                  size="small"
+                  icon={<DollarOutlined />}
+                  onClick={() => openPayModal(record)}
+                />
+              </Tooltip>
+            ) : (
+              <Tooltip title="To'lov qo'shish">
+                <Button
+                  type="primary"
+                  shape="circle"
+                  size="small"
+                  icon={<DollarOutlined />}
+                  onClick={() => openPayModal(record)}
+                />
+              </Tooltip>
+            )}
+            <Tooltip title="To'lovlar tarixi">
               <Button
-                type="primary"
-                danger
                 shape="circle"
                 size="small"
-                icon={<DollarOutlined />}
-                onClick={() => {
-                  setSelectedClient(record.client_id);
-                  setSelectedClientName(record.fullname);
-                  setModalVisible(true);
-                }}
+                icon={<EyeOutlined />}
+                onClick={() => fetchClientHistory(record.client_id, record.fullname)}
               />
             </Tooltip>
-          ) : (
-            <Tooltip title="To'lov qo'shish">
-              <Button
-                type="primary"
-                shape="circle"
-                size="small"
-                icon={<DollarOutlined />}
-                onClick={() => {
-                  setSelectedClient(record.client_id);
-                  setSelectedClientName(record.fullname);
-                  setModalVisible(true);
-                }}
-              />
-            </Tooltip>
-          )}
-          <Tooltip title="To'lovlar tarixi">
-            <Button
-              shape="circle"
-              size="small"
-              icon={<EyeOutlined />}
-              onClick={() => fetchClientHistory(record.client_id, record.fullname)}
-            />
-          </Tooltip>
-        </Space>
-      ),
+          </Space>
+        );
+      },
     },
   ];
 
   useEffect(() => {
-    if (modalVisible) {
+    if (modalVisible && selectedDebt) {
+      const rem = getRemaining(selectedDebt);
       form.resetFields();
+      form.setFieldsValue({
+        amount: rem > 0 ? Math.round(rem) : undefined,
+        payment_way: paymentMethods.length > 0 ? paymentMethods[0].id : undefined,
+        comment:
+          selectedDebt.trip_id && selectedDebt.trip_id !== "Bog'lanmagan"
+            ? `Reys #${selectedDebt.trip_id} uchun qarz to'lovi`
+            : "Qarz to'lovi",
+      });
+    } else if (modalVisible) {
+      form.resetFields();
+      form.setFieldsValue({
+        payment_way: paymentMethods.length > 0 ? paymentMethods[0].id : undefined,
+      });
     }
-  }, [modalVisible, form]);
+  }, [modalVisible, selectedDebt, form]);
+
+  useEffect(() => {
+    if (modalVisible && paymentMethods.length > 0 && !form.isFieldTouched('payment_way')) {
+      form.setFieldValue('payment_way', paymentMethods[0].id);
+    }
+  }, [modalVisible, paymentMethods, form]);
 
   const historyColumns = [
     {
-      title: 'Kelishilgan summa (so\'m)',
-      dataIndex: 'expected_uzs',
-      key: 'expected_uzs',
-      render: (val: number) => <span style={{ fontWeight: 600 }}>{formatCurrency(val, 'UZS')}</span>
+      title: 'Reys #',
+      key: 'rays',
+      render: (_: unknown, record: PaymentHistory) => {
+        const raysVal = record.rays_history || record.rays;
+        return raysVal ? <Tag color="orange">#{raysVal}</Tag> : '-';
+      }
     },
     {
-      title: 'To\'langan (so\'m)',
-      dataIndex: 'paid_uzs',
-      key: 'paid_uzs',
-      render: (val: number) => <span style={{ color: '#52c41a' }}>{formatCurrency(val, 'UZS')}</span>
+      title: "Kelishilgan summa (so'm)",
+      key: 'total_expected_amount',
+      render: (_: unknown, record: PaymentHistory) => {
+        const val = Number(record.total_expected_amount ?? record.expected_uzs ?? 0);
+        return <span style={{ fontWeight: 600 }}>{formatCurrency(val, 'UZS')}</span>;
+      }
     },
     {
-      title: 'Qolgan qarz (so\'m)',
-      dataIndex: 'remaining_uzs',
-      key: 'remaining_uzs',
-      render: (val: number) => <span style={{ color: '#ff4d4f', fontWeight: 'bold' }}>{formatCurrency(val, 'UZS')}</span>
+      title: "Ushbu operatsiya (so'm)",
+      key: 'amount',
+      render: (_: unknown, record: PaymentHistory) => {
+        const val = Number(record.amount ?? 0);
+        return (
+          <span style={{ color: val > 0 ? '#52c41a' : '#8c8c8c', fontWeight: 500 }}>
+            {formatCurrency(val, 'UZS')}
+          </span>
+        );
+      }
+    },
+    {
+      title: "Jami to'langan (so'm)",
+      key: 'paid_amount',
+      render: (_: unknown, record: PaymentHistory) => {
+        const val = Number(record.paid_amount ?? record.paid_uzs ?? record.amount ?? 0);
+        return <span style={{ color: '#52c41a' }}>{formatCurrency(val, 'UZS')}</span>;
+      }
+    },
+    {
+      title: "Qolgan qarz (so'm)",
+      key: 'remaining_debt',
+      render: (_: unknown, record: PaymentHistory) => {
+        const val = Number(record.remaining_debt ?? record.remaining_uzs ?? 0);
+        return (
+          <span style={{ color: val > 0 ? '#ff4d4f' : '#52c41a', fontWeight: 'bold' }}>
+            {formatCurrency(val, 'UZS')}
+          </span>
+        );
+      }
     },
     {
       title: 'Sana',
       dataIndex: 'created_at',
       key: 'created_at',
-      render: (date: string) => new Date(date).toLocaleDateString(),
+      render: (date: string) => date ? new Date(date).toLocaleDateString() : '-',
     },
     {
-      title: 'To\'lov usuli',
+      title: "To'lov usuli",
       dataIndex: 'payment_name',
       key: 'payment_name',
       render: (name: string) => (
-        <Tag color="blue">{name}</Tag>
+        <Tag color="blue">{name || '-'}</Tag>
       ),
     },
     {
@@ -474,7 +527,7 @@ const ClientAccounts: React.FC = () => {
       dataIndex: 'is_debt',
       key: 'is_debt',
       render: (isDebt: boolean) => (
-        isDebt ? <Tag color="red">Qarz</Tag> : <Tag color="green">To`lov</Tag>
+        isDebt ? <Tag color="red">Qarz</Tag> : <Tag color="green">To&apos;lov</Tag>
       ),
     },
     {
@@ -496,6 +549,16 @@ const ClientAccounts: React.FC = () => {
               prefix={<UserOutlined />}
               valueStyle={{ color: '#1890ff' }}
               loading={isClientsLoading}
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} md={6}>
+          <Card className="summary-card">
+            <Statistic
+              title="Qarzdorlar soni"
+              value={totalStats.debtorsCount}
+              prefix={<WarningOutlined />}
+              valueStyle={{ color: totalStats.debtorsCount > 0 ? '#fa8c16' : '#52c41a' }}
             />
           </Card>
         </Col>
@@ -524,14 +587,25 @@ const ClientAccounts: React.FC = () => {
 
       <Card className="filter-card" style={{ marginBottom: 16 }}>
         <Row gutter={[16, 16]} align="middle">
-          <Col xs={24} sm={24} md={8} lg={8}>
+          <Col xs={24} sm={12} md={8}>
             <Input
-              placeholder="Mijoz nomini qidirish"
+              placeholder="Mijoz nomi, kompaniya yoki reys # qidirish"
               prefix={<SearchOutlined />}
               value={searchValue}
               onChange={(e) => handleSearch(e.target.value)}
               allowClear
             />
+          </Col>
+          <Col xs={24} sm={12} md={6}>
+            <Select
+              value={statusFilter}
+              onChange={(val) => setStatusFilter(val)}
+              style={{ width: '100%' }}
+            >
+              <Option value="all">Barchasi ({debts.length})</Option>
+              <Option value="debt">Faqat qarzdorlar ({debts.filter(d => getRemaining(d) > 0).length})</Option>
+              <Option value="paid">To&apos;langanlar ({debts.filter(d => getRemaining(d) <= 0).length})</Option>
+            </Select>
           </Col>
         </Row>
       </Card>
@@ -564,44 +638,47 @@ const ClientAccounts: React.FC = () => {
         }
       >
         {filteredDebts.length > 0 ? (
-          <>
-            <Table
-              columns={columns}
-              dataSource={filteredDebts}
-              loading={loading}
-              rowKey="id"
-              pagination={{
-                total: filteredDebts.length,
-                pageSize: 10,
-                showSizeChanger: true,
-                showTotal: (total) => `Jami: ${total} ta qarz yozuvi`,
-              }}
-              className="client-accounts-table"
-              summary={(pageData) => {
-                const totalDebt = pageData.reduce((sum, record) => sum + Math.max(0, record.remaining_uzs || 0), 0);
-                const totalPaid = pageData.reduce((sum, record) => sum + (record.paid_uzs || 0), 0);
-                return (
-                  <>
-                    <Table.Summary.Row style={{ fontWeight: 'bold', background: '#fafafa' }}>
-                      <Table.Summary.Cell index={0}>Jami</Table.Summary.Cell>
-                      <Table.Summary.Cell index={1}></Table.Summary.Cell>
-                      <Table.Summary.Cell index={2}></Table.Summary.Cell>
-                      <Table.Summary.Cell index={3}>{formatCurrency(totalPaid, 'UZS')}</Table.Summary.Cell>
-                      <Table.Summary.Cell index={4}>
-                        <Tag color={totalDebt > 0 ? 'red' : 'green'} style={{ fontSize: '14px', padding: '4px 8px' }}>
-                          {formatCurrency(totalDebt, 'UZS')}
-                        </Tag>
-                      </Table.Summary.Cell>
-                      <Table.Summary.Cell index={5}></Table.Summary.Cell>
-                    </Table.Summary.Row>
-                  </>
-                );
-              }}
-            />
-          </>
+          <Table
+            columns={columns}
+            dataSource={filteredDebts}
+            loading={loading}
+            rowKey="key"
+            scroll={{ x: 'max-content' }}
+            pagination={{
+              total: filteredDebts.length,
+              pageSize: 10,
+              showSizeChanger: true,
+              showTotal: (total) => `Jami: ${total} ta qarz yozuvi`,
+            }}
+            className="client-accounts-table"
+            summary={(pageData) => {
+              const pageExpected = pageData.reduce((sum, record) => sum + getExpected(record), 0);
+              const pagePaid = pageData.reduce((sum, record) => sum + getPaid(record), 0);
+              const pageDebt = pageData.reduce((sum, record) => sum + Math.max(0, getRemaining(record)), 0);
+              return (
+                <Table.Summary.Row style={{ fontWeight: 'bold', background: '#fafafa' }}>
+                  <Table.Summary.Cell index={0}>Jami</Table.Summary.Cell>
+                  <Table.Summary.Cell index={1}></Table.Summary.Cell>
+                  <Table.Summary.Cell index={2}></Table.Summary.Cell>
+                  <Table.Summary.Cell index={3} align="right">
+                    {formatCurrency(pageExpected, 'UZS')}
+                  </Table.Summary.Cell>
+                  <Table.Summary.Cell index={4} align="right">
+                    {formatCurrency(pagePaid, 'UZS')}
+                  </Table.Summary.Cell>
+                  <Table.Summary.Cell index={5} align="right">
+                    <Tag color={pageDebt > 0 ? 'red' : 'green'} style={{ fontSize: '14px', padding: '4px 8px' }}>
+                      {formatCurrency(pageDebt, 'UZS')}
+                    </Tag>
+                  </Table.Summary.Cell>
+                  <Table.Summary.Cell index={6}></Table.Summary.Cell>
+                </Table.Summary.Row>
+              );
+            }}
+          />
         ) : (
           <Empty
-            description="Hozircha qarzdor mijozlar yo'q"
+            description="Hozircha mos qarz yozuvlari yo'q"
             image={Empty.PRESENTED_IMAGE_SIMPLE}
           />
         )}
@@ -610,7 +687,7 @@ const ClientAccounts: React.FC = () => {
       {totalStats.topDebtors.length > 0 && (
         <Card title="Eng ko'p qarzdorlar" style={{ marginTop: 16 }}>
           {totalStats.topDebtors.map((debtor, index) => (
-            <Card.Grid key={index} style={{ width: '33.33%', textAlign: 'center' }}>
+            <Card.Grid key={debtor.key || index} style={{ width: '33.33%', textAlign: 'center' }}>
               <div style={{ padding: '10px 0' }}>
                 <UserOutlined style={{ fontSize: 24, marginBottom: 8 }} />
                 <div style={{ fontSize: 16, fontWeight: 'bold' }}>{debtor.fullname}</div>
@@ -618,18 +695,14 @@ const ClientAccounts: React.FC = () => {
                   <div style={{ fontSize: 12, color: '#666' }}>{debtor.client_company}</div>
                 )}
                 <Tag color="red" style={{ margin: '8px 0', padding: '0 8px' }}>
-                  {formatCurrency(debtor.remaining_usd)}
+                  {formatCurrency(getRemaining(debtor), 'UZS')}
                 </Tag>
                 <div>
                   <Button
                     type="primary"
                     size="small"
                     icon={<DollarOutlined />}
-                    onClick={() => {
-                      setSelectedClient(debtor.client_id);
-                      setSelectedClientName(debtor.fullname);
-                      setModalVisible(true);
-                    }}
+                    onClick={() => openPayModal(debtor)}
                   >
                     To&apos;lov qo&apos;shish
                   </Button>
@@ -645,7 +718,7 @@ const ClientAccounts: React.FC = () => {
         open={historyModalVisible}
         onCancel={() => setHistoryModalVisible(false)}
         footer={null}
-        width={800}
+        width={1000}
       >
         {clientHistory.length > 0 ? (
           <Table
@@ -653,6 +726,7 @@ const ClientAccounts: React.FC = () => {
             columns={historyColumns}
             rowKey="id"
             loading={historyLoading}
+            scroll={{ x: 'max-content' }}
             pagination={{ pageSize: 5 }}
           />
         ) : historyLoading ? (
@@ -669,6 +743,7 @@ const ClientAccounts: React.FC = () => {
         onCancel={() => {
           setModalVisible(false);
           setSelectedClient(null);
+          setSelectedDebt(null);
         }}
         footer={null}
         destroyOnHidden
@@ -676,52 +751,75 @@ const ClientAccounts: React.FC = () => {
       >
         {selectedClient && (
           <div style={{ marginBottom: 16 }}>
-            <span>Mijoz: </span>
-            <Tag icon={<UserOutlined />}>{selectedClientName}</Tag>
-            <span style={{ marginLeft: 8 }}>Qarz miqdori: </span>
-            <Tag icon={<DollarOutlined />} color="red">
-              {formatCurrency(filteredDebts.find(d => d.client_id === selectedClient)?.remaining_usd || 0)}
-            </Tag>
+            <Space wrap>
+              <span>Mijoz: <Tag icon={<UserOutlined />}>{selectedClientName}</Tag></span>
+              {selectedDebt?.trip_id && (
+                <span>
+                  Reys: <Tag color="orange">{!isNaN(Number(selectedDebt.trip_id)) ? `#${selectedDebt.trip_id}` : selectedDebt.trip_id}</Tag>
+                </span>
+              )}
+              <span>
+                Qarz miqdori:{' '}
+                <Tag icon={<DollarOutlined />} color={getRemaining(selectedDebt) > 0 ? 'red' : 'green'}>
+                  {formatCurrency(getRemaining(selectedDebt), 'UZS')}
+                </Tag>
+              </span>
+            </Space>
           </div>
         )}
+
+        <Alert
+          type="info"
+          showIcon
+          style={{ marginBottom: 16 }}
+          message="Qarzni so'ndirish uchun to'lov kassaga yuboriladi va kassir tasdiqlaganidan so'ng balansga tushadi."
+        />
 
         <Form
           form={form}
           layout="vertical"
-          initialValues={{
-            payment_way: paymentMethods.length > 0 ? paymentMethods[0].id : 1,
-            is_debt: false,
-          }}
           onFinish={async (values) => {
             try {
               setLoading(true);
-
-              // API ga mos formatdagi ma'lumotni tayyorlaymiz
-              const paymentData = {
+              const tripNum = selectedDebt?.trip_id !== undefined ? Number(selectedDebt.trip_id) : NaN;
+              const paymentData: Record<string, any> = {
                 client: selectedClient,
-                amount: values.amount,
-                currency: uzsId, // Dynamic UZS ID
+                amount: Math.round(Number(values.amount)),
+                currency: uzsId,
                 payment_way: values.payment_way,
                 comment: values.comment || "Qarz to'lovi",
                 is_debt: false,
               };
 
-              // API ga yuboramiz
-              await axiosInstance.post('/casa/', paymentData);
-              message.success('To\'lov muvaffaqiyatli qo\'shildi');
+              if (!Number.isNaN(tripNum) && tripNum > 0) {
+                paymentData.rays = tripNum;
+              }
 
-              // Close modal first for better UX
+              try {
+                await axiosInstance.post('/casa/', paymentData);
+              } catch (firstErr: any) {
+                if (firstErr?.response?.data?.rays && paymentData.rays) {
+                  const fallbackData = { ...paymentData };
+                  delete fallbackData.rays;
+                  await axiosInstance.post('/casa/', fallbackData);
+                } else {
+                  throw firstErr;
+                }
+              }
+
+              message.success("To'lov muvaffaqiyatli qo'shildi");
               setModalVisible(false);
               setSelectedClient(null);
+              setSelectedDebt(null);
               form.resetFields();
+              queryClient.invalidateQueries();
 
-              // Force refresh with delay to allow backend to process
               setTimeout(() => {
                 forceRefreshData();
-              }, 1000);
-            } catch (error) {
+              }, 800);
+            } catch (error: any) {
               console.error('Error creating payment:', error);
-              let errorMessage = 'To\'lovni saqlashda muammo yuz berdi';
+              let errorMessage = "To'lovni saqlashda muammo yuz berdi";
 
               if (error.response?.data) {
                 const errorData = error.response.data;
@@ -743,22 +841,23 @@ const ClientAccounts: React.FC = () => {
           <Form.Item
             name="amount"
             label="To'lov summasi (so'm)"
-            rules={[{ required: true, message: 'Iltimos, to\'lov summasini kiriting' }]}
+            rules={[{ required: true, message: "Iltimos, to'lov summasini kiriting" }]}
           >
             <InputNumber
               style={{ width: '100%' }}
+              min={1}
               placeholder="To'lov miqdori"
               formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-              parser={value => value.replace(/\$\s?|(,*)/g, '')}
+              parser={value => (value ? value.replace(/\$\s?|(,*)/g, '') : '') as any}
             />
           </Form.Item>
 
           <Form.Item
             name="payment_way"
             label="To'lov usuli"
-            rules={[{ required: true, message: 'Iltimos, to\'lov usulini tanlang' }]}
+            rules={[{ required: true, message: "Iltimos, to'lov usulini tanlang" }]}
           >
-            <Select>
+            <Select placeholder="To'lov usulini tanlang">
               {paymentMethods.map(method => (
                 <Option key={`payment-${method.id}`} value={method.id}>
                   {method.name}
@@ -775,8 +874,8 @@ const ClientAccounts: React.FC = () => {
           </Form.Item>
 
           <Form.Item>
-            <Button type="primary" htmlType="submit" style={{ width: '100%' }}>
-              To`lovni saqlash
+            <Button type="primary" htmlType="submit" loading={loading} style={{ width: '100%' }}>
+              To&apos;lovni saqlash
             </Button>
           </Form.Item>
         </Form>

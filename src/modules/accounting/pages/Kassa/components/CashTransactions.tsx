@@ -21,6 +21,7 @@ import {
     Menu,
     Dropdown,
     Spin,
+    Alert,
     message
 } from 'antd';
 import {
@@ -58,6 +59,10 @@ const CashTransactions: React.FC = () => {
     const [isDetailModalVisible, setIsDetailModalVisible] = useState<boolean>(false);
     const [currentTransaction, setCurrentTransaction] = useState<CashHistory | Cash | null>(null);
     const [form] = Form.useForm();
+    const [modalForm] = Form.useForm();
+    const isModalDebt = Form.useWatch('is_debt', modalForm);
+    const modalAmount = Form.useWatch('amount', modalForm);
+    const modalExpected = Form.useWatch('total_expected_amount', modalForm);
 
     // Use real data from API hooks - Pass messageApi for React 19 compatibility
     const { cashEntries, isLoading: isCashLoading, createCash, deleteCash, confirmCash, markAsDelivered } = useCash(messageApi);
@@ -140,14 +145,16 @@ const CashTransactions: React.FC = () => {
     );
 
     const handleAddTransaction = () => {
-        form.resetFields();
-        form.setFieldsValue({
+        const uzsCurrency = currencies?.find(c => c.currency === 'UZS')?.currency || currencies?.[0]?.currency || 'UZS';
+        modalForm.resetFields();
+        modalForm.setFieldsValue({
             type: 'income',
             date: dayjs(),
             amount: 0,
+            total_expected_amount: undefined,
             category: cashCategories?.length > 0 ? cashCategories[0].id : undefined,
-            paymentMethod: 1, // Default to cash payment
-            currency: 'USD',
+            paymentMethod: cashCategories?.length > 0 ? cashCategories[0].id : 1,
+            currency: uzsCurrency,
             is_debt: false,
             is_via_driver: false,
             is_delivered_to_cashier: true
@@ -161,28 +168,48 @@ const CashTransactions: React.FC = () => {
     };
 
     const handleModalSubmit = () => {
-        form.validateFields().then(values => {
+        modalForm.validateFields().then(values => {
+            const isDebtTx = Boolean(values.is_debt);
+            const paidNow = Math.round(Number(values.amount ?? 0));
+            const expectedTotal = Math.round(
+                Number(values.total_expected_amount ?? (isDebtTx ? 0 : paidNow))
+            );
+
+            if (isDebtTx) {
+                if (!expectedTotal || expectedTotal <= 0) {
+                    messageApi.error("Qarz yozish uchun to'liq / kelishilgan summani kiriting.");
+                    return;
+                }
+                if (paidNow < 0 || paidNow >= expectedTotal) {
+                    messageApi.error("Qarz yozishda hozir to'lanayotgan summa to'liq summadan kichik bo'lishi kerak (masalan, 0 so'm).");
+                    return;
+                }
+            } else if (paidNow <= 0) {
+                messageApi.error("Miqdor 0 dan katta bo'lishi kerak.");
+                return;
+            }
+
             const cashData: CashCreate = {
                 client: values.client,
                 rays: values.rays,
-                product: values.product || 0,
-                driver: values.driver || 0,
-                amount: values.amount,
-                currency: currencies?.find(c => c.currency === values.currency)?.id || 0,
+                ...(values.product ? { product: values.product } : {}),
+                ...(values.driver ? { driver: values.driver } : {}),
+                amount: paidNow,
+                currency: currencies?.find(c => c.currency === values.currency)?.id || 2,
                 payment_way: values.paymentMethod,
-                comment: values.description,
-                is_debt: values.is_debt || false,
-                is_via_driver: values.is_via_driver || false,
-                is_delivered_to_cashier: values.is_delivered_to_cashier || true,
-                total_expected_amount: values.total_expected_amount || values.amount,
-                paid_amount: values.paid_amount || values.amount,
+                comment: values.description || (isDebtTx ? `Qarz (Umumiy: ${expectedTotal.toLocaleString()} so'm)` : ''),
+                is_debt: isDebtTx,
+                is_via_driver: !!values.is_via_driver,
+                is_delivered_to_cashier: values.is_delivered_to_cashier !== false,
+                total_expected_amount: expectedTotal,
+                paid_amount: paidNow,
                 date: values.date ? values.date.format('YYYY-MM-DD') : dayjs().format('YYYY-MM-DD'),
                 move_type: values.type === 'income' ? 'income' : 'expense'
             };
 
             createCash(cashData);
             setIsModalVisible(false);
-            messageApi.success('Kassa yozuvi qo\'shildi');
+            messageApi.success(isDebtTx ? 'Qarz yozuvi qo\'shildi' : 'Kassa yozuvi qo\'shildi');
         }).catch(err => {
             console.error('Form validation error:', err);
             messageApi.error('Ma\'lumotlar to\'liq emas. Iltimos, barcha maydonlarni to\'ldiring.');
@@ -455,7 +482,7 @@ const CashTransactions: React.FC = () => {
                 forceRender={true}
             >
                 <Form
-                    form={form}
+                    form={modalForm}
                     layout="vertical"
                 >
                     <Row gutter={16}>
@@ -563,8 +590,9 @@ const CashTransactions: React.FC = () => {
                         <Col span={8}>
                             <Form.Item
                                 name="amount"
-                                label="Miqdor"
+                                label={isModalDebt ? "Hozir to'lanayotgan summa" : "Miqdor"}
                                 rules={[{ required: true, message: 'Miqdorni kiriting' }]}
+                                extra={isModalDebt ? "To'lanmagan bo'lsa 0 qoldiring" : undefined}
                             >
                                 <InputNumber style={{ width: '100%' }} min={0} placeholder="Miqdor" />
                             </Form.Item>
@@ -586,11 +614,22 @@ const CashTransactions: React.FC = () => {
                             <Form.Item
                                 name="total_expected_amount"
                                 label="To'liq summa"
+                                rules={isModalDebt ? [{ required: true, message: "Qarz uchun to'liq summani kiriting" }] : undefined}
                             >
-                                <InputNumber style={{ width: '100%' }} min={0} placeholder="To'liq summa" />
+                                <InputNumber style={{ width: '100%' }} min={isModalDebt ? 1 : 0} placeholder="To'liq summa" />
                             </Form.Item>
                         </Col>
                     </Row>
+
+                    {isModalDebt && (
+                        <Alert
+                            type="info"
+                            showIcon
+                            style={{ marginBottom: 16 }}
+                            message={`Qarzga yoziladigan qoldiq: ${Math.max(0, Number(modalExpected || 0) - Number(modalAmount || 0)).toLocaleString()} so'm`}
+                            description="Qarz sifatida belgilanganda 'Hozir to'lanayotgan summa' faqat hozir olingan pulni (0 bo'lsa 0 ni) bildiradi."
+                        />
+                    )}
 
                     <Form.Item
                         name="description"
@@ -601,32 +640,34 @@ const CashTransactions: React.FC = () => {
 
                     <Row gutter={16}>
                         <Col span={8}>
-                            <Form.Item
-                                name="is_debt"
-                                valuePropName="checked"
-                            >
-                                <Radio.Group>
+                            <Form.Item name="is_debt">
+                                <Radio.Group
+                                    onChange={(e) => {
+                                        if (e.target.value) {
+                                            const currAmt = Number(modalForm.getFieldValue('amount') || 0);
+                                            const currExp = Number(modalForm.getFieldValue('total_expected_amount') || 0);
+                                            if (currExp <= 0 && currAmt > 0) {
+                                                modalForm.setFieldValue('total_expected_amount', currAmt);
+                                            }
+                                            modalForm.setFieldValue('amount', 0);
+                                        }
+                                    }}
+                                >
                                     <Radio value={true}>Qarz</Radio>
-                                    <Radio value={false}>Toliq to`lov</Radio>
+                                    <Radio value={false}>To&apos;liq to&apos;lov</Radio>
                                 </Radio.Group>
                             </Form.Item>
                         </Col>
                         <Col span={8}>
-                            <Form.Item
-                                name="is_via_driver"
-                                valuePropName="checked"
-                            >
+                            <Form.Item name="is_via_driver">
                                 <Radio.Group>
                                     <Radio value={true}>Haydovchi orqali</Radio>
-                                    <Radio value={false}>To`g`ridan-to`g`ri</Radio>
+                                    <Radio value={false}>To&apos;g&apos;ridan-to&apos;g&apos;ri</Radio>
                                 </Radio.Group>
                             </Form.Item>
                         </Col>
                         <Col span={8}>
-                            <Form.Item
-                                name="is_delivered_to_cashier"
-                                valuePropName="checked"
-                            >
+                            <Form.Item name="is_delivered_to_cashier">
                                 <Radio.Group>
                                     <Radio value={true}>Kassirga topshirildi</Radio>
                                     <Radio value={false}>Topshirilmadi</Radio>

@@ -23,6 +23,9 @@ interface ClientDebt {
   client_id: number;
   fullname: string;
   client_company: string;
+  expected_uzs?: number;
+  paid_uzs?: number;
+  remaining_uzs?: number;
   expected_usd: number;
   paid_usd: number;
   remaining_usd: number;
@@ -87,9 +90,8 @@ const ClientAnalytics: React.FC<ClientAnalyticsProps> = ({ clientId }) => {
         trips.forEach((trip: any) => {
           const tripAmount = Number(trip.price || trip.cost || 0);
           if (trip.payment_currency === 'USD') totalUSD += tripAmount;
-          else if (trip.payment_currency === 'UZS') totalUZS += tripAmount;
           else if (trip.payment_currency === 'RUB') totalRUB += tripAmount;
-          else totalUSD += tripAmount; // Default to USD calculation if no currency specified
+          else totalUZS += tripAmount;
         });
 
         const constructedHistoryData = {
@@ -97,12 +99,36 @@ const ClientAnalytics: React.FC<ClientAnalyticsProps> = ({ clientId }) => {
           rays_history: trips,
           rays_count: trips.length,
           total_paid: { USD: totalUSD, UZS: totalUZS, RUB: totalRUB },
-          total_paid_usd: totalUSD
+          total_paid_usd: totalUZS
         };
 
-        const clientDebt = debtsResponse.data.find((item: ClientDebt) =>
-          item.client_id === clientId
-        ) || null;
+        const rawDebts = Array.isArray(debtsResponse.data)
+          ? debtsResponse.data
+          : (debtsResponse.data?.results || []);
+        const clientDebtRows = rawDebts.filter((item: ClientDebt) => item.client_id === clientId);
+        const clientDebt: ClientDebt | null = clientDebtRows.length > 0
+          ? clientDebtRows.reduce<ClientDebt>((acc, row) => ({
+              client_id: clientId,
+              fullname: acc.fullname || row.fullname || '',
+              client_company: acc.client_company || row.client_company || '',
+              expected_uzs: (acc.expected_uzs || 0) + Number(row.expected_uzs ?? row.expected_usd ?? 0),
+              paid_uzs: (acc.paid_uzs || 0) + Number(row.paid_uzs ?? row.paid_usd ?? 0),
+              remaining_uzs: (acc.remaining_uzs || 0) + Math.max(0, Number(row.remaining_uzs ?? row.remaining_usd ?? 0)),
+              expected_usd: acc.expected_usd + Number(row.expected_uzs ?? row.expected_usd ?? 0),
+              paid_usd: acc.paid_usd + Number(row.paid_uzs ?? row.paid_usd ?? 0),
+              remaining_usd: acc.remaining_usd + Math.max(0, Number(row.remaining_uzs ?? row.remaining_usd ?? 0)),
+            }), {
+              client_id: clientId,
+              fullname: '',
+              client_company: '',
+              expected_uzs: 0,
+              paid_uzs: 0,
+              remaining_uzs: 0,
+              expected_usd: 0,
+              paid_usd: 0,
+              remaining_usd: 0,
+            })
+          : null;
 
         setHistoryData(constructedHistoryData);
         setDebtData(clientDebt);
@@ -200,6 +226,12 @@ const ClientAnalytics: React.FC<ClientAnalyticsProps> = ({ clientId }) => {
     }
   ];
 
+  const paidAmountUzs = debtData
+    ? Number(debtData.paid_uzs ?? debtData.paid_usd ?? 0)
+    : Number(historyData.total_paid?.UZS || 0);
+  const expectedAmountUzs = Number(debtData?.expected_uzs ?? debtData?.expected_usd ?? 0);
+  const remainingAmountUzs = Number(debtData?.remaining_uzs ?? debtData?.remaining_usd ?? 0);
+
   return (
     <div className="client-analytics">
       <Title level={4}>Mijoz statistikasi va tarixi</Title>
@@ -219,7 +251,7 @@ const ClientAnalytics: React.FC<ClientAnalyticsProps> = ({ clientId }) => {
           <Card>
             <Statistic
               title="To'langan summa (so'm)"
-              value={(debtData?.paid_usd || historyData.total_paid_usd || 0) * 12800}
+              value={paidAmountUzs}
               prefix={<DollarOutlined />}
               valueStyle={{ color: '#3f8600' }}
               suffix="so'm"
@@ -231,7 +263,7 @@ const ClientAnalytics: React.FC<ClientAnalyticsProps> = ({ clientId }) => {
           <Card>
             <Statistic
               title="Kutilgan to'lov (so'm)"
-              value={Number(debtData?.expected_usd || 0) * 12800}
+              value={expectedAmountUzs}
               prefix={<WalletOutlined />}
               suffix="so'm"
             />
@@ -242,10 +274,10 @@ const ClientAnalytics: React.FC<ClientAnalyticsProps> = ({ clientId }) => {
           <Card>
             <Statistic
               title="Qolgan to'lov (so'm)"
-              value={Number(debtData?.remaining_usd || 0) * 12800}
+              value={remainingAmountUzs}
               prefix={<BarChartOutlined />}
               valueStyle={{
-                color: (debtData?.remaining_usd || 0) > 0 ? '#cf1322' : '#3f8600'
+                color: remainingAmountUzs > 0 ? '#cf1322' : '#3f8600'
               }}
               suffix="so'm"
             />
@@ -259,13 +291,13 @@ const ClientAnalytics: React.FC<ClientAnalyticsProps> = ({ clientId }) => {
           <Col xs={24} md={16}>
             <Text type="secondary" style={{ fontSize: '14px' }}>Mijozning umumiy holati:</Text>
             <div style={{ marginTop: 8 }}>
-              {Number(debtData?.remaining_usd || 0) > 0 ? (
+              {remainingAmountUzs > 0 ? (
                 <Tag color="red" style={{ fontSize: '14px', padding: '4px 12px' }}>
                   <WalletOutlined /> Qarzdorlik mavjud
                 </Tag>
               ) : (
                 <Tag color="green" style={{ fontSize: '14px', padding: '4px 12px' }}>
-                  <CheckCircleOutlined /> To'lov to'liq amalga oshirilgan
+                  <CheckCircleOutlined /> To&apos;lov to&apos;liq amalga oshirilgan
                 </Tag>
               )}
             </div>
@@ -301,10 +333,10 @@ const ClientAnalytics: React.FC<ClientAnalyticsProps> = ({ clientId }) => {
       </Card>
 
       {/* Payment guidance if there's remaining balance */}
-      {debtData && debtData.remaining_usd > 0 && (
+      {debtData && remainingAmountUzs > 0 && (
         <Alert
           message="To'lov eslatmasi"
-          description={`${debtData.fullname} uchun ${formatCurrency(debtData.remaining_usd * 12800)} so'm miqdorida to'lov kutilmoqda.`}
+          description={`${debtData.fullname} uchun ${formatCurrency(remainingAmountUzs)} so'm miqdorida to'lov kutilmoqda.`}
           type="warning"
           showIcon
           style={{ marginTop: 24 }}

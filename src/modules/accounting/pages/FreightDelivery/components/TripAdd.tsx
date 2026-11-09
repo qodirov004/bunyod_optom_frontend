@@ -664,10 +664,19 @@ const TripAdd: React.FC<TripAddProps> = ({
         messageApi.success('Trip created successfully');
 
         // Capture clients for the payment modal BEFORE resetting state
-        const clientsForPayment = selectedClients.map(sc => ({
+        const clientsForPayment = selectedClients.map(sc => {
+          const clientExpectedTotal = sc.products.reduce(
+            (sum, product) => sum + Number(product.price || 0),
+            0
+          );
+          return {
             ...sc.client,
-            first_name: sc.client.company || sc.client.first_name || 'Mijoz'
-        }));
+            first_name: sc.client.company || sc.client.first_name || 'Mijoz',
+            total_expected_amount_uzs: clientExpectedTotal,
+            total_expected_amount_usd: clientExpectedTotal,
+            products: sc.products,
+          };
+        });
 
         // Clear ALL data from localStorage after successful trip creation
         clearDraftFromStorage();

@@ -19,6 +19,9 @@ interface ClientDebt {
   client_id: number;
   fullname: string;
   client_company: string;
+  expected_uzs?: number;
+  paid_uzs?: number;
+  remaining_uzs?: number;
   expected_usd: number;
   paid_usd: number;
   remaining_usd: number;
@@ -96,8 +99,9 @@ export const Clients = () => {
       try {
         setClientDebts(prev => ({ ...prev, isLoading: true, error: null }));
         const response = await axiosInstance.get('/casa/all-debts/');
+        const rawList = Array.isArray(response.data) ? response.data : (response.data?.results || []);
         setClientDebts({
-          data: response.data || [],
+          data: rawList,
           isLoading: false,
           error: null
         });
@@ -209,6 +213,44 @@ export const Clients = () => {
     };
   }, [clientsData, tripsData]);
 
+  // Aggregate per-trip debt records by client_id
+  const aggregatedClientDebts = useMemo(() => {
+    const byClient = new Map<number, {
+      client_id: number;
+      fullname: string;
+      client_company: string;
+      expected_uzs: number;
+      paid_uzs: number;
+      remaining_uzs: number;
+    }>();
+
+    (Array.isArray(clientDebts.data) ? clientDebts.data : []).forEach((debt) => {
+      if (!debt?.client_id) return;
+      const expected = Number(debt.expected_uzs ?? debt.expected_usd ?? 0);
+      const paid = Number(debt.paid_uzs ?? debt.paid_usd ?? 0);
+      const remaining = Math.max(0, Number(debt.remaining_uzs ?? debt.remaining_usd ?? 0));
+      const existing = byClient.get(debt.client_id);
+      if (existing) {
+        existing.expected_uzs += expected;
+        existing.paid_uzs += paid;
+        existing.remaining_uzs += remaining;
+        if (!existing.fullname && debt.fullname) existing.fullname = debt.fullname;
+        if (!existing.client_company && debt.client_company) existing.client_company = debt.client_company;
+      } else {
+        byClient.set(debt.client_id, {
+          client_id: debt.client_id,
+          fullname: debt.fullname || '',
+          client_company: debt.client_company || '',
+          expected_uzs: expected,
+          paid_uzs: paid,
+          remaining_uzs: remaining,
+        });
+      }
+    });
+
+    return Array.from(byClient.values());
+  }, [clientDebts.data]);
+
   // Enhanced client data with debt information
   const enhancedClientsData = useMemo(() => {
     if (!clientsData?.data) return [];
@@ -220,8 +262,8 @@ export const Clients = () => {
         ? new Date(Math.max(...clientTrips.map(t => new Date(t.start_date || '').getTime())))
         : null;
       
-      // Find debt information for this client
-      const debtInfo = clientDebts.data.find(debt => debt.client_id === client.id);
+      // Find aggregated debt information for this client across all trips
+      const debtInfo = aggregatedClientDebts.find(debt => debt.client_id === client.id);
       
       return {
         ...client,
@@ -229,13 +271,13 @@ export const Clients = () => {
         totalSpent,
         lastTripDate,
         status: clientTrips.some(trip => trip.status !== 'completed') ? 'active' : 'inactive',
-        expectedAmount: (debtInfo as any)?.expected_uzs || 0,
-        paidAmount: (debtInfo as any)?.paid_uzs || 0,
-        remainingAmount: (debtInfo as any)?.remaining_uzs || 0,
-        hasDebt: debtInfo ? ((debtInfo as any)?.remaining_uzs || 0) > 0 : false
+        expectedAmount: debtInfo?.expected_uzs || 0,
+        paidAmount: debtInfo?.paid_uzs || 0,
+        remainingAmount: debtInfo?.remaining_uzs || 0,
+        hasDebt: debtInfo ? debtInfo.remaining_uzs > 0 : false
       };
     });
-  }, [clientsData, tripsData, clientDebts.data]);
+  }, [clientsData, tripsData, aggregatedClientDebts]);
 
   // Add sequential IDs to clients
   const clientsWithSequentialIds = useMemo(() => {
@@ -434,7 +476,7 @@ export const Clients = () => {
 
   // Calculate debt statistics
   const debtStats = useMemo(() => {
-    if (!clientDebts.data || clientDebts.data.length === 0) {
+    if (!aggregatedClientDebts || aggregatedClientDebts.length === 0) {
       return {
         totalDebt: 0,
         clientsWithDebt: 0,
@@ -443,10 +485,10 @@ export const Clients = () => {
       };
     }
 
-    const totalExpected = clientDebts.data.reduce((sum, debt) => sum + ((debt as any).expected_uzs || 0), 0);
-    const totalPaid = clientDebts.data.reduce((sum, debt) => sum + ((debt as any).paid_uzs || 0), 0);
-    const totalDebt = clientDebts.data.reduce((sum, debt) => sum + ((debt as any).remaining_uzs || 0), 0);
-    const clientsWithDebt = clientDebts.data.filter(debt => ((debt as any).remaining_uzs || 0) > 0).length;
+    const totalExpected = aggregatedClientDebts.reduce((sum, debt) => sum + debt.expected_uzs, 0);
+    const totalPaid = aggregatedClientDebts.reduce((sum, debt) => sum + debt.paid_uzs, 0);
+    const totalDebt = aggregatedClientDebts.reduce((sum, debt) => sum + debt.remaining_uzs, 0);
+    const clientsWithDebt = aggregatedClientDebts.filter(debt => debt.remaining_uzs > 0).length;
 
     return {
       totalDebt,
@@ -454,7 +496,7 @@ export const Clients = () => {
       totalPaid,
       totalExpected
     };
-  }, [clientDebts.data]);
+  }, [aggregatedClientDebts]);
 
   const renderDashboard = () => (
     <>
@@ -542,9 +584,9 @@ export const Clients = () => {
               <Alert type="error" message={clientDebts.error} />
             ) : (
               <Table 
-                dataSource={clientDebts.data
-                  .filter(client => ((client as any).remaining_uzs || 0) > 0)
-                  .sort((a, b) => ((b as any).remaining_uzs || 0) - ((a as any).remaining_uzs || 0))
+                dataSource={aggregatedClientDebts
+                  .filter(client => client.remaining_uzs > 0)
+                  .sort((a, b) => b.remaining_uzs - a.remaining_uzs)
                   .slice(0, 5)
                 }
                 rowKey="client_id"

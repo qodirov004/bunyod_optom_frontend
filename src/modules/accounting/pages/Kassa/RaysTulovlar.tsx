@@ -18,6 +18,7 @@ import {
   Col,
   Divider,
   Checkbox,
+  Alert,
 } from 'antd';
 import type { Breakpoint } from 'antd';
 import {
@@ -35,10 +36,7 @@ import { useQueryClient } from '@tanstack/react-query';
 
 const { Option } = Select;
 
-
-
 interface Client {
-  company: string;
   id: number;
   first_name: string;
   company: string;
@@ -48,7 +46,7 @@ interface Client {
   casa_paid_uzs?: number;
   total_remaining_usd?: number;
   total_remaining_uzs?: number;
-  products?: { id: number; name: string; price_usd: number }[];
+  products?: { id: number; name: string; price_usd: number; price_uzs?: number }[];
 }
 
 interface RaysClientsMap {
@@ -82,14 +80,15 @@ interface RaysPayment {
 // Form values for payment creation
 interface PaymentFormValues {
   amount: number;
-  currency: string;
+  total_expected_amount?: number;
+  currency?: string;
   payment_way: number;
   comment?: string;
   is_debt?: boolean;
   is_via_driver?: boolean;
   is_delivered_to_cashier?: boolean;
   driver?: number;
-  custom_rate_to_uzs: string;
+  custom_rate_to_uzs?: string;
 }
 
 interface Driver {
@@ -119,6 +118,10 @@ const RaysTulovlar: React.FC = () => {
   const [paymentCategoriesLoading, setPaymentCategoriesLoading] = useState<boolean>(false);
   const [uzsId, setUzsId] = useState<number>(2); // Default to 2
 
+  const isDebtWatched = Form.useWatch('is_debt', paymentForm);
+  const amountWatched = Form.useWatch('amount', paymentForm);
+  const expectedWatched = Form.useWatch('total_expected_amount', paymentForm);
+
   // Fetch currencies to find UZS ID
   useEffect(() => {
     const fetchCurrencies = async () => {
@@ -146,7 +149,7 @@ const RaysTulovlar: React.FC = () => {
     const fetchDrivers = async () => {
       try {
         const response = await axiosInstance.get('/customusers/?status=driver');
-        setDrivers(response.data || []);
+        setDrivers(Array.isArray(response.data) ? response.data : (response.data?.results || []));
       } catch (error) {
         console.error('Error fetching drivers:', error);
         setDrivers([]); // Default empty array
@@ -162,10 +165,10 @@ const RaysTulovlar: React.FC = () => {
       try {
         setPaymentCategoriesLoading(true);
         const response = await axiosInstance.get('/casacategory/');
-        setPaymentCategories(response.data || []);
+        setPaymentCategories(Array.isArray(response.data) ? response.data : (response.data?.results || []));
       } catch (error) {
         console.error('Error fetching payment categories:', error);
-        message.error('To\'lov usullarini yuklashda xatolik yuz berdi');
+        message.error("To'lov usullarini yuklashda xatolik yuz berdi");
       } finally {
         setPaymentCategoriesLoading(false);
       }
@@ -179,12 +182,12 @@ const RaysTulovlar: React.FC = () => {
     try {
       setLoading(true);
       const response = await axiosInstance.get('/casa/rays-clients-map/');
-      console.log('Rays-Clients Map Response:', response.data);
+      const list = Array.isArray(response.data) ? response.data : (response.data?.results || []);
       // Only keep rays that have clients (active rays)
-      const activeRays = response.data.filter((rays: RaysClientsMap) => rays.clients.length > 0);
+      const activeRays = list.filter((rays: RaysClientsMap) => Array.isArray(rays.clients) && rays.clients.length > 0);
       setRaysData(activeRays);
     } catch (error) {
-      message.error('Reys-mijoz ma\'lumotlarini yuklashda xatolik yuz berdi');
+      message.error("Reys-mijoz ma'lumotlarini yuklashda xatolik yuz berdi");
       console.error('Error fetching rays-clients map:', error);
     } finally {
       setLoading(false);
@@ -196,10 +199,10 @@ const RaysTulovlar: React.FC = () => {
     try {
       setLoading(true);
       const response = await axiosInstance.get('/casa/');
-      console.log('Active Rays Payments Response:', response.data);
-      setActiveRaysPayments(response.data);
+      const list = Array.isArray(response.data) ? response.data : (response.data?.results || []);
+      setActiveRaysPayments(list);
     } catch (error) {
-      message.error('To\'lovlar ma\'lumotlarini yuklashda xatolik yuz berdi');
+      message.error("To'lovlar ma'lumotlarini yuklashda xatolik yuz berdi");
       console.error('Error fetching active rays payments:', error);
     } finally {
       setLoading(false);
@@ -213,7 +216,33 @@ const RaysTulovlar: React.FC = () => {
     }
   }, [isClient]);
 
+  const openPaymentModal = (raysId: number, client: Client) => {
+    setSelectedRays(raysId);
+    setSelectedClient(client);
+    setIsPaymentModalVisible(true);
+  };
 
+  useEffect(() => {
+    if (!isPaymentModalVisible || !selectedClient) return;
+    const expectedSum = Math.round(Number(selectedClient.total_expected_amount_uzs ?? selectedClient.total_expected_amount_usd ?? 0));
+    const remainingSum = Math.max(0, Math.round(Number(selectedClient.total_remaining_uzs ?? selectedClient.total_remaining_usd ?? expectedSum)));
+    paymentForm.resetFields();
+    paymentForm.setFieldsValue({
+      total_expected_amount: expectedSum > 0 ? expectedSum : undefined,
+      amount: remainingSum > 0 ? remainingSum : (expectedSum > 0 ? expectedSum : 0),
+      payment_way: paymentCategories.length > 0 ? paymentCategories[0].id : undefined,
+      is_debt: false,
+      is_via_driver: false,
+      is_delivered_to_cashier: false,
+      comment: '',
+    });
+  }, [isPaymentModalVisible, selectedClient, paymentForm]);
+
+  useEffect(() => {
+    if (isPaymentModalVisible && paymentCategories.length > 0 && !paymentForm.isFieldTouched('payment_way')) {
+      paymentForm.setFieldValue('payment_way', paymentCategories[0].id);
+    }
+  }, [isPaymentModalVisible, paymentCategories, paymentForm]);
 
   const handleCreatePayment = async (values: PaymentFormValues) => {
     if (!selectedRays || !selectedClient) {
@@ -221,54 +250,72 @@ const RaysTulovlar: React.FC = () => {
       return;
     }
 
-    // Simplified payment data structure that matches the API requirements
+    const isDebtTx = Boolean(values.is_debt);
+    const paidNow = Math.round(Number(values.amount ?? 0));
+    const clientExpected = Number(
+      selectedClient.total_expected_amount_uzs ?? selectedClient.total_expected_amount_usd ?? 0
+    );
+    const expectedTotal = Math.round(
+      Number(values.total_expected_amount ?? (clientExpected > 0 ? clientExpected : paidNow))
+    );
+
+    if (isDebtTx) {
+      if (!expectedTotal || expectedTotal <= 0) {
+        message.error("Qarz yozish uchun umumiy / kelishilgan summani kiriting");
+        return;
+      }
+      if (paidNow < 0 || paidNow >= expectedTotal) {
+        message.error("Qarz yozish uchun hozir to'lanayotgan summa umumiy summadan kichik bo'lishi kerak (masalan, 0 so'm)");
+        return;
+      }
+    } else if (paidNow <= 0) {
+      message.error("To'lov summasi 0 dan katta bo'lishi kerak");
+      return;
+    }
+
     const paymentData: RaysPayment = {
       client: selectedClient.id,
       rays: selectedRays,
-      amount: values.amount,
-      amount_in_usd: values.amount.toString(),
-      currency: uzsId, // Dynamic UZS ID
+      amount: paidNow,
+      amount_in_usd: String(paidNow),
+      currency: uzsId,
       payment_way: values.payment_way,
-      comment: values.comment || '',
-      is_debt: values.is_debt || false,
+      comment: values.comment || (isDebtTx ? `Qarz (Umumiy: ${expectedTotal.toLocaleString()} so'm)` : ''),
+      is_debt: isDebtTx,
       is_via_driver: values.is_via_driver || false,
       is_delivered_to_cashier: values.is_delivered_to_cashier || false,
+      ...(isDebtTx && {
+        total_expected_amount: expectedTotal,
+        paid_amount: paidNow,
+      }),
       custom_rate_to_uzs: "1"
     };
 
-    console.log('Payment Data being sent:', paymentData);
-
-    // Only add driver field if a valid driver is selected
     if (values.driver) {
       paymentData.driver = values.driver;
     }
 
-    // API ga yuboramiz
     setLoading(true);
     try {
-      const response = await axiosInstance.post('/casa/', paymentData);
-      console.log('Payment Creation Response:', response.data);
-      message.success('To\'lov muvaffaqiyatli qo\'shildi');
+      await axiosInstance.post('/casa/', paymentData);
+      message.success(isDebtTx ? "Qarz yozuvi muvaffaqiyatli qo'shildi" : "To'lov muvaffaqiyatli qo'shildi");
       paymentForm.resetFields();
       setIsPaymentModalVisible(false);
-      // Refresh data
       fetchActiveRaysPayments();
       fetchRaysClientsMap();
       queryClient.invalidateQueries();
     } catch (error: any) {
       console.error('Error creating payment:', error);
-      let errorMessage = 'To\'lov qo\'shishda xatolik yuz berdi';
+      let errorMessage = "To'lov qo'shishda xatolik yuz berdi";
       if (error.response && error.response.data) {
-        console.log('Error Response Data:', error.response.data);
         const responseData = error.response.data;
-        if (typeof responseData === 'object') {
-          // Extract specific validation errors
+        if (responseData.detail) {
+          errorMessage = `Xatolik: ${responseData.detail}`;
+        } else if (typeof responseData === 'object') {
           const errors = Object.entries(responseData)
             .map(([field, messages]) => `${field}: ${messages}`)
             .join(', ');
           errorMessage = `Xatolik: ${errors}`;
-        } else if (responseData.detail) {
-          errorMessage = `Xatolik: ${responseData.detail}`;
         }
       }
       message.error(errorMessage);
@@ -276,6 +323,18 @@ const RaysTulovlar: React.FC = () => {
       setLoading(false);
     }
   };
+
+  // Filtered rays by search text
+  const filteredRaysData = raysData.filter(rays => {
+    const q = searchText.trim().toLowerCase();
+    if (!q) return true;
+    const matchRaysId = String(rays.rays_id).toLowerCase().includes(q);
+    const matchClient = rays.clients.some(c =>
+      (c.first_name || '').toLowerCase().includes(q) ||
+      (c.company || '').toLowerCase().includes(q)
+    );
+    return matchRaysId || matchClient;
+  });
 
   // Prepare tabs for collapse panels
   const getClientsTabs = (rays: RaysClientsMap) => {
@@ -290,7 +349,6 @@ const RaysTulovlar: React.FC = () => {
         children: (
           <Row gutter={[16, 16]}>
             {rays.clients.map(client => {
-              // Mijozga tegishli to'lovlar
               const clientPayments = activeRaysPayments
                 .filter(payment => payment.rays === rays.rays_id && payment.client === client.id)
                 .map((payment, index) => ({
@@ -298,9 +356,12 @@ const RaysTulovlar: React.FC = () => {
                   id: payment.id || `temp-client-payment-${index}`
                 }));
 
-              const expectedAmount = client.total_expected_amount_usd || 0;
-              const totalPaid = client.casa_paid || clientPayments.reduce((sum, payment) => sum + payment.amount, 0);
-              const remainingDebt = client.total_remaining_usd !== undefined ? client.total_remaining_usd : expectedAmount - totalPaid;
+              const expectedUzs = client.total_expected_amount_uzs ?? client.total_expected_amount_usd;
+              const paidUzs = client.casa_paid_uzs ?? client.casa_paid ?? 0;
+              const remainingUzs =
+                client.total_remaining_uzs ??
+                client.total_remaining_usd ??
+                Math.max(0, Number(expectedUzs || 0) - Number(paidUzs || 0));
 
               return (
                 <Col xs={24} sm={12} md={8} lg={6} key={`client-col-${client.id}`}>
@@ -316,30 +377,29 @@ const RaysTulovlar: React.FC = () => {
                     <p>
                       <strong>Kelishilgan summa:</strong>{' '}
                       <span style={{ color: '#1890ff', fontWeight: 'bold' }}>
-                        {client.total_expected_amount_uzs !== undefined 
-                          ? formatCurrency(client.total_expected_amount_uzs, 'UZS') 
+                        {expectedUzs !== undefined
+                          ? formatCurrency(expectedUzs, 'UZS')
                           : 'Belgilanmagan'}
                       </span>
                     </p>
                     <p>
                       <strong>To&apos;langan:</strong>{' '}
                       <span style={{ color: '#52c41a' }}>
-                        {formatCurrency(client.casa_paid_uzs, 'UZS')}
+                        {formatCurrency(paidUzs, 'UZS')}
                       </span>
                     </p>
                     <p>
                       <strong>Qolgan qarz:</strong>{' '}
-                      <span style={{ color: '#f5222d', fontWeight: 'bold' }}>
-                        {formatCurrency(client.total_remaining_uzs, 'UZS')}
+                      <span style={{ color: remainingUzs > 0 ? '#f5222d' : '#52c41a', fontWeight: 'bold' }}>
+                        {formatCurrency(remainingUzs, 'UZS')}
                       </span>
                     </p>
-                    
+
                     {client.products && client.products.length > 0 && (
                       <div style={{ marginTop: '10px', padding: '8px', background: '#f5f5f5', borderRadius: '4px' }}>
                         <div style={{ fontSize: '12px', fontWeight: 'bold', marginBottom: '4px' }}>Yuklar ro&apos;yxati:</div>
                         {client.products.map(product => {
-                          // All prices are now in UZS, use directly
-                          const productPrice = product.price_usd || 0;
+                          const productPrice = product.price_uzs ?? product.price_usd ?? 0;
                           return (
                             <div key={`prod-${product.id}`} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
                               <span>• {product.name}</span>
@@ -353,11 +413,7 @@ const RaysTulovlar: React.FC = () => {
                     <Button
                       type="primary"
                       icon={<DollarOutlined />}
-                      onClick={() => {
-                        setSelectedRays(rays.rays_id);
-                        setSelectedClient(client);
-                        setIsPaymentModalVisible(true);
-                      }}
+                      onClick={() => openPaymentModal(rays.rays_id, client)}
                       block
                     >
                       To&apos;lov qo&apos;shish
@@ -370,11 +426,17 @@ const RaysTulovlar: React.FC = () => {
                           <div key={payment.id ? `payment-${payment.id}` : `payment-index-${index}`} className="payment-history-item">
                             <p>
                               <Tag color="green">{payment.payment_way_name || 'Naqd'}</Tag>
+                              {payment.is_debt && <Tag color="red">Qarz</Tag>}
                               <span style={{ marginLeft: 8 }}>
-                                {formatCurrency(payment.amount)}
+                                {formatCurrency(payment.amount, 'UZS')}
                               </span>
+                              {payment.is_debt && payment.total_expected_amount ? (
+                                <span style={{ display: 'block', fontSize: 11, color: '#8c8c8c' }}>
+                                  Kelishilgan: {formatCurrency(payment.total_expected_amount, 'UZS')}
+                                </span>
+                              ) : null}
                               <span style={{ float: 'right', color: '#8c8c8c', fontSize: 12 }}>
-                                {new Date(payment.created_at).toLocaleDateString()}
+                                {payment.created_at ? new Date(payment.created_at).toLocaleDateString() : '-'}
                               </span>
                             </p>
                           </div>
@@ -410,7 +472,7 @@ const RaysTulovlar: React.FC = () => {
                 title: 'Sana',
                 dataIndex: 'created_at',
                 key: 'created_at',
-                render: (date: string) => new Date(date).toLocaleDateString(),
+                render: (date: string) => date ? new Date(date).toLocaleDateString() : '-',
               },
               {
                 title: 'Mijoz',
@@ -422,10 +484,17 @@ const RaysTulovlar: React.FC = () => {
                 title: 'Summa',
                 dataIndex: 'amount',
                 key: 'amount',
-                render: (amount: number) => (
-                  <span style={{ color: '#52c41a' }}>
-                    {formatCurrency(amount)}
-                  </span>
+                render: (amount: number, record: RaysPayment) => (
+                  <Space direction="vertical" size={0}>
+                    <span style={{ color: record.is_debt && amount === 0 ? '#f5222d' : '#52c41a' }}>
+                      {formatCurrency(amount, 'UZS')}
+                    </span>
+                    {record.is_debt && record.total_expected_amount ? (
+                      <small style={{ color: '#8c8c8c' }}>
+                        Qarz (umumiy: {formatCurrency(record.total_expected_amount, 'UZS')})
+                      </small>
+                    ) : null}
+                  </Space>
                 ),
               },
               {
@@ -433,7 +502,7 @@ const RaysTulovlar: React.FC = () => {
                 dataIndex: 'payment_way_name',
                 key: 'payment_way_name',
                 render: (paymentWay: string) => (
-                  <Tag color="blue">{paymentWay}</Tag>
+                  <Tag color="blue">{paymentWay || '-'}</Tag>
                 ),
                 responsive: ['md'] as Breakpoint[],
               },
@@ -441,10 +510,13 @@ const RaysTulovlar: React.FC = () => {
                 title: 'Status',
                 dataIndex: 'status',
                 key: 'status',
-                render: (status: string) => (
-                  <Tag color={status === 'pending' ? 'orange' : 'green'}>
-                    {status === 'pending' ? 'Kutilmoqda' : 'Tasdiqlangan'}
-                  </Tag>
+                render: (status: string, record: RaysPayment) => (
+                  <Space>
+                    <Tag color={status === 'pending' ? 'orange' : 'green'}>
+                      {status === 'pending' ? 'Kutilmoqda' : 'Tasdiqlangan'}
+                    </Tag>
+                    {record.is_debt && <Tag color="red">Qarz</Tag>}
+                  </Space>
                 ),
                 responsive: ['sm'] as Breakpoint[],
               },
@@ -462,6 +534,11 @@ const RaysTulovlar: React.FC = () => {
       }
     ];
   };
+
+  const calculatedDebtRemaining = Math.max(
+    0,
+    Number(expectedWatched || 0) - Number(amountWatched || 0)
+  );
 
   return (
     <div className="rays-payments">
@@ -492,6 +569,7 @@ const RaysTulovlar: React.FC = () => {
               prefix={<SearchOutlined />}
               value={searchText}
               onChange={e => setSearchText(e.target.value)}
+              allowClear
               style={{ width: 300 }}
             />
           </div>
@@ -499,10 +577,10 @@ const RaysTulovlar: React.FC = () => {
           <Collapse
             expandIconPosition="end"
             expandIcon={({ isActive }) => <RightOutlined rotate={isActive ? 90 : 0} />}
-            items={raysData.map(rays => ({
+            items={filteredRaysData.map(rays => ({
               key: `rays-${rays.rays_id}`,
               label: (
-                <Space>
+                <Space wrap>
                   <Badge count={rays.clients.length} style={{ backgroundColor: '#108ee9' }}>
                     <Tag icon={<CarOutlined />} color="blue">Reys #{rays.rays_id}</Tag>
                   </Badge>
@@ -517,7 +595,7 @@ const RaysTulovlar: React.FC = () => {
               )
             }))}
           />
-          {raysData.length === 0 && !loading && (
+          {filteredRaysData.length === 0 && !loading && (
             <div style={{ textAlign: 'center', padding: '20px' }}>
               <InfoCircleOutlined style={{ fontSize: 24, color: '#ccc' }} />
               <p>Aktiv reyslar topilmadi yoki filter bo&apos;yicha mos reyslar yo&apos;q</p>
@@ -529,48 +607,75 @@ const RaysTulovlar: React.FC = () => {
             open={isPaymentModalVisible}
             onCancel={() => setIsPaymentModalVisible(false)}
             footer={null}
-            destroyOnHidden
             forceRender={true}
           >
             {selectedClient && (
               <div style={{ marginBottom: 16 }}>
-                <span>Mijoz: </span>
-                <Tag icon={<UserOutlined />}>{selectedClient.first_name}</Tag>
-                <span style={{ marginLeft: 8 }}>Reys ID: </span>
-                <Tag icon={<CarOutlined />} color="blue">#{selectedRays}</Tag>
+                <Space wrap>
+                  <span>Mijoz: <Tag icon={<UserOutlined />}>{selectedClient.first_name}</Tag></span>
+                  <span>Reys ID: <Tag icon={<CarOutlined />} color="blue">#{selectedRays}</Tag></span>
+                </Space>
               </div>
             )}
 
             <Form
               form={paymentForm}
               layout="vertical"
-              initialValues={{
-                payment_way: paymentCategories.length > 0 ? paymentCategories[0].id : undefined,
-                is_debt: false,
-                is_via_driver: false,
-                is_delivered_to_cashier: false
-              }}
               onFinish={handleCreatePayment}
             >
+              {isDebtWatched && (
+                <Alert
+                  type="info"
+                  showIcon
+                  style={{ marginBottom: 16 }}
+                  message="Qarz sifatida belgilash"
+                  description="Hozir to'lanayotgan summa maydoniga faqat hozir qo'lga olingan pulni kiriting (to'lanmagan bo'lsa 0 qoldiring). Umumiy kelishilgan summa bilan farqi mijozning qarzi sifatida saqlanadi."
+                />
+              )}
+
               <Form.Item
-                name="amount"
-                label="To'lov summasi (so'm)"
-                rules={[{ required: true, message: 'Iltimos, to\'lov summasini kiriting' }]}
+                name="total_expected_amount"
+                label="Umumiy / Kelishilgan summa (so'm)"
+                hidden={!isDebtWatched}
+                rules={isDebtWatched ? [{ required: true, message: "Iltimos, umumiy summani kiriting" }] : []}
               >
                 <InputNumber
                   style={{ width: '100%' }}
-                  placeholder="To'lov miqdori"
+                  min={isDebtWatched ? 1 : 0}
+                  placeholder="Kelishilgan umumiy summa"
                   formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                  parser={value => value ? value.replace(/\$\s?|(,*)/g, '') : ''}
+                  parser={value => (value ? value.replace(/\$\s?|(,*)/g, '') : '') as any}
                 />
               </Form.Item>
 
+              <Form.Item
+                name="amount"
+                label={isDebtWatched ? "Hozir to'lanayotgan summa (so'm)" : "To'lov summasi (so'm)"}
+                rules={[{ required: true, message: "Iltimos, summani kiriting" }]}
+                extra={isDebtWatched ? "Agar mijoz hozir pul bermagan bo'lsa, 0 qoldiring" : undefined}
+              >
+                <InputNumber
+                  style={{ width: '100%' }}
+                  min={isDebtWatched ? 0 : 1}
+                  placeholder={isDebtWatched ? "0" : "To'lov miqdori"}
+                  formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                  parser={value => (value ? value.replace(/\$\s?|(,*)/g, '') : '') as any}
+                />
+              </Form.Item>
 
+              {isDebtWatched && (
+                <div style={{ marginBottom: 16, padding: '8px 12px', background: '#fff1f0', borderRadius: 6, border: '1px solid #ffa39e' }}>
+                  <span>Qarzga yoziladigan qoldiq: </span>
+                  <strong style={{ color: '#cf1322' }}>
+                    {formatCurrency(calculatedDebtRemaining, 'UZS')}
+                  </strong>
+                </div>
+              )}
 
               <Form.Item
                 name="payment_way"
                 label="To'lov usuli"
-                rules={[{ required: true, message: 'Iltimos, to\'lov usulini tanlang' }]}
+                rules={[{ required: true, message: "Iltimos, to'lov usulini tanlang" }]}
               >
                 {paymentCategoriesLoading ? (
                   <div>To`lov usullari yuklanmoqda...</div>
@@ -584,18 +689,46 @@ const RaysTulovlar: React.FC = () => {
                   </Select>
                 )}
               </Form.Item>
+
               <Row gutter={16}>
-                <Col span={8}>
+                <Col span={12}>
                   <Form.Item
                     name="is_debt"
                     valuePropName="checked"
                   >
-                    <Checkbox>
+                    <Checkbox
+                      onChange={(e) => {
+                        const checked = e.target.checked;
+                        const clientExp = Math.round(
+                          Number(
+                            selectedClient?.total_expected_amount_uzs ??
+                            selectedClient?.total_expected_amount_usd ??
+                            paymentForm.getFieldValue('total_expected_amount') ??
+                            paymentForm.getFieldValue('amount') ??
+                            0
+                          )
+                        );
+                        if (checked) {
+                          if (!paymentForm.getFieldValue('total_expected_amount') && clientExp > 0) {
+                            paymentForm.setFieldValue('total_expected_amount', clientExp);
+                          }
+                          paymentForm.setFieldValue('amount', 0);
+                        } else {
+                          const rem = Math.max(
+                            0,
+                            Math.round(Number(selectedClient?.total_remaining_uzs ?? selectedClient?.total_remaining_usd ?? clientExp))
+                          );
+                          if ((paymentForm.getFieldValue('amount') ?? 0) === 0 && rem > 0) {
+                            paymentForm.setFieldValue('amount', rem);
+                          }
+                        }
+                      }}
+                    >
                       Qarz sifatida
                     </Checkbox>
                   </Form.Item>
                 </Col>
-                <Col span={8}>
+                <Col span={12}>
                   <Form.Item
                     name="is_via_driver"
                     valuePropName="checked"

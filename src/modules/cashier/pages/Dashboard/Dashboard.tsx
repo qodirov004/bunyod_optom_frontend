@@ -125,7 +125,15 @@ const CashierDashboard = () => {
           <Card variant="borderless" className="dashboard-stat-card">
             <Statistic
               title="Qarzdorlar"
-              value={debts.length}
+              value={
+                Array.isArray(debts)
+                  ? new Set(
+                      debts
+                        .filter((d: any) => Number(d?.remaining_uzs ?? d?.remaining_usd ?? 0) > 0)
+                        .map((d: any) => d.client_id ?? d.id)
+                    ).size
+                  : 0
+              }
               prefix={<ExclamationCircleOutlined />}
               valueStyle={{ color: '#cf1322' }}
             />

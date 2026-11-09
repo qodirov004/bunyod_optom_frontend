@@ -18,6 +18,9 @@ interface ClientDebt {
   client_id: number;
   fullname: string;
   client_company: string;
+  expected_uzs?: number;
+  paid_uzs?: number;
+  remaining_uzs?: number;
   expected_usd: number;
   paid_usd: number;
   remaining_usd: number;
@@ -45,12 +48,36 @@ const ClientDetail = () => {
         const clientData = await clientApi.getClientById(clientId);
         setClient(clientData);
         
-        // Fetch client debt data
+        // Fetch client debt data (aggregate across all trips for this client)
         const debtsResponse = await axiosInstance.get('/casa/all-debts/');
-        const debt = debtsResponse.data.find((item: ClientDebt) => 
-          item.client_id === clientId
-        ) || null;
-        setClientDebt(debt);
+        const rawDebts = Array.isArray(debtsResponse.data)
+          ? debtsResponse.data
+          : (debtsResponse.data?.results || []);
+        const clientDebtRows = rawDebts.filter((item: ClientDebt) => item.client_id === clientId);
+        const aggregatedDebt: ClientDebt | null = clientDebtRows.length > 0
+          ? clientDebtRows.reduce<ClientDebt>((acc, row) => ({
+              client_id: clientId,
+              fullname: acc.fullname || row.fullname || '',
+              client_company: acc.client_company || row.client_company || '',
+              expected_uzs: (acc.expected_uzs || 0) + Number(row.expected_uzs ?? row.expected_usd ?? 0),
+              paid_uzs: (acc.paid_uzs || 0) + Number(row.paid_uzs ?? row.paid_usd ?? 0),
+              remaining_uzs: (acc.remaining_uzs || 0) + Math.max(0, Number(row.remaining_uzs ?? row.remaining_usd ?? 0)),
+              expected_usd: acc.expected_usd + Number(row.expected_uzs ?? row.expected_usd ?? 0),
+              paid_usd: acc.paid_usd + Number(row.paid_uzs ?? row.paid_usd ?? 0),
+              remaining_usd: acc.remaining_usd + Math.max(0, Number(row.remaining_uzs ?? row.remaining_usd ?? 0)),
+            }), {
+              client_id: clientId,
+              fullname: '',
+              client_company: '',
+              expected_uzs: 0,
+              paid_uzs: 0,
+              remaining_uzs: 0,
+              expected_usd: 0,
+              paid_usd: 0,
+              remaining_usd: 0,
+            })
+          : null;
+        setClientDebt(aggregatedDebt);
       } catch (error) {
         console.error('Error fetching client details:', error);
         setError('Mijoz ma\'lumotlarini yuklashda xatolik yuz berdi');
